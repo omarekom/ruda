@@ -6,9 +6,21 @@ Not a 1:1 Minecraft clone: signals are on/off, the world is flat, and crossings 
 
 ## Status
 
-Planning. See [docs/SPEC.md](docs/SPEC.md) for the feature list per version and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the design.
+Version 0.1 (playable core) is implemented. See [docs/SPEC.md](docs/SPEC.md) for the feature list per version and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the design.
 
-## Planned stack
+## Development
+
+Requires Node.js and pnpm (`corepack enable`).
+
+```sh
+pnpm install
+pnpm dev        # start the web app
+pnpm test       # run tests
+pnpm typecheck
+pnpm lint
+```
+
+## Stack
 
 - `packages/core` – TypeScript simulation library (no UI)
 - `apps/web` – Vue 3 + Vite + Canvas 2D
