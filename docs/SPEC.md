@@ -46,11 +46,13 @@ Other
 
 ## 0.2 – Saving
 
-- Multiple saved worlds, with a world list.
+- Multiple saved worlds, with a world list: create, open, rename, delete (with confirmation), import and export.
 - Worlds stored locally (IndexedDB).
-- Explicit **Save** button, "unsaved changes" warning when closing the window, background autosave as a safety net.
-- Export / import of `.ruda` files (minified JSON).
-- Versioned file format with migrations from older versions to newer ones.
+- Explicit **Save** button (and Ctrl+S) with a saved / unsaved indicator.
+- "Unsaved changes" warning when closing the window; leaving a world with unsaved changes asks to save, discard or cancel.
+- Background autosave as a safety net: every 30 s and when the tab is hidden, unsaved changes go to a separate recovery copy, never to the world's real save. Opening a world whose recovery copy is newer than its save offers to restore it.
+- Export / import of `.ruda` files (minified JSON, world name included). An imported world is added to the list.
+- Versioned file format with migrations from older versions to newer ones; files from a newer version are rejected with a clear message.
 
 ## 0.3 – Timing and inputs
 

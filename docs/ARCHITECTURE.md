@@ -58,12 +58,13 @@ Minified JSON. Blocks are grouped by type and state, with coordinates as a flat 
 
 ## Tooling
 
-pnpm workspaces, TypeScript (strict), Vite, Vue 3, vue-i18n, Vitest, ESLint, Prettier. The renderer lives in `apps/web/src/renderer` until there is a reason to split it out.
+pnpm workspaces, TypeScript 6 (strict), Vite, Vue 3, vue-i18n, idb, Vitest, ESLint, Prettier. The renderer lives in `apps/web/src/renderer` until there is a reason to split it out.
 
 ## Frontend
 
 - Vue 3 renders only panels (hotbar, menus). The world is drawn on a canvas outside Vue's reactivity.
-- Saving: IndexedDB, explicit Save, `beforeunload` warning for unsaved changes.
+- Saving: IndexedDB (via `idb`) with two stores: `worlds` (the real saves) and `recovery` (autosaved copies of unsaved changes, keyed by world id). Saving a world deletes its recovery copy in the same transaction. `beforeunload` warns about unsaved changes.
+- Only player commands mark a world as unsaved; torch ticks do not (their state is still saved with the next save).
 - Strings go through i18n keys from the start (English only at first).
 
 ## Mouse placement
