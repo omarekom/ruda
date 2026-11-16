@@ -1,4 +1,4 @@
-import { Simulation, type Command } from '@ruda/core';
+import type { Command, ReadonlyWorld, Simulation } from '@ruda/core';
 import { KeyboardInput } from '../input/keyboard';
 import { PointerInput } from '../input/pointer';
 import { Camera } from '../renderer/camera';
@@ -10,7 +10,6 @@ const PAN_SPEED_PX_PER_S = 700;
 
 /** Wires the simulation to the canvas: real-time ticks, rendering and input. */
 export class Game {
-  private readonly simulation = new Simulation();
   private readonly camera = new Camera();
   private readonly renderer: Renderer;
   private readonly keyboard: KeyboardInput;
@@ -18,7 +17,13 @@ export class Game {
   private readonly loop: TickLoop;
   private readonly resizeObserver: ResizeObserver;
 
-  constructor(canvas: HTMLCanvasElement, hotbar: HotbarState) {
+  /** `onEdit` runs after every command that changed the world. */
+  constructor(
+    canvas: HTMLCanvasElement,
+    hotbar: HotbarState,
+    private readonly simulation: Simulation,
+    private readonly onEdit: () => void,
+  ) {
     this.renderer = new Renderer(canvas, this.camera);
     this.keyboard = new KeyboardInput(hotbar);
     this.pointer = new PointerInput(
@@ -50,8 +55,14 @@ export class Game {
     this.resizeObserver.disconnect();
   }
 
+  get blocks(): ReadonlyWorld {
+    return this.simulation.blocks;
+  }
+
   private execute(command: Command): boolean {
-    return this.simulation.execute(command);
+    const applied = this.simulation.execute(command);
+    if (applied) this.onEdit();
+    return applied;
   }
 
   private frame(dtMs: number): void {

@@ -8,3 +8,40 @@ body,
   color: #e8e8e8;
   font-family: system-ui, sans-serif;
 }
+
+button {
+  padding: 6px 12px;
+  border: 1px solid #555;
+  border-radius: 4px;
+  background: #33363d;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: #3d4049;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+button.primary {
+  border-color: #c8392f;
+  background: #a32b22;
+}
+
+button.primary:hover:not(:disabled) {
+  background: #b9342a;
+}
+
+input {
+  padding: 5px 8px;
+  border: 1px solid #555;
+  border-radius: 4px;
+  background: #1d1f24;
+  color: inherit;
+  font: inherit;
+}

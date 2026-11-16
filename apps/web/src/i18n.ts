@@ -6,4 +6,7 @@ export const i18n = createI18n({
   locale: 'en',
   fallbackLocale: 'en',
   messages: { en },
+  datetimeFormats: {
+    en: { short: { dateStyle: 'medium', timeStyle: 'short' } },
+  },
 });

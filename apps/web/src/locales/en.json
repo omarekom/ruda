@@ -1,4 +1,47 @@
 {
+  "app": {
+    "title": "Ruda",
+    "storageUnavailable": "Worlds cannot be stored in this browser (IndexedDB is unavailable)."
+  },
+  "worlds": {
+    "title": "Your worlds",
+    "empty": "No worlds yet. Create one or import a .ruda file.",
+    "new": "New world",
+    "defaultName": "New world",
+    "import": "Import",
+    "open": "Open",
+    "rename": "Rename",
+    "export": "Export",
+    "delete": "Delete",
+    "nameLabel": "World name",
+    "savedAt": "Saved {date}",
+    "confirmDelete": "Delete “{name}”? This cannot be undone.",
+    "restorePrompt": "“{name}” has unsaved changes from {date}. Restore them?",
+    "restore": "Restore",
+    "discardChanges": "Discard"
+  },
+  "editor": {
+    "back": "Worlds",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "unsaved": "Unsaved changes",
+    "export": "Export",
+    "saveFailed": "Saving failed.",
+    "leavePrompt": "Save changes to “{name}” before leaving?",
+    "discard": "Discard"
+  },
+  "dialog": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete"
+  },
+  "fileErrors": {
+    "invalid_json": "The file is damaged or not a Ruda world.",
+    "not_ruda": "The file is not a Ruda world.",
+    "too_new": "The file was made with a newer version of Ruda. Please update.",
+    "invalid_content": "The world in the file is damaged and cannot be loaded."
+  },
   "hotbar": {
     "label": "Hotbar",
     "slot": "{key}: {name}"
@@ -13,6 +56,6 @@
     "stone": "Stone"
   },
   "help": {
-    "controls": "Right click: place / toggle lever · Left click: remove · R or right-drag: rotate · WASD, arrows or middle drag: move · Wheel: zoom"
+    "controls": "Right click: place / toggle lever · Left click: remove · R or right-drag: rotate · WASD, arrows or middle drag: move · Wheel: zoom · Ctrl+S: save"
   }
 }
