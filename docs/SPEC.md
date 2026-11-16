@@ -15,22 +15,24 @@ World and camera
 
 Editing
 - Hotbar ("inventory") at the bottom; slots selected with number keys (1–9) or clicking.
-- Right mouse button places the selected block, left mouse button removes the block under the cursor (Minecraft-style).
+- Right mouse button places the selected block, left mouse button removes the block under the cursor (Minecraft-style). Blocks are placed only into empty cells; nothing is replaced.
 - `R` rotates the held block. Holding the right mouse button and dragging also rotates it toward the drag direction.
-- Clicking a lever toggles it.
+- Right-clicking a lever toggles it.
 
-Blocks
-- Redstone block – constant power source.
-- Lever – toggleable power source.
-- Wire – conducts power; auto-connects to all neighbours.
-- Crossing – special tile letting two wires cross without connecting.
-- Lamp – lit when powered.
-- Torch – directional inverter with 1-tick delay. Drawn as a half-cell block plus a torch, to show the connection.
+Blocks (hotbar slots 1–7)
+- Redstone block – constant power source; powers its 4 neighbours.
+- Lever – toggleable power source; powers its 4 neighbours when on.
+- Wire – conducts power. Connects to wires, crossings, redstone blocks, levers, lamps and the front and back of torches.
+- Crossing – lets a horizontal and a vertical wire pass through each other without connecting.
+- Lamp – lit when powered; does not pass power on.
+- Torch – directional inverter with 1-tick delay. Its input is the cell behind it; it powers only the cell in front of it. Drawn as a half-cell block plus a torch, to show the connection.
 - Stone – inert block with no function (for pushing and walls).
 
 Simulation
 - Binary signal (on/off), no signal strength.
+- Only wires and crossings carry signal. Other blocks (stone, lamps) never pass power on. Only the 4 direct neighbours count, never diagonals.
 - Discrete ticks, 10 ticks per second, running continuously in real time (a frontend constant, not a user setting).
+- The simulation pauses while the browser tab is hidden and continues without catching up on missed ticks.
 - Deterministic: all components are evaluated simultaneously from the previous tick's state.
 - The core library can also simulate instantly (without real-time pacing).
 
