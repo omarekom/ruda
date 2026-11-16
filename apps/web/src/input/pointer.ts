@@ -13,7 +13,8 @@ const ROTATE_DRAG_CELLS = 0.5;
 
 /**
  * Mouse controls on the world canvas: right button places (dragging sets the facing) or
- * toggles a lever, left button removes, middle button pans, wheel zooms.
+ * interacts with a block (lever, button, delayer), left button removes, middle button pans,
+ * wheel zooms.
  */
 export class PointerInput {
   private cursor: [number, number] | undefined;
@@ -25,7 +26,7 @@ export class PointerInput {
     private readonly camera: Camera,
     private readonly hotbar: HotbarState,
     private readonly execute: (command: Command) => boolean,
-    private readonly cellIsLever: (x: number, y: number) => boolean,
+    private readonly isInteractiveAt: (x: number, y: number) => boolean,
   ) {}
 
   attach(): void {
@@ -72,7 +73,7 @@ export class PointerInput {
     if (event.button === LEFT) {
       this.execute({ kind: 'remove', x, y });
     } else if (event.button === RIGHT) {
-      if (this.cellIsLever(x, y)) this.execute({ kind: 'toggle', x, y });
+      if (this.isInteractiveAt(x, y)) this.execute({ kind: 'interact', x, y });
       else this.placing = { x, y };
     } else if (event.button === MIDDLE) {
       event.preventDefault();

@@ -1,4 +1,4 @@
-import type { Command, ReadonlyWorld, Simulation } from '@ruda/core';
+import { isInteractive, type Command, type ReadonlyWorld, type Simulation } from '@ruda/core';
 import { KeyboardInput } from '../input/keyboard';
 import { PointerInput } from '../input/pointer';
 import { Camera } from '../renderer/camera';
@@ -31,7 +31,10 @@ export class Game {
       this.camera,
       hotbar,
       (command) => this.execute(command),
-      (x, y) => this.simulation.blocks.get(x, y)?.type === 'lever',
+      (x, y) => {
+        const block = this.simulation.blocks.get(x, y);
+        return block !== undefined && isInteractive(block);
+      },
     );
     this.loop = new TickLoop(
       () => this.simulation.step(),

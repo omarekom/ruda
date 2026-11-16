@@ -1,4 +1,4 @@
-import { Axis, Direction, type Block, type BlockOf, type BlockType } from '@ruda/core';
+import { Axis, Direction, MAX_DELAY, type Block, type BlockOf, type BlockType } from '@ruda/core';
 
 /** Everything about a cell's surroundings and power that affects how it is drawn. */
 export interface CellAppearance {
@@ -33,7 +33,16 @@ const COLORS = {
   torchOff: '#4a1a15',
   torchOn: '#ff5a2a',
   crossingPlate: '#2b2d33',
+  buttonUp: '#9a9a9a',
+  slotUnused: '#3c3c3c',
 } as const;
+
+/** Rotates the context so that a look drawn facing north faces `facing`. */
+function faceToward(g: CanvasRenderingContext2D, facing: Direction, size: number): void {
+  g.translate(size / 2, size / 2);
+  g.rotate((facing * Math.PI) / 2);
+  g.translate(-size / 2, -size / 2);
+}
 
 const wireColor = (on: boolean): string => (on ? COLORS.wireOn : COLORS.wireOff);
 
@@ -141,9 +150,7 @@ const drawLever: Look<'lever'> = (g, block, s) => {
 const drawTorch: Look<'torch'> = (g, block, s) => {
   g.save();
   // Drawn facing north, then rotated: the back half is the block it is attached to.
-  g.translate(s / 2, s / 2);
-  g.rotate((block.facing * Math.PI) / 2);
-  g.translate(-s / 2, -s / 2);
+  faceToward(g, block.facing, s);
   g.fillStyle = COLORS.plateDark;
   g.fillRect(0, s / 2, s, s / 2);
   g.fillStyle = COLORS.wood;
@@ -159,6 +166,37 @@ const drawTorch: Look<'torch'> = (g, block, s) => {
   g.restore();
 };
 
+const drawDelayer: Look<'delayer'> = (g, block, s) => {
+  g.save();
+  faceToward(g, block.facing, s);
+  g.fillStyle = COLORS.plateDark;
+  g.fillRect(s * 0.08, s * 0.04, s * 0.84, s * 0.92);
+  g.fillStyle = wireColor(block.line[0] ?? false);
+  g.beginPath();
+  g.moveTo(s / 2, s * 0.08);
+  g.lineTo(s * 0.78, s * 0.3);
+  g.lineTo(s * 0.22, s * 0.3);
+  g.closePath();
+  g.fill();
+  // One slot per tick of delay, front first, showing the signals travelling through the line.
+  const slot = 0.56 / MAX_DELAY;
+  for (let i = 0; i < MAX_DELAY; i++) {
+    const on = block.line[i];
+    g.fillStyle = on === undefined ? COLORS.slotUnused : wireColor(on);
+    g.fillRect(s * 0.38, s * (0.36 + i * slot), s * 0.24, s * (slot - 0.03));
+  }
+  g.restore();
+};
+
+const drawButton: Look<'button'> = (g, block, s) => {
+  const pressed = block.remaining > 0;
+  g.fillStyle = COLORS.plateDark;
+  g.fillRect(s * 0.2, s * 0.2, s * 0.6, s * 0.6);
+  const inset = pressed ? 0.34 : 0.28;
+  g.fillStyle = pressed ? COLORS.wireOn : COLORS.buttonUp;
+  g.fillRect(s * inset, s * inset, s * (1 - 2 * inset), s * (1 - 2 * inset));
+};
+
 const LOOKS: { readonly [T in BlockType]: Look<T> } = {
   redstone_block: drawRedstoneBlock,
   lever: drawLever,
@@ -167,6 +205,8 @@ const LOOKS: { readonly [T in BlockType]: Look<T> } = {
   lamp: drawLamp,
   torch: drawTorch,
   stone: drawStone,
+  delayer: drawDelayer,
+  button: drawButton,
 };
 
 export function drawBlock(

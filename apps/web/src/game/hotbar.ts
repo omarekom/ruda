@@ -15,6 +15,8 @@ export const HOTBAR_SLOTS: readonly BlockType[] = [
   'lamp',
   'torch',
   'stone',
+  'delayer',
+  'button',
 ];
 
 /** UI state of the hotbar; shared by the Vue panel and the canvas input handlers. */

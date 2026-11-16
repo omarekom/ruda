@@ -53,9 +53,11 @@
     "crossing": "Crossing",
     "lamp": "Lamp",
     "torch": "Torch",
-    "stone": "Stone"
+    "stone": "Stone",
+    "delayer": "Delayer",
+    "button": "Button"
   },
   "help": {
-    "controls": "Right click: place / toggle lever · Left click: remove · R or right-drag: rotate · WASD, arrows or middle drag: move · Wheel: zoom · Ctrl+S: save"
+    "controls": "Right click: place / use (lever, button, delayer delay) · Left click: remove · R or right-drag: rotate · WASD, arrows or middle drag: move · Wheel: zoom · Ctrl+S: save"
   }
 }
