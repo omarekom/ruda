@@ -67,6 +67,26 @@ Other
 - Push animation.
 - If two pistons push into the same cell in one tick, neither moves.
 
+## 0.5 – Graphical interface
+
+Scope still to be designed. Questions to settle:
+
+- Overall look and layout of the editor and the world list.
+- Which controls get on-screen buttons or menus instead of only shortcuts.
+- Block visuals (style, colors, power indication).
+- Help and onboarding for new players (replacing the current one-line control hint).
+
+## 0.6 – Debug mode
+
+- Pressing `/` turns debug mode on and off.
+
+Contents still to be decided. Candidates:
+
+- Cell coordinates under the cursor and camera position / zoom.
+- Tick counter, ticks per second and frame rate.
+- World statistics: block, chunk and wire-network counts.
+- Overlays: chunk borders, wire networks highlighted, torches pending evaluation.
+
 ## Future
 
 Ideas, not committed:
