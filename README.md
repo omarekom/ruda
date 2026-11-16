@@ -6,7 +6,7 @@ Not a 1:1 Minecraft clone: signals are on/off, the world is flat, and crossings 
 
 ## Status
 
-Versions 0.1 (playable core) and 0.2 (saving) are implemented. See [docs/SPEC.md](docs/SPEC.md) for the feature list per version and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the design.
+Versions 0.1 (playable core), 0.2 (saving) and 0.3 (timing and inputs) are implemented. See [docs/SPEC.md](docs/SPEC.md) for the feature list per version and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the design.
 
 ## Development
 

@@ -19,7 +19,7 @@ Editing
 - Hotbar ("inventory") at the bottom; slots selected with number keys (1–9) or clicking.
 - Right mouse button places the selected block, left mouse button removes the block under the cursor (Minecraft-style). Blocks are placed only into empty cells; nothing is replaced.
 - `R` rotates the held block. Holding the right mouse button and dragging also rotates it toward the drag direction.
-- Right-clicking a lever toggles it.
+- Right-clicking a lever toggles it (and, from 0.3, presses a button or cycles a delayer's delay).
 
 Blocks (hotbar slots 1–7)
 
@@ -56,8 +56,9 @@ Other
 
 ## 0.3 – Timing and inputs
 
-- Repeater with adjustable delay.
-- Button (momentary power source).
+- Delayer (hotbar slot 8) – a pure delay line, rotatable. Its output equals its input from `delay` ticks earlier, so every pulse comes out unchanged, just later. Delay is 1–4 ticks (new delayers start at 1); right-clicking a placed delayer cycles 1 → 2 → 3 → 4 → 1, and the change keeps the current output. Like a torch, it reads only its back and powers only its front. It shows the signals travelling through it.
+- Button (hotbar slot 9) – momentary power source. Right-clicking powers its 4 neighbours for 10 ticks (1 s); presses while it is on are ignored.
+- File format 2 (adds the new blocks); format 1 files still load.
 
 ## 0.4 – Pistons
 
@@ -96,6 +97,7 @@ Ideas, not committed:
 - Undo / redo.
 - Selection, copy and paste, saved blueprints.
 - Sticky pistons.
+- Delayer locking: a delayer powered from its side by another delayer holds its output.
 - Observer, comparator and other components.
 - Multiplayer: one client hosts, others join (see ARCHITECTURE.md).
 - Fully playable with only a keyboard or only a mouse (the default is both together).

@@ -25,12 +25,14 @@ The core knows nothing about the UI, storage or real time. Persistence and tick 
 
 - Binary signal; a connected group of wires is a single node (a _network_). A crossing has two independent channels, horizontal and vertical; each joins the network on its axis.
 - Sources (redstone block, lit lever, lit torch front) power adjacent cells. Only wire networks carry power further; other blocks never conduct.
-- A torch's input is its back neighbour; it outputs only to its front neighbour.
+- A torch's (and delayer's) input is its back neighbour; it outputs only to its front neighbour.
+- Blocks with a delay (torch, delayer, button) define a `tick` in the registry: their next state from the power entering each side. Each also declares which sides it reads. A block is evaluated only when a side it reads changes, or while ticking it again with unchanged inputs would still change it (a delay line still shifting, a button counting down).
 - Edits are commands applied between ticks. Zero-delay parts (wires, crossings, lamps) settle immediately after a command or a torch change.
 - Per tick, every torch is evaluated simultaneously from the previous tick's state (all reads happen before any write), so order does not matter and runs are deterministic. A newly placed torch starts unlit and updates on the next tick.
-- Wires, levers, lamps and crossings have no delay. Torch (and later repeater, piston) have a delay of 1 tick or more.
+- Wires, levers, lamps and crossings have no delay. Torch, delayer and button (and later piston) have a delay of 1 tick or more.
 - Only active parts are recomputed (event-driven), not the whole world: only torches whose input may have changed are evaluated, and only networks touched by a change are rebuilt.
-- Torch lit state is world state (it is saved); network power and lamp state are derived and recomputed on load.
+- Torch lit state, delayer contents and button countdown are world state (they are saved); network power and lamp state are derived and recomputed on load.
+- Player interaction is one `interact` command; the registry decides what it does (flip a lever, press a button, cycle a delay).
 
 ## File format (`.ruda`)
 
@@ -38,17 +40,20 @@ Minified JSON. Blocks are grouped by type and state, with coordinates as a flat 
 
 ```json
 {
-  "format": 1,
+  "format": 2,
   "name": "My world",
   "blocks": {
     "redstone_block": [0, 0, 5, 3],
     "lever:off": [2, 2],
-    "torch:east:lit": [4, 4]
+    "torch:east:lit": [4, 4],
+    "delayer:north:3:010": [6, 1],
+    "button:0": [7, 7]
   }
 }
 ```
 
-- The key is the block type followed by every state segment, in a fixed order (`type:state…`). States are always written explicitly: `lever:on` / `lever:off`, `torch:<north|east|south|west>:<lit|unlit>`. Stateless blocks have no suffix.
+- The key is the block type followed by every state segment, in a fixed order (`type:state…`). States are always written explicitly: `lever:on` / `lever:off`, `torch:<north|east|south|west>:<lit|unlit>`, `delayer:<facing>:<delay>:<line>` (the line is one `0`/`1` per tick of delay, current output first), `button:<ticks remaining>`. Stateless blocks have no suffix.
+- Format history: 1 – initial blocks; 2 – adds delayer and button (no changes to existing content).
 - The value is a flat list of `x, y` pairs.
 - Output is canonical: keys and cells are sorted, so the same world always gives the same file.
 - `format` is the file version. Loading runs a chain of migrations `vN → vN+1`. A file newer than the app is rejected with a clear message. Old migrations are never edited, only appended.
