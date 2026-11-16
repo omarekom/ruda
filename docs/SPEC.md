@@ -74,12 +74,21 @@ Other
 
 ## 0.5 – Graphical interface
 
-Scope still to be designed. Questions to settle:
+Scope still being designed; sketches live in `tmp_gui_props/`.
 
-- Overall look and layout of the editor and the world list.
+Direction so far:
+
+- Two modes. **Game mode** is the default: real time, simple, playful. **Expert mode** turns Ruda into a tool for players who want more.
+- Expert mode layout: a menu bar, a block palette grouped by role (power, wiring, logic, output, mechanics, building), an inspector for the block under the cursor, world statistics, a status bar, and a zoomable minimap.
+- World list: a grid of cards with a thumbnail of each world.
+- Onboarding: a coach-mark tour that points at parts of the screen step by step.
+
+Questions to settle:
+
+- Game mode look and layout (game-like buttons and hotbar are welcome, but it must not look like Minecraft).
 - Which controls get on-screen buttons or menus instead of only shortcuts.
 - Block visuals (style, colors, power indication).
-- Help and onboarding for new players (replacing the current one-line control hint).
+- UI icons.
 
 ## 0.6 – Debug mode
 
@@ -107,6 +116,7 @@ Ideas, not committed:
 - Fully playable with only a keyboard or only a mouse (the default is both together).
 - Mobile / touch support.
 - Textures, sounds and richer game-like visuals.
+- A joke "blocky game" skin: Minecraft-style pixel font, bevelled buttons, hotbar and pause menu.
 - Simulation in a Web Worker.
 - Running worlds headless from a file (CLI / library use).
 - Sharing worlds and prebuilt circuits.
