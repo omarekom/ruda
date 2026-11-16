@@ -194,6 +194,7 @@
     </div>
 
     <script src="shared.js"></script>
+    <script src="styles.js"></script>
     <script>
       const $ = (id) => document.getElementById(id);
       let hover = null;
@@ -207,7 +208,7 @@
       const items = Ruda.TYPES.map((t, i) => {
         const el = document.createElement('div');
         el.className = 'item';
-        el.innerHTML = `<span class="k">${i + 1}</span><canvas></canvas><span>${Ruda.NAMES[t].toUpperCase()}</span>`;
+        el.innerHTML = `<span class="k">${Ruda.slotKey(i)}</span><canvas></canvas><span>${Ruda.NAMES[t].toUpperCase()}</span>`;
         el.onclick = () => select(i);
         $('legend').append(el);
         Ruda.drawIcon(el.querySelector('canvas'), t, 'blueprint', i % 2 === 0);

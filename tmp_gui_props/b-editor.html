@@ -182,6 +182,22 @@
         height: 100%;
         cursor: crosshair;
       }
+      .minimap {
+        position: absolute;
+        right: 12px;
+        bottom: 52px;
+        width: 220px;
+        height: 140px;
+        background: rgba(255, 253, 249, 0.92);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .minimap canvas {
+        position: static;
+        width: 100%;
+        height: 100%;
+      }
       .zoom {
         position: absolute;
         right: 12px;
@@ -314,6 +330,7 @@
 
       <main>
         <canvas id="world"></canvas>
+        <div class="minimap"><canvas id="mini"></canvas></div>
         <div class="zoom">
           <button id="zo">−</button><button id="zr">100%</button><button id="zi">+</button>
         </div>
@@ -341,6 +358,7 @@
     <div class="dropdown" id="dd" hidden></div>
 
     <script src="shared.js"></script>
+    <script src="styles.js"></script>
     <script>
       const $ = (id) => document.getElementById(id);
       let hover = { c: null, b: null };
@@ -356,10 +374,11 @@
       $('save').onclick = () => dirty(false);
 
       const groups = [
-        ['Power', ['redstone_block', 'lever']],
+        ['Power', ['redstone_block', 'lever', 'button']],
         ['Wiring', ['wire', 'crossing']],
-        ['Logic', ['torch']],
+        ['Logic', ['torch', 'delayer']],
         ['Output', ['lamp']],
+        ['Mechanics', ['piston']],
         ['Building', ['stone']],
       ];
       const tools = {};
@@ -369,7 +388,7 @@
           const el = document.createElement('div');
           el.className = 'tool';
           el.title = Ruda.HINTS[t];
-          el.innerHTML = `<canvas></canvas><span>${Ruda.NAMES[t]}</span><kbd>${Ruda.TYPES.indexOf(t) + 1}</kbd>`;
+          el.innerHTML = `<canvas></canvas><span>${Ruda.NAMES[t]}</span><kbd>${Ruda.slotKey(Ruda.TYPES.indexOf(t))}</kbd>`;
           el.onclick = () => select(Ruda.TYPES.indexOf(t));
           $('palette').append(el);
           Ruda.drawIcon(el.querySelector('canvas'), t, 'flat');
@@ -438,6 +457,7 @@
       );
       addEventListener('click', () => ($('dd').hidden = true));
 
+      setInterval(() => Ruda.drawMinimap(document.getElementById('mini'), view), 60);
       setInterval(() => {
         const { c, b } = hover;
         $('insp').innerHTML = b

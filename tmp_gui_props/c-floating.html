@@ -242,6 +242,7 @@
     </div>
 
     <script src="shared.js"></script>
+    <script src="styles.js"></script>
     <script>
       const $ = (id) => document.getElementById(id);
       let hover = null;
@@ -259,7 +260,7 @@
           $('dock').insertAdjacentHTML('beforeend', '<div class="sep"></div>');
         const el = document.createElement('div');
         el.className = 'd';
-        el.innerHTML = `<canvas></canvas><span class="lbl">${Ruda.NAMES[t]}<small>${i + 1}</small></span>`;
+        el.innerHTML = `<canvas></canvas><span class="lbl">${Ruda.NAMES[t]}<small>${Ruda.slotKey(i)}</small></span>`;
         el.onclick = () => select(i);
         $('dock').append(el);
         Ruda.drawIcon(el.querySelector('canvas'), t, 'neon');

@@ -315,6 +315,7 @@
     <div class="note">Proposal A — try: 1–7, right click, Esc, H, /</div>
 
     <script src="shared.js"></script>
+    <script src="styles.js"></script>
     <script>
       const $ = (id) => document.getElementById(id);
       let hovered = null;
@@ -327,7 +328,7 @@
       const slots = Ruda.TYPES.map((t, i) => {
         const el = document.createElement('div');
         el.className = 'slot';
-        el.innerHTML = `<span class="n">${i + 1}</span><canvas></canvas>`;
+        el.innerHTML = `<span class="n">${Ruda.slotKey(i)}</span><canvas></canvas>`;
         el.onclick = () => select(i);
         $('hotbar').append(el);
         Ruda.drawIcon(el.querySelector('canvas'), t, 'pixel');
