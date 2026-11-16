@@ -1,4 +1,4 @@
-import { Axis, axisOf, Direction, opposite } from './coords';
+import { Axis, axisOf, Direction, directionFromName, directionName, opposite } from './coords';
 
 export type Block =
   | { readonly type: 'redstone_block' }
@@ -23,11 +23,27 @@ interface BlockDefinition<T extends BlockType> {
   channel(side: Direction): Axis | undefined;
   /** Whether a neighbouring wire visually and logically attaches to the given side. */
   attachesWire(block: BlockOf<T>, side: Direction): boolean;
+  /** State segments written after the type in a file key, e.g. `['east', 'lit']`. */
+  stateOf(block: BlockOf<T>): readonly string[];
+  /** Rebuilds a block from its state segments; undefined if they are invalid. */
+  fromState(state: readonly string[]): BlockOf<T> | undefined;
 }
 
 const never = (): false => false;
 const always = (): true => true;
 const noChannel = (): undefined => undefined;
+const noState = (): readonly string[] => [];
+
+/** `fromState` for blocks without state: only an empty state is valid. */
+function stateless<B extends Block>(block: B): (state: readonly string[]) => B | undefined {
+  return (state) => (state.length === 0 ? block : undefined);
+}
+
+function onOff(value: string | undefined, on: string, off: string): boolean | undefined {
+  if (value === on) return true;
+  if (value === off) return false;
+  return undefined;
+}
 
 const REGISTRY: { readonly [T in BlockType]: BlockDefinition<T> } = {
   redstone_block: {
@@ -36,6 +52,8 @@ const REGISTRY: { readonly [T in BlockType]: BlockDefinition<T> } = {
     emitsPower: always,
     channel: noChannel,
     attachesWire: always,
+    stateOf: noState,
+    fromState: stateless({ type: 'redstone_block' }),
   },
   lever: {
     rotatable: false,
@@ -43,6 +61,11 @@ const REGISTRY: { readonly [T in BlockType]: BlockDefinition<T> } = {
     emitsPower: (block) => block.on,
     channel: noChannel,
     attachesWire: always,
+    stateOf: (block) => [block.on ? 'on' : 'off'],
+    fromState: ([power, ...rest]) => {
+      const on = onOff(power, 'on', 'off');
+      return on === undefined || rest.length > 0 ? undefined : { type: 'lever', on };
+    },
   },
   wire: {
     rotatable: false,
@@ -51,6 +74,8 @@ const REGISTRY: { readonly [T in BlockType]: BlockDefinition<T> } = {
     // A wire is a single channel; the axis only identifies it.
     channel: () => Axis.Horizontal,
     attachesWire: always,
+    stateOf: noState,
+    fromState: stateless({ type: 'wire' }),
   },
   crossing: {
     rotatable: false,
@@ -58,6 +83,8 @@ const REGISTRY: { readonly [T in BlockType]: BlockDefinition<T> } = {
     emitsPower: never,
     channel: axisOf,
     attachesWire: always,
+    stateOf: noState,
+    fromState: stateless({ type: 'crossing' }),
   },
   lamp: {
     rotatable: false,
@@ -65,6 +92,8 @@ const REGISTRY: { readonly [T in BlockType]: BlockDefinition<T> } = {
     emitsPower: never,
     channel: noChannel,
     attachesWire: always,
+    stateOf: noState,
+    fromState: stateless({ type: 'lamp' }),
   },
   torch: {
     rotatable: true,
@@ -72,6 +101,13 @@ const REGISTRY: { readonly [T in BlockType]: BlockDefinition<T> } = {
     emitsPower: (block, side) => block.lit && side === block.facing,
     channel: noChannel,
     attachesWire: (block, side) => side === block.facing || side === opposite(block.facing),
+    stateOf: (block) => [directionName(block.facing), block.lit ? 'lit' : 'unlit'],
+    fromState: ([name, light, ...rest]) => {
+      const facing = name === undefined ? undefined : directionFromName(name);
+      const lit = onOff(light, 'lit', 'unlit');
+      if (facing === undefined || lit === undefined || rest.length > 0) return undefined;
+      return { type: 'torch', facing, lit };
+    },
   },
   stone: {
     rotatable: false,
@@ -79,6 +115,8 @@ const REGISTRY: { readonly [T in BlockType]: BlockDefinition<T> } = {
     emitsPower: never,
     channel: noChannel,
     attachesWire: never,
+    stateOf: noState,
+    fromState: stateless({ type: 'stone' }),
   },
 };
 
@@ -107,4 +145,16 @@ export function channelOf(block: Block, side: Direction): Axis | undefined {
 
 export function attachesWire(block: Block, side: Direction): boolean {
   return definitionOf(block.type).attachesWire(block, side);
+}
+
+export function stateOf(block: Block): readonly string[] {
+  return definitionOf(block.type).stateOf(block);
+}
+
+export function isBlockType(type: string): type is BlockType {
+  return Object.hasOwn(REGISTRY, type);
+}
+
+export function blockFromState(type: BlockType, state: readonly string[]): Block | undefined {
+  return definitionOf(type).fromState(state);
 }

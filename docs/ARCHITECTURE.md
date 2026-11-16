@@ -39,18 +39,22 @@ Minified JSON. Blocks are grouped by type and state, with coordinates as a flat 
 ```json
 {
   "format": 1,
+  "name": "My world",
   "blocks": {
     "redstone_block": [0, 0, 5, 3],
     "lever:off": [2, 2],
-    "torch:east": [4, 4]
+    "torch:east:lit": [4, 4]
   }
 }
 ```
 
-- The key is the block type, optionally followed by its state (`type:state`).
+- The key is the block type followed by every state segment, in a fixed order (`type:state…`). States are always written explicitly: `lever:on` / `lever:off`, `torch:<north|east|south|west>:<lit|unlit>`. Stateless blocks have no suffix.
 - The value is a flat list of `x, y` pairs.
-- `format` is the file version. Loading runs a chain of migrations `vN → vN+1`. A file newer than the app is rejected with a clear message.
+- Output is canonical: keys and cells are sorted, so the same world always gives the same file.
+- `format` is the file version. Loading runs a chain of migrations `vN → vN+1`. A file newer than the app is rejected with a clear message. Old migrations are never edited, only appended.
+- Loading is strict: unknown blocks, bad coordinates or a cell listed twice reject the file.
 - Names have no namespace prefix.
+- Worlds stored in the browser use the same format, so migrations apply to them too.
 
 ## Tooling
 

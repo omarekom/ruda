@@ -17,6 +17,17 @@ export const DIRECTIONS: readonly Direction[] = [
   Direction.West,
 ];
 
+const DIRECTION_NAMES = ['north', 'east', 'south', 'west'] as const;
+
+export function directionName(direction: Direction): string {
+  return DIRECTION_NAMES[direction];
+}
+
+export function directionFromName(name: string): Direction | undefined {
+  const index = DIRECTION_NAMES.indexOf(name as (typeof DIRECTION_NAMES)[number]);
+  return index === -1 ? undefined : (index as Direction);
+}
+
 export enum Axis {
   Horizontal = 0,
   Vertical = 1,
