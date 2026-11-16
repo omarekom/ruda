@@ -65,8 +65,9 @@ Other
 - Piston (hotbar slot 10, key `0`) – push only, no sticky variant, rotatable. Powered from its back and both sides, never from its front (head) side.
 - Extends 1 tick after it gets power; when power stops it retracts 1 tick later. Retracting only pulls the head back; pushed blocks stay where they are.
 - The extended head occupies the cell in front: nothing can be placed there and it does not conduct power (like stone). Removing either the piston or its head removes both.
-- Pushes a chain of up to 12 blocks; if the chain is longer, would leave the world, or contains an extended piston or a piston head, nothing moves. A blocked piston tries again every tick while it is powered.
-- Pushes all other blocks, including wires, levers, lamps and retracted pistons, keeping their state.
+- Only solid blocks are pushed: stone, redstone block, lamp and retracted pistons. They keep their state.
+- Flat components (wire, crossing, lever, button, torch, delayer), extended pistons and piston heads cannot be pushed; one anywhere in the chain blocks the push.
+- Pushes a chain of up to 12 blocks; if the chain is longer, would leave the world, or contains a block that cannot be pushed, nothing moves. A blocked piston tries again every tick while it is powered.
 - Push animation.
 - If two pistons would touch the same cell in one tick (pushing into the same cell, or one pushing the other), neither moves.
 - File format 3 (adds the piston); older files still load.

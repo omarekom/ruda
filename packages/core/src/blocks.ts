@@ -41,6 +41,8 @@ export type BlockOf<T extends BlockType> = Extract<Block, { type: T }>;
 interface BlockDefinition<T extends BlockType> {
   /** Whether the block has a facing that the player can rotate. */
   readonly rotatable: boolean;
+  /** Solid blocks can be pushed by pistons; flat components block the push instead. */
+  readonly pushable: boolean;
   /** Creates a freshly placed block. */
   create(facing: Direction): BlockOf<T>;
   /** Whether the block sends power out of the given side to its neighbour. */
@@ -97,6 +99,7 @@ function onOff(value: string | undefined, on: string, off: string): boolean | un
 const REGISTRY: { readonly [T in BlockType]: BlockDefinition<T> } = {
   redstone_block: {
     rotatable: false,
+    pushable: true,
     create: () => ({ type: 'redstone_block' }),
     emitsPower: always,
     channel: noChannel,
@@ -107,6 +110,7 @@ const REGISTRY: { readonly [T in BlockType]: BlockDefinition<T> } = {
   },
   lever: {
     rotatable: false,
+    pushable: false,
     create: () => ({ type: 'lever', on: false }),
     emitsPower: (block) => block.on,
     channel: noChannel,
@@ -121,6 +125,7 @@ const REGISTRY: { readonly [T in BlockType]: BlockDefinition<T> } = {
   },
   wire: {
     rotatable: false,
+    pushable: false,
     create: () => ({ type: 'wire' }),
     emitsPower: never,
     // A wire is a single channel; the axis only identifies it.
@@ -132,6 +137,7 @@ const REGISTRY: { readonly [T in BlockType]: BlockDefinition<T> } = {
   },
   crossing: {
     rotatable: false,
+    pushable: false,
     create: () => ({ type: 'crossing' }),
     emitsPower: never,
     channel: axisOf,
@@ -142,6 +148,7 @@ const REGISTRY: { readonly [T in BlockType]: BlockDefinition<T> } = {
   },
   lamp: {
     rotatable: false,
+    pushable: true,
     create: () => ({ type: 'lamp' }),
     emitsPower: never,
     channel: noChannel,
@@ -152,6 +159,7 @@ const REGISTRY: { readonly [T in BlockType]: BlockDefinition<T> } = {
   },
   torch: {
     rotatable: true,
+    pushable: false,
     create: (facing) => ({ type: 'torch', facing, lit: false }),
     emitsPower: (block, side) => block.lit && side === block.facing,
     channel: noChannel,
@@ -168,6 +176,7 @@ const REGISTRY: { readonly [T in BlockType]: BlockDefinition<T> } = {
   },
   delayer: {
     rotatable: true,
+    pushable: false,
     create: (facing) => ({ type: 'delayer', facing, line: [false] }),
     emitsPower: (block, side) => (block.line[0] ?? false) && side === block.facing,
     channel: noChannel,
@@ -200,6 +209,7 @@ const REGISTRY: { readonly [T in BlockType]: BlockDefinition<T> } = {
   },
   button: {
     rotatable: false,
+    pushable: false,
     create: () => ({ type: 'button', remaining: 0 }),
     emitsPower: (block) => block.remaining > 0,
     channel: noChannel,
@@ -216,6 +226,7 @@ const REGISTRY: { readonly [T in BlockType]: BlockDefinition<T> } = {
   },
   piston: {
     rotatable: true,
+    pushable: true,
     create: (facing) => ({ type: 'piston', facing, extended: false }),
     emitsPower: never,
     channel: noChannel,
@@ -233,6 +244,7 @@ const REGISTRY: { readonly [T in BlockType]: BlockDefinition<T> } = {
   },
   piston_head: {
     rotatable: false,
+    pushable: false,
     create: (facing) => ({ type: 'piston_head', facing }),
     emitsPower: never,
     channel: noChannel,
@@ -246,6 +258,7 @@ const REGISTRY: { readonly [T in BlockType]: BlockDefinition<T> } = {
   },
   stone: {
     rotatable: false,
+    pushable: true,
     create: () => ({ type: 'stone' }),
     emitsPower: never,
     channel: noChannel,
@@ -265,6 +278,10 @@ function definitionOf(type: BlockType): BlockDefinition<BlockType> {
 
 export function createBlock(type: BlockType, facing: Direction = Direction.North): Block {
   return definitionOf(type).create(facing);
+}
+
+export function isPushable(block: Block): boolean {
+  return definitionOf(block.type).pushable;
 }
 
 export function isRotatable(type: BlockType): boolean {

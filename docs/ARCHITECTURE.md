@@ -86,7 +86,7 @@ One client hosts and is authoritative; others send edit commands and receive sta
 - A piston ignores power coming from its front (head) side. This lets a piston push a redstone block without being re-powered by it, and costs the simulation only one excluded input side.
 - The extended head is its own block (`piston_head`) so every cell query stays a plain world lookup. It is never placed by the player; loading rejects a piston without its head or a head without its piston.
 - The piston's registry `tick` only returns the wanted position. The simulation turns it into a _plan_: the cells the move touches (the piston, every destination cell). After all blocks have read the previous tick, plans that share a cell are dropped, so conflicts are order-independent; the rest are applied as ordinary cell edits.
-- Pushed blocks keep their state; a block whose state changed this tick moves with the new state.
+- Each block type declares in the registry whether it is `pushable` (solid) or not (flat components). Pushed blocks keep their state; a block whose state changed this tick moves with the new state.
 - The simulation exposes the moves of the last tick (`recentMoves`) so the renderer can animate them; this is transient, not world state.
 
 ## Coordinates

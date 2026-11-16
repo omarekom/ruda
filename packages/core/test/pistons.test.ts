@@ -76,18 +76,36 @@ describe('Piston', () => {
     expect(sim.blocks.get(x, 0)).toMatchObject({ extended: false });
   });
 
-  it('pushes wires, levers and power sources, updating power', () => {
-    const sim = simulationFrom('Lp#.o');
-    expect(sim.isLampLit(4, 0)).toBe(false);
+  it('pushes solid blocks, updating power', () => {
+    const sim = simulationFrom('Lp#o.o');
+    expect(sim.isLampLit(5, 0)).toBe(false);
     sim.execute({ kind: 'interact', x: 0, y: 0 });
     sim.step();
+    expect(types(sim, 0, 6)).toEqual([
+      'lever',
+      'piston',
+      'piston_head',
+      'redstone_block',
+      'lamp',
+      'lamp',
+    ]);
     expect(sim.isLampLit(4, 0)).toBe(true);
+  });
 
-    const wires = simulationFrom('Lp-l.o');
-    wires.execute({ kind: 'interact', x: 0, y: 0 });
-    wires.step();
-    expect(types(wires, 0, 6)).toEqual(['lever', 'piston', 'piston_head', 'wire', 'lever', 'lamp']);
-    expect(wires.isLampLit(5, 0)).toBe(true);
+  it.each([
+    ['wire', '-'],
+    ['crossing', '+'],
+    ['lever', 'L'],
+    ['button', 'B'],
+    ['torch', '^'],
+    ['delayer', ')'],
+  ])('is blocked by a %s, anywhere in the chain', (_name, char) => {
+    for (const map of [`Lp${char}`, `LpS${char}S`]) {
+      const sim = simulationFrom(map);
+      sim.execute({ kind: 'interact', x: 0, y: 0 });
+      sim.step(2);
+      expect(sim.blocks.get(1, 0)).toMatchObject({ extended: false });
+    }
   });
 
   it('moves neither piston when two push into the same cell', () => {

@@ -1,4 +1,4 @@
-import type { Block, BlockOf } from './blocks';
+import { isPushable, type Block, type BlockOf } from './blocks';
 import { cellKey, isInWorld, offset, opposite } from './coords';
 import type { ReadonlyWorld } from './world';
 
@@ -28,14 +28,14 @@ export interface PistonPlan {
   readonly moves: readonly BlockMove[];
 }
 
-/** Piston heads and extended pistons stay put; everything else can be pushed. */
+/** Solid blocks can be pushed, except an extended piston, which is held by its head. */
 export function isMovable(block: Block): boolean {
-  return block.type !== 'piston_head' && !(block.type === 'piston' && block.extended);
+  return isPushable(block) && !(block.type === 'piston' && block.extended);
 }
 
 /** Players place only whole, retracted pistons; heads appear by extending. */
 export function isPlaceable(block: Block): boolean {
-  return isMovable(block);
+  return block.type !== 'piston_head' && !(block.type === 'piston' && block.extended);
 }
 
 /** Plans moving the piston at (x, y) to `target`; undefined if it is blocked. */
