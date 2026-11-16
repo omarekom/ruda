@@ -1,7 +1,11 @@
 export {
   BLOCK_TYPES,
+  BUTTON_TICKS,
   createBlock,
+  isInteractive,
   isRotatable,
+  MAX_DELAY,
+  MIN_DELAY,
   type Block,
   type BlockOf,
   type BlockType,

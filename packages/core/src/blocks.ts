@@ -7,7 +7,21 @@ export type Block =
   | { readonly type: 'crossing' }
   | { readonly type: 'lamp' }
   | { readonly type: 'torch'; readonly facing: Direction; readonly lit: boolean }
+  /**
+   * A pure delay line: `line[0]` is the current output, the last item the most recently
+   * sampled input. Its length is the delay in ticks.
+   */
+  | { readonly type: 'delayer'; readonly facing: Direction; readonly line: readonly boolean[] }
+  /** Powered while `remaining` ticks are left. */
+  | { readonly type: 'button'; readonly remaining: number }
   | { readonly type: 'stone' };
+
+export const MIN_DELAY = 1;
+export const MAX_DELAY = 4;
+export const BUTTON_TICKS = 10;
+
+/** Reports whether power enters the block through the given side. */
+export type PowerInput = (side: Direction) => boolean;
 
 export type BlockType = Block['type'];
 export type BlockOf<T extends BlockType> = Extract<Block, { type: T }>;
@@ -27,12 +41,33 @@ interface BlockDefinition<T extends BlockType> {
   stateOf(block: BlockOf<T>): readonly string[];
   /** Rebuilds a block from its state segments; undefined if they are invalid. */
   fromState(state: readonly string[]): BlockOf<T> | undefined;
+  /** Sides the block reads power from to compute its next tick. */
+  inputs(block: BlockOf<T>): readonly Direction[];
+  /** Blocks with a delay: the state one tick later, given the power entering each side. */
+  tick?(block: BlockOf<T>, input: PowerInput): BlockOf<T>;
+  /** The state after the player interacts with it; undefined if nothing happens. */
+  interact?(block: BlockOf<T>): BlockOf<T> | undefined;
 }
 
 const never = (): false => false;
 const always = (): true => true;
 const noChannel = (): undefined => undefined;
 const noState = (): readonly string[] => [];
+const noInputs = (): readonly Direction[] => [];
+const back = (block: { readonly facing: Direction }): readonly Direction[] => [
+  opposite(block.facing),
+];
+const frontAndBack = (block: { readonly facing: Direction }, side: Direction): boolean =>
+  side === block.facing || side === opposite(block.facing);
+
+function parseDirection(name: string | undefined): Direction | undefined {
+  return name === undefined ? undefined : directionFromName(name);
+}
+
+/** Parses a non-negative integer written in canonical form (no sign, no leading zeros). */
+function parseCount(value: string | undefined): number | undefined {
+  return value !== undefined && /^(0|[1-9]\d*)$/.test(value) ? Number(value) : undefined;
+}
 
 /** `fromState` for blocks without state: only an empty state is valid. */
 function stateless<B extends Block>(block: B): (state: readonly string[]) => B | undefined {
@@ -54,6 +89,7 @@ const REGISTRY: { readonly [T in BlockType]: BlockDefinition<T> } = {
     attachesWire: always,
     stateOf: noState,
     fromState: stateless({ type: 'redstone_block' }),
+    inputs: noInputs,
   },
   lever: {
     rotatable: false,
@@ -66,6 +102,8 @@ const REGISTRY: { readonly [T in BlockType]: BlockDefinition<T> } = {
       const on = onOff(power, 'on', 'off');
       return on === undefined || rest.length > 0 ? undefined : { type: 'lever', on };
     },
+    inputs: noInputs,
+    interact: (block) => ({ type: 'lever', on: !block.on }),
   },
   wire: {
     rotatable: false,
@@ -76,6 +114,7 @@ const REGISTRY: { readonly [T in BlockType]: BlockDefinition<T> } = {
     attachesWire: always,
     stateOf: noState,
     fromState: stateless({ type: 'wire' }),
+    inputs: noInputs,
   },
   crossing: {
     rotatable: false,
@@ -85,6 +124,7 @@ const REGISTRY: { readonly [T in BlockType]: BlockDefinition<T> } = {
     attachesWire: always,
     stateOf: noState,
     fromState: stateless({ type: 'crossing' }),
+    inputs: noInputs,
   },
   lamp: {
     rotatable: false,
@@ -94,20 +134,71 @@ const REGISTRY: { readonly [T in BlockType]: BlockDefinition<T> } = {
     attachesWire: always,
     stateOf: noState,
     fromState: stateless({ type: 'lamp' }),
+    inputs: noInputs,
   },
   torch: {
     rotatable: true,
     create: (facing) => ({ type: 'torch', facing, lit: false }),
     emitsPower: (block, side) => block.lit && side === block.facing,
     channel: noChannel,
-    attachesWire: (block, side) => side === block.facing || side === opposite(block.facing),
+    attachesWire: frontAndBack,
     stateOf: (block) => [directionName(block.facing), block.lit ? 'lit' : 'unlit'],
     fromState: ([name, light, ...rest]) => {
-      const facing = name === undefined ? undefined : directionFromName(name);
+      const facing = parseDirection(name);
       const lit = onOff(light, 'lit', 'unlit');
       if (facing === undefined || lit === undefined || rest.length > 0) return undefined;
       return { type: 'torch', facing, lit };
     },
+    inputs: back,
+    tick: (block, input) => ({ ...block, lit: !input(opposite(block.facing)) }),
+  },
+  delayer: {
+    rotatable: true,
+    create: (facing) => ({ type: 'delayer', facing, line: [false] }),
+    emitsPower: (block, side) => (block.line[0] ?? false) && side === block.facing,
+    channel: noChannel,
+    attachesWire: frontAndBack,
+    stateOf: (block) => [
+      directionName(block.facing),
+      String(block.line.length),
+      block.line.map((on) => (on ? '1' : '0')).join(''),
+    ],
+    fromState: ([name, delayText, bits, ...rest]) => {
+      const facing = parseDirection(name);
+      const delay = parseCount(delayText);
+      if (facing === undefined || delay === undefined || bits === undefined || rest.length > 0) {
+        return undefined;
+      }
+      if (delay < MIN_DELAY || delay > MAX_DELAY || !/^[01]+$/.test(bits)) return undefined;
+      if (bits.length !== delay) return undefined;
+      return { type: 'delayer', facing, line: [...bits].map((bit) => bit === '1') };
+    },
+    inputs: back,
+    tick: (block, input) => ({
+      ...block,
+      line: [...block.line.slice(1), input(opposite(block.facing))],
+    }),
+    // Cycles the delay; the whole line takes the current output so the change causes no pulse.
+    interact: (block) => {
+      const delay = (block.line.length % MAX_DELAY) + MIN_DELAY;
+      return { ...block, line: new Array<boolean>(delay).fill(block.line[0] ?? false) };
+    },
+  },
+  button: {
+    rotatable: false,
+    create: () => ({ type: 'button', remaining: 0 }),
+    emitsPower: (block) => block.remaining > 0,
+    channel: noChannel,
+    attachesWire: always,
+    stateOf: (block) => [String(block.remaining)],
+    fromState: ([text, ...rest]) => {
+      const remaining = parseCount(text);
+      if (remaining === undefined || remaining > BUTTON_TICKS || rest.length > 0) return undefined;
+      return { type: 'button', remaining };
+    },
+    inputs: noInputs,
+    tick: (block) => ({ ...block, remaining: Math.max(0, block.remaining - 1) }),
+    interact: (block) => (block.remaining > 0 ? undefined : { ...block, remaining: BUTTON_TICKS }),
   },
   stone: {
     rotatable: false,
@@ -117,6 +208,7 @@ const REGISTRY: { readonly [T in BlockType]: BlockDefinition<T> } = {
     attachesWire: never,
     stateOf: noState,
     fromState: stateless({ type: 'stone' }),
+    inputs: noInputs,
   },
 };
 
@@ -157,4 +249,32 @@ export function isBlockType(type: string): type is BlockType {
 
 export function blockFromState(type: BlockType, state: readonly string[]): Block | undefined {
   return definitionOf(type).fromState(state);
+}
+
+export function inputsOf(block: Block): readonly Direction[] {
+  return definitionOf(block.type).inputs(block);
+}
+
+/** The block one tick later, or undefined for blocks without delay. */
+export function tickBlock(block: Block, input: PowerInput): Block | undefined {
+  return definitionOf(block.type).tick?.(block, input);
+}
+
+export function hasDelay(block: Block): boolean {
+  return definitionOf(block.type).tick !== undefined;
+}
+
+export function isInteractive(block: Block): boolean {
+  return definitionOf(block.type).interact !== undefined;
+}
+
+export function interactWith(block: Block): Block | undefined {
+  return definitionOf(block.type).interact?.(block);
+}
+
+export function sameBlock(a: Block, b: Block): boolean {
+  if (a.type !== b.type) return false;
+  const stateA = stateOf(a);
+  const stateB = stateOf(b);
+  return stateA.length === stateB.length && stateA.every((part, i) => part === stateB[i]);
 }

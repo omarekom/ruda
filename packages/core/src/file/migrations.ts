@@ -6,7 +6,10 @@ export type JsonObject = { readonly [key: string]: unknown };
 export type Migration = (file: JsonObject) => JsonObject;
 
 /** `MIGRATIONS[i]` migrates format `i + 1` to `i + 2`. Append new migrations; never edit old ones. */
-export const MIGRATIONS: readonly Migration[] = [];
+export const MIGRATIONS: readonly Migration[] = [
+  // 1 → 2: adds the delayer and button blocks; existing content is unchanged.
+  (file) => file,
+];
 
 export const CURRENT_FORMAT = MIGRATIONS.length + 1;
 

@@ -12,9 +12,9 @@ describe('Simulation: wires and sources', () => {
   it('reacts to a lever without delay', () => {
     const sim = simulationFrom('L--o');
     expect(sim.isLampLit(3, 0)).toBe(false);
-    expect(sim.execute({ kind: 'toggle', x: 0, y: 0 })).toBe(true);
+    expect(sim.execute({ kind: 'interact', x: 0, y: 0 })).toBe(true);
     expect(sim.isLampLit(3, 0)).toBe(true);
-    sim.execute({ kind: 'toggle', x: 0, y: 0 });
+    sim.execute({ kind: 'interact', x: 0, y: 0 });
     expect(sim.isLampLit(3, 0)).toBe(false);
   });
 
@@ -80,7 +80,7 @@ describe('Simulation: torch', () => {
     const sim = simulationFrom('L->-o');
     sim.step();
     expect(sim.isLampLit(4, 0)).toBe(true);
-    sim.execute({ kind: 'toggle', x: 0, y: 0 });
+    sim.execute({ kind: 'interact', x: 0, y: 0 });
     expect(sim.isLampLit(4, 0)).toBe(true);
     sim.step();
     expect(sim.isLampLit(4, 0)).toBe(false);
@@ -114,7 +114,7 @@ o>o
     const sim = simulationFrom('L>>>o');
     sim.runUntilStable(10);
     expect(sim.isLampLit(4, 0)).toBe(true);
-    sim.execute({ kind: 'toggle', x: 0, y: 0 });
+    sim.execute({ kind: 'interact', x: 0, y: 0 });
     const ticks = sim.runUntilStable(10);
     expect(ticks).toBe(3);
     expect(sim.isLampLit(4, 0)).toBe(false);
@@ -154,9 +154,9 @@ describe('Simulation: commands', () => {
     expect(sim.execute({ kind: 'place', x: 40000, y: 0, block: createBlock('wire') })).toBe(false);
   });
 
-  it('only toggles levers and only removes existing blocks', () => {
+  it('only interacts with interactive blocks and only removes existing blocks', () => {
     const sim = simulationFrom('S');
-    expect(sim.execute({ kind: 'toggle', x: 0, y: 0 })).toBe(false);
+    expect(sim.execute({ kind: 'interact', x: 0, y: 0 })).toBe(false);
     expect(sim.execute({ kind: 'remove', x: 1, y: 0 })).toBe(false);
   });
 });

@@ -1,4 +1,12 @@
-import { emitsPower, type Block, type BlockOf } from './blocks';
+import {
+  emitsPower,
+  hasDelay,
+  inputsOf,
+  interactWith,
+  sameBlock,
+  tickBlock,
+  type Block,
+} from './blocks';
 import type { Command } from './commands';
 import {
   Axis,
@@ -20,17 +28,15 @@ import {
 } from './networks';
 import { World, type ReadonlyWorld } from './world';
 
-type Torch = BlockOf<'torch'>;
-
 /**
  * Owns a world and advances it in discrete ticks. Commands are applied between ticks and
- * zero-delay parts settle immediately; torches react one tick later. Only torches whose
- * input may have changed are evaluated each tick.
+ * zero-delay parts settle immediately; blocks with a delay (torch, delayer, button) change
+ * on ticks. Only those whose next tick may differ are evaluated.
  */
 export class Simulation {
   private readonly world: World;
   private readonly networks: Networks;
-  private readonly pendingTorches = new Set<number>();
+  private readonly pending = new Set<number>();
   private ticks = 0;
 
   constructor(world: World = new World()) {
@@ -39,7 +45,7 @@ export class Simulation {
     const channels: Channel[] = [];
     world.forEach((x, y, block) => {
       channels.push(...channelsOf(x, y, block));
-      if (block.type === 'torch') this.pendingTorches.add(cellKey(x, y));
+      if (hasDelay(block)) this.pending.add(cellKey(x, y));
     });
     this.networks.build(channels);
   }
@@ -54,7 +60,7 @@ export class Simulation {
 
   /** True when further ticks would change nothing. */
   get isStable(): boolean {
-    return this.pendingTorches.size === 0;
+    return this.pending.size === 0;
   }
 
   /** Applies a command; returns false if it was not applicable and changed nothing. */
@@ -71,10 +77,12 @@ export class Simulation {
         if (!current) return false;
         this.edit(x, y, undefined);
         return true;
-      case 'toggle':
-        if (current?.type !== 'lever') return false;
-        this.edit(x, y, { type: 'lever', on: !current.on });
+      case 'interact': {
+        const next = current && interactWith(current);
+        if (!next) return false;
+        this.edit(x, y, next);
         return true;
+      }
     }
   }
 
@@ -118,29 +126,35 @@ export class Simulation {
   }
 
   private tick(): void {
-    // Every torch reads the settled state of the previous tick before any of them changes.
-    const flips: [number, number, Torch][] = [];
-    for (const key of this.pendingTorches) {
+    // Every block reads the settled state of the previous tick before any of them changes.
+    const changes: [number, number, Block, Block][] = [];
+    for (const key of this.pending) {
       const [x, y] = cellFromKey(key);
       const block = this.world.get(x, y);
-      if (block?.type !== 'torch') continue;
-      const lit = !this.receivesPower(x, y, opposite(block.facing));
-      if (lit !== block.lit) flips.push([x, y, { ...block, lit }]);
+      const next = block && tickBlock(block, (side) => this.receivesPower(x, y, side));
+      if (block && next && !sameBlock(block, next)) changes.push([x, y, block, next]);
     }
-    this.pendingTorches.clear();
+    this.pending.clear();
 
     const touched = new Set<Network>();
-    for (const [x, y, torch] of flips) {
-      this.world.set(x, y, torch);
-      const [dx, dy] = offset(torch.facing);
-      const fx = x + dx;
-      const fy = y + dy;
-      const network = this.networks.atSide(fx, fy, opposite(torch.facing));
-      if (network) touched.add(network);
-      this.markTorchIfBackFaces(fx, fy, torch.facing);
+    for (const [x, y, before, after] of changes) {
+      this.world.set(x, y, after);
+      for (const side of DIRECTIONS) {
+        if (emitsPower(before, side) === emitsPower(after, side)) continue;
+        const [dx, dy] = offset(side);
+        const network = this.networks.atSide(x + dx, y + dy, opposite(side));
+        if (network) touched.add(network);
+        this.markIfReads(x + dx, y + dy, opposite(side));
+      }
     }
     for (const network of touched) {
-      if (this.networks.refresh(network)) this.markTorchesAround(network.channels);
+      if (this.networks.refresh(network)) this.markReadersAround(network.channels);
+    }
+    // A block that would change again with unchanged inputs (a delay line still shifting,
+    // a button counting down) stays scheduled.
+    for (const [x, y, , after] of changes) {
+      const next = tickBlock(after, (side) => this.receivesPower(x, y, side));
+      if (next && !sameBlock(after, next)) this.pending.add(cellKey(x, y));
     }
     this.ticks++;
   }
@@ -171,30 +185,30 @@ export class Simulation {
       const changed = network.channels.filter(
         (c) => (wasPowered.get(channelKey(c.x, c.y, c.axis)) ?? false) !== network.powered,
       );
-      this.markTorchesAround(changed);
+      this.markReadersAround(changed);
     }
 
-    if (block?.type === 'torch') this.pendingTorches.add(cellKey(x, y));
+    if (block && hasDelay(block)) this.pending.add(cellKey(x, y));
     for (const side of DIRECTIONS) {
       const [dx, dy] = offset(side);
-      this.markTorchIfBackFaces(x + dx, y + dy, side);
+      this.markIfReads(x + dx, y + dy, opposite(side));
     }
   }
 
-  private markTorchesAround(channels: readonly Channel[]): void {
+  private markReadersAround(channels: readonly Channel[]): void {
     for (const channel of channels) {
       const block = this.world.get(channel.x, channel.y);
       if (!block) continue;
       for (const side of channelSides(block, channel.axis)) {
         const [dx, dy] = offset(side);
-        this.markTorchIfBackFaces(channel.x + dx, channel.y + dy, side);
+        this.markIfReads(channel.x + dx, channel.y + dy, opposite(side));
       }
     }
   }
 
-  /** Marks the torch at (x, y) if it faces `facing`, i.e. its back is toward the source. */
-  private markTorchIfBackFaces(x: number, y: number, facing: Direction): void {
+  /** Schedules the block at (x, y) if it reads power from the given side. */
+  private markIfReads(x: number, y: number, side: Direction): void {
     const block = this.world.get(x, y);
-    if (block?.type === 'torch' && block.facing === facing) this.pendingTorches.add(cellKey(x, y));
+    if (block && inputsOf(block).includes(side)) this.pending.add(cellKey(x, y));
   }
 }
