@@ -197,6 +197,33 @@ const drawButton: Look<'button'> = (g, block, s) => {
   g.fillRect(s * inset, s * inset, s * (1 - 2 * inset), s * (1 - 2 * inset));
 };
 
+const drawPiston: Look<'piston'> = (g, block, s) => {
+  g.save();
+  faceToward(g, block.facing, s);
+  g.fillStyle = COLORS.plateDark;
+  g.fillRect(0, 0, s, s);
+  g.fillStyle = COLORS.stone;
+  g.fillRect(s * 0.08, s * 0.08, s * 0.84, s * 0.84);
+  if (block.extended) {
+    // The face has moved out with the head; only the rod's base remains.
+    g.fillStyle = COLORS.wood;
+    g.fillRect(s * 0.4, 0, s * 0.2, s * 0.5);
+  } else {
+    g.fillStyle = COLORS.wood;
+    g.fillRect(0, 0, s, s * 0.24);
+  }
+  g.restore();
+};
+
+const drawPistonHead: Look<'piston_head'> = (g, block, s) => {
+  g.save();
+  faceToward(g, block.facing, s);
+  g.fillStyle = COLORS.wood;
+  g.fillRect(0, 0, s, s * 0.24);
+  g.fillRect(s * 0.4, s * 0.24, s * 0.2, s * 0.76);
+  g.restore();
+};
+
 const LOOKS: { readonly [T in BlockType]: Look<T> } = {
   redstone_block: drawRedstoneBlock,
   lever: drawLever,
@@ -207,6 +234,8 @@ const LOOKS: { readonly [T in BlockType]: Look<T> } = {
   stone: drawStone,
   delayer: drawDelayer,
   button: drawButton,
+  piston: drawPiston,
+  piston_head: drawPistonHead,
 };
 
 export function drawBlock(

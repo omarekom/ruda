@@ -1,8 +1,11 @@
 import {
   Axis,
+  cellKey,
   DIRECTIONS,
+  sameBlock,
   wireAttaches,
   type Block,
+  type BlockMove,
   type ReadonlyWorld,
   type Simulation,
 } from '@ruda/core';
@@ -42,7 +45,8 @@ export class Renderer {
     this.camera.resize(clientWidth, clientHeight);
   }
 
-  draw(simulation: Simulation, overlay: Overlay): void {
+  /** `tickProgress` (0–1) animates the blocks pistons moved during the last tick. */
+  draw(simulation: Simulation, overlay: Overlay, tickProgress: number): void {
     const { g, camera } = this;
     const ratio = this.canvas.width / Math.max(1, this.canvas.clientWidth);
     g.setTransform(ratio, 0, 0, ratio, 0, 0);
@@ -51,10 +55,25 @@ export class Renderer {
 
     if (camera.cellSize >= MIN_GRID_CELL_SIZE) this.drawGrid();
 
+    // Blocks that arrived at their cell this tick are drawn sliding in instead of in place.
+    // Blocks that left the world (a retracting head) slide away beneath the static blocks.
+    const arrived = new Set<number>();
+    const vanished: BlockMove[] = [];
+    for (const move of simulation.recentMoves) {
+      const there = simulation.blocks.get(move.toX, move.toY);
+      if (there && sameBlock(there, move.block)) arrived.add(cellKey(move.toX, move.toY));
+      else vanished.push(move);
+    }
+    const progress = easeOut(tickProgress);
+    for (const move of vanished) this.drawMoving(simulation, move, progress);
+
     const rect = camera.visibleCells();
     simulation.blocks.forEachInRect(rect.minX, rect.minY, rect.maxX, rect.maxY, (x, y, block) => {
-      this.drawCell(x, y, block, appearanceOf(simulation, x, y));
+      if (!arrived.has(cellKey(x, y))) this.drawCell(x, y, block, appearanceOf(simulation, x, y));
     });
+    for (const move of simulation.recentMoves) {
+      if (arrived.has(cellKey(move.toX, move.toY))) this.drawMoving(simulation, move, progress);
+    }
 
     if (overlay.ghost) {
       const { x, y, block } = overlay.ghost;
@@ -63,6 +82,12 @@ export class Renderer {
       g.globalAlpha = 1;
     }
     if (overlay.hover) this.drawHover(...overlay.hover);
+  }
+
+  private drawMoving(simulation: Simulation, move: BlockMove, progress: number): void {
+    const x = move.fromX + (move.toX - move.fromX) * progress;
+    const y = move.fromY + (move.toY - move.fromY) * progress;
+    this.drawCell(x, y, move.block, appearanceOf(simulation, move.toX, move.toY));
   }
 
   private drawCell(x: number, y: number, block: Block, appearance: CellAppearance): void {
@@ -99,6 +124,10 @@ export class Renderer {
     this.g.lineWidth = 2;
     this.g.strokeRect(sx + 1, sy + 1, size - 2, size - 2);
   }
+}
+
+function easeOut(t: number): number {
+  return 1 - (1 - t) * (1 - t);
 }
 
 function appearanceOf(simulation: Simulation, x: number, y: number): CellAppearance {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { createBlock } from '@ruda/core';
-import { HOTBAR_SLOTS, type HotbarState } from '../game/hotbar';
+import { HOTBAR_SLOTS, slotKey, type HotbarState } from '../game/hotbar';
 import BlockIcon from './BlockIcon.vue';
 
 defineProps<{ state: HotbarState }>();
@@ -15,11 +15,11 @@ const emit = defineEmits<{ select: [index: number] }>();
       type="button"
       class="slot"
       :class="{ selected: index === state.selected }"
-      :title="$t('hotbar.slot', { key: index + 1, name: $t(`blocks.${type}`) })"
+      :title="$t('hotbar.slot', { key: slotKey(index), name: $t(`blocks.${type}`) })"
       @click="emit('select', index)"
     >
       <BlockIcon :block="createBlock(type, state.facing)" />
-      <span class="key">{{ index + 1 }}</span>
+      <span class="key">{{ slotKey(index) }}</span>
     </button>
   </nav>
 </template>

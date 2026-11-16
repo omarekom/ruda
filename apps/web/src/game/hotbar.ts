@@ -17,7 +17,17 @@ export const HOTBAR_SLOTS: readonly BlockType[] = [
   'stone',
   'delayer',
   'button',
+  'piston',
 ];
+
+/** The number key that selects a slot: 1–9, then 0 for the tenth. */
+export function slotKey(index: number): string {
+  return String((index + 1) % 10);
+}
+
+export function slotForKey(digit: number): number {
+  return digit === 0 ? 9 : digit - 1;
+}
 
 /** UI state of the hotbar; shared by the Vue panel and the canvas input handlers. */
 export interface HotbarState {

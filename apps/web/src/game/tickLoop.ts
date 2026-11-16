@@ -14,7 +14,8 @@ export class TickLoop {
 
   constructor(
     private readonly onTick: () => void,
-    private readonly onFrame: (dtMs: number) => void,
+    /** `tickProgress` is the fraction of the current tick that has elapsed, in [0, 1). */
+    private readonly onFrame: (dtMs: number, tickProgress: number) => void,
   ) {}
 
   start(): void {
@@ -37,7 +38,7 @@ export class TickLoop {
       this.onTick();
       this.accumulated -= TICK_MS;
     }
-    this.onFrame(dt);
+    this.onFrame(dt, this.accumulated / TICK_MS);
     this.frame = requestAnimationFrame(this.loop);
   };
 

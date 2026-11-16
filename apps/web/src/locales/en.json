@@ -55,7 +55,9 @@
     "torch": "Torch",
     "stone": "Stone",
     "delayer": "Delayer",
-    "button": "Button"
+    "button": "Button",
+    "piston": "Piston",
+    "piston_head": "Piston head"
   },
   "help": {
     "controls": "Right click: place / use (lever, button, delayer delay) · Left click: remove · R or right-drag: rotate · WASD, arrows or middle drag: move · Wheel: zoom · Ctrl+S: save"

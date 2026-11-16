@@ -38,7 +38,7 @@ export class Game {
     );
     this.loop = new TickLoop(
       () => this.simulation.step(),
-      (dt) => this.frame(dt),
+      (dt, tickProgress) => this.frame(dt, tickProgress),
     );
     this.resizeObserver = new ResizeObserver(() => this.renderer.resize());
     this.resizeObserver.observe(canvas);
@@ -68,13 +68,13 @@ export class Game {
     return applied;
   }
 
-  private frame(dtMs: number): void {
+  private frame(dtMs: number, tickProgress: number): void {
     const [kx, ky] = this.keyboard.panDirection();
     const [ex, ey] = this.pointer.edgeScrollDirection();
     const distance = (PAN_SPEED_PX_PER_S * dtMs) / 1000;
     const dx = Math.sign(kx + ex);
     const dy = Math.sign(ky + ey);
     if (dx || dy) this.camera.panBy(dx * distance, dy * distance);
-    this.renderer.draw(this.simulation, this.pointer.overlay());
+    this.renderer.draw(this.simulation, this.pointer.overlay(), tickProgress);
   }
 }

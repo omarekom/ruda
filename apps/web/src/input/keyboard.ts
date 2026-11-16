@@ -1,4 +1,4 @@
-import { rotateHeld, selectSlot, type HotbarState } from '../game/hotbar';
+import { rotateHeld, selectSlot, slotForKey, type HotbarState } from '../game/hotbar';
 
 const PAN_KEYS: Readonly<Record<string, readonly [number, number]>> = {
   KeyW: [0, -1],
@@ -11,7 +11,7 @@ const PAN_KEYS: Readonly<Record<string, readonly [number, number]>> = {
   ArrowRight: [1, 0],
 };
 
-/** Tracks held pan keys and handles hotbar shortcuts (1–9, R). */
+/** Tracks held pan keys and handles hotbar shortcuts (0–9, R). */
 export class KeyboardInput {
   private readonly pressed = new Set<string>();
 
@@ -48,8 +48,8 @@ export class KeyboardInput {
       event.preventDefault();
       return;
     }
-    const digit = /^Digit([1-9])$/.exec(event.code)?.[1];
-    if (digit) selectSlot(this.hotbar, Number(digit) - 1);
+    const digit = /^Digit([0-9])$/.exec(event.code)?.[1];
+    if (digit) selectSlot(this.hotbar, slotForKey(Number(digit)));
     else if (event.code === 'KeyR' && !event.repeat) rotateHeld(this.hotbar);
   };
 
