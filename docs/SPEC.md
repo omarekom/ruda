@@ -7,6 +7,7 @@ Each section below is a release. Items are a plain feature list; design details 
 ## 0.1 – Playable core
 
 World and camera
+
 - Seemingly infinite 2D canvas (sparse, chunked world; hard limit 64 000 × 64 000 cells).
 - Canvas 2D rendering, only visible chunks are drawn.
 - Zoom with the mouse wheel; pan with WASD / arrow keys or the middle mouse button.
@@ -14,12 +15,14 @@ World and camera
 - Edge scrolling: moving the cursor to the edge of the screen pans the view.
 
 Editing
+
 - Hotbar ("inventory") at the bottom; slots selected with number keys (1–9) or clicking.
 - Right mouse button places the selected block, left mouse button removes the block under the cursor (Minecraft-style). Blocks are placed only into empty cells; nothing is replaced.
 - `R` rotates the held block. Holding the right mouse button and dragging also rotates it toward the drag direction.
 - Right-clicking a lever toggles it.
 
 Blocks (hotbar slots 1–7)
+
 - Redstone block – constant power source; powers its 4 neighbours.
 - Lever – toggleable power source; powers its 4 neighbours when on.
 - Wire – conducts power. Connects to wires, crossings, redstone blocks, levers, lamps and the front and back of torches.
@@ -29,6 +32,7 @@ Blocks (hotbar slots 1–7)
 - Stone – inert block with no function (for pushing and walls).
 
 Simulation
+
 - Binary signal (on/off), no signal strength.
 - Only wires and crossings carry signal. Other blocks (stone, lamps) never pass power on. Only the 4 direct neighbours count, never diagonals.
 - Discrete ticks, 10 ticks per second, running continuously in real time (a frontend constant, not a user setting).
@@ -37,6 +41,7 @@ Simulation
 - The core library can also simulate instantly (without real-time pacing).
 
 Other
+
 - English UI.
 
 ## 0.2 – Saving
@@ -63,6 +68,7 @@ Other
 ## Future
 
 Ideas, not committed:
+
 - Czech localization (strings kept in locale files from the start).
 - Advanced / simulation mode: editing and time control (pause, step, speed), alongside the real-time game mode with a discreet switch for advanced users.
 - Undo / redo.

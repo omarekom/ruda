@@ -23,7 +23,7 @@ The core knows nothing about the UI, storage or real time. Persistence and tick 
 
 ## Simulation model
 
-- Binary signal; a connected group of wires is a single node (a *network*). A crossing has two independent channels, horizontal and vertical; each joins the network on its axis.
+- Binary signal; a connected group of wires is a single node (a _network_). A crossing has two independent channels, horizontal and vertical; each joins the network on its axis.
 - Sources (redstone block, lit lever, lit torch front) power adjacent cells. Only wire networks carry power further; other blocks never conduct.
 - A torch's input is its back neighbour; it outputs only to its front neighbour.
 - Edits are commands applied between ticks. Zero-delay parts (wires, crossings, lamps) settle immediately after a command or a torch change.
