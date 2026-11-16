@@ -1,0 +1,18 @@
+{
+  "hotbar": {
+    "label": "Hotbar",
+    "slot": "{key}: {name}"
+  },
+  "blocks": {
+    "redstone_block": "Redstone block",
+    "lever": "Lever",
+    "wire": "Wire",
+    "crossing": "Crossing",
+    "lamp": "Lamp",
+    "torch": "Torch",
+    "stone": "Stone"
+  },
+  "help": {
+    "controls": "Right click: place / toggle lever · Left click: remove · R or right-drag: rotate · WASD, arrows or middle drag: move · Wheel: zoom"
+  }
+}
