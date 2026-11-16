@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>C · Floating dock</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      [hidden] {
+        display: none !important;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #0a0a12;
+        color: #dfe3ff;
+        font:
+          14px 'Space Grotesk',
+          system-ui,
+          sans-serif;
+      }
+      canvas#world {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        cursor: crosshair;
+      }
+      .glass {
+        background: rgba(22, 24, 40, 0.62);
+        backdrop-filter: blur(14px);
+        border: 1px solid rgba(160, 170, 255, 0.14);
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+      }
+
+      .dock {
+        position: fixed;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        padding: 8px;
+        display: grid;
+        gap: 4px;
+      }
+      .d {
+        width: 46px;
+        height: 46px;
+        border-radius: 11px;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        position: relative;
+        transition: background 0.15s;
+      }
+      .d:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .d.sel {
+        background: rgba(255, 61, 127, 0.16);
+        box-shadow: inset 0 0 0 1px rgba(255, 61, 127, 0.55);
+      }
+      .d canvas {
+        width: 32px;
+        height: 32px;
+      }
+      .d .lbl {
+        position: absolute;
+        left: 58px;
+        white-space: nowrap;
+        padding: 6px 10px;
+        border-radius: 8px;
+        background: #1a1c30;
+        border: 1px solid rgba(160, 170, 255, 0.2);
+        opacity: 0;
+        pointer-events: none;
+        transform: translateX(-4px);
+        transition: 0.15s;
+      }
+      .d .lbl small {
+        color: #8890c0;
+        margin-left: 8px;
+      }
+      .d:hover .lbl {
+        opacity: 1;
+        transform: none;
+      }
+      .sep {
+        height: 1px;
+        background: rgba(160, 170, 255, 0.14);
+        margin: 4px 6px;
+      }
+
+      .top {
+        position: fixed;
+        top: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 6px;
+      }
+      .top .name {
+        padding: 0 12px;
+        font-weight: 600;
+      }
+      .top .saved {
+        color: #7af0b0;
+        font-size: 12px;
+        padding-right: 10px;
+      }
+      .top .saved.dirty {
+        color: #ffd166;
+      }
+      .ib {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        height: 32px;
+        min-width: 32px;
+        padding: 0 10px;
+        border-radius: 9px;
+        cursor: pointer;
+      }
+      .ib:hover {
+        background: rgba(255, 255, 255, 0.08);
+      }
+      .ib.on {
+        background: rgba(125, 249, 255, 0.14);
+        color: #7df9ff;
+      }
+      .vr {
+        width: 1px;
+        height: 20px;
+        background: rgba(160, 170, 255, 0.18);
+        margin: 0 4px;
+      }
+
+      .menu {
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        padding: 6px;
+        display: flex;
+        gap: 4px;
+      }
+      .mini {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        width: 200px;
+        height: 130px;
+        padding: 0;
+        overflow: hidden;
+      }
+      .mini canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .coords {
+        position: fixed;
+        left: 16px;
+        bottom: 16px;
+        padding: 8px 12px;
+        font-variant-numeric: tabular-nums;
+        color: #9aa2d8;
+        font-size: 12px;
+      }
+      .toast {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 10px 16px;
+        font-size: 13px;
+        color: #9aa2d8;
+      }
+      .toast b {
+        color: #dfe3ff;
+      }
+      .sheet {
+        position: fixed;
+        top: 64px;
+        right: 16px;
+        width: 240px;
+        padding: 8px;
+        display: grid;
+      }
+      .sheet div {
+        padding: 8px 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+      }
+      .sheet div:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .sheet span {
+        color: #8890c0;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="world"></canvas>
+
+    <div class="dock glass" id="dock"></div>
+
+    <div class="top glass">
+      <span class="name">My first circuit</span><span class="saved" id="saved">● saved</span>
+      <span class="vr"></span>
+      <button class="ib on" title="Run">▶</button><button class="ib" title="Pause">❚❚</button
+      ><button class="ib" title="Step one tick">⏭</button
+      ><button class="ib" title="Speed">1×</button>
+      <span class="vr"></span>
+      <button class="ib" title="Undo">↶</button><button class="ib" title="Redo">↷</button>
+    </div>
+
+    <div class="menu glass">
+      <button class="ib" title="Help">?</button>
+      <button class="ib" id="more" title="Menu">⋯</button>
+    </div>
+    <div class="sheet glass" id="sheet" hidden>
+      <div>Save<span>Ctrl S</span></div>
+      <div>Export .ruda</div>
+      <div>Rename world</div>
+      <div>Settings</div>
+      <div>Back to worlds<span>Esc</span></div>
+    </div>
+
+    <div class="coords glass" id="coords"></div>
+    <div class="mini glass"><canvas id="mini"></canvas></div>
+    <div class="toast glass">
+      <b>Proposal C.</b> Hover the dock. Transport controls show where pause/step could go later.
+    </div>
+
+    <script src="shared.js"></script>
+    <script>
+      const $ = (id) => document.getElementById(id);
+      let hover = null;
+      const view = new Ruda.WorldView($('world'), {
+        style: 'neon',
+        zoom: 40,
+        onHover: (c) => (hover = c),
+        onEdit: () => {
+          $('saved').classList.add('dirty');
+          $('saved').textContent = '● unsaved';
+        },
+      });
+      const items = Ruda.TYPES.map((t, i) => {
+        if (i === 2 || i === 4 || i === 6)
+          $('dock').insertAdjacentHTML('beforeend', '<div class="sep"></div>');
+        const el = document.createElement('div');
+        el.className = 'd';
+        el.innerHTML = `<canvas></canvas><span class="lbl">${Ruda.NAMES[t]}<small>${i + 1}</small></span>`;
+        el.onclick = () => select(i);
+        $('dock').append(el);
+        Ruda.drawIcon(el.querySelector('canvas'), t, 'neon');
+        return el;
+      });
+      function select(i) {
+        view.tool = Ruda.TYPES[i];
+        items.forEach((el, j) => el.classList.toggle('sel', i === j));
+      }
+      select(2);
+      Ruda.bindSlots(select);
+      $('more').onclick = (e) => {
+        e.stopPropagation();
+        $('sheet').hidden = !$('sheet').hidden;
+      };
+      addEventListener('click', () => ($('sheet').hidden = true));
+      setInterval(() => {
+        Ruda.drawMinimap($('mini'), view);
+        $('coords').textContent = hover
+          ? `${hover.x}, ${hover.y}  ·  ${Math.round(view.zoom / 0.4)}%`
+          : `${Math.round(view.zoom / 0.4)}%`;
+      }, 60);
+    </script>
+  </body>
+</html>

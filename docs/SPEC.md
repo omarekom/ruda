@@ -16,7 +16,7 @@ World and camera
 
 Editing
 
-- Hotbar ("inventory") at the bottom; slots selected with number keys (1–9) or clicking.
+- Hotbar ("inventory") at the bottom; slots selected with number keys (1–9, and 0 for the tenth slot) or clicking.
 - Right mouse button places the selected block, left mouse button removes the block under the cursor (Minecraft-style). Blocks are placed only into empty cells; nothing is replaced.
 - `R` rotates the held block. Holding the right mouse button and dragging also rotates it toward the drag direction.
 - Right-clicking a lever toggles it (and, from 0.3, presses a button or cycles a delayer's delay).
@@ -62,11 +62,14 @@ Other
 
 ## 0.4 – Pistons
 
-- Piston (push only, no sticky variant), rotatable. It cannot be powered from its front (head) side.
-- Pushes a chain of up to 12 blocks; if the chain is longer or blocked, nothing moves.
-- Pushes all blocks, including wires, levers and lamps.
+- Piston (hotbar slot 10, key `0`) – push only, no sticky variant, rotatable. Powered from its back and both sides, never from its front (head) side.
+- Extends 1 tick after it gets power; when power stops it retracts 1 tick later. Retracting only pulls the head back; pushed blocks stay where they are.
+- The extended head occupies the cell in front: nothing can be placed there and it does not conduct power (like stone). Removing either the piston or its head removes both.
+- Pushes a chain of up to 12 blocks; if the chain is longer, would leave the world, or contains an extended piston or a piston head, nothing moves. A blocked piston tries again every tick while it is powered.
+- Pushes all other blocks, including wires, levers, lamps and retracted pistons, keeping their state.
 - Push animation.
-- If two pistons push into the same cell in one tick, neither moves.
+- If two pistons would touch the same cell in one tick (pushing into the same cell, or one pushing the other), neither moves.
+- File format 3 (adds the piston); older files still load.
 
 ## 0.5 – Graphical interface
 

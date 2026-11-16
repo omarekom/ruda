@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>D · Blueprint</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      [hidden] {
+        display: none !important;
+      }
+      :root {
+        --bp: #123461;
+        --line: #cfe3ff;
+        --dim: rgba(207, 227, 255, 0.45);
+        --hi: #ffd84a;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: var(--bp);
+        color: var(--line);
+        font:
+          12px 'JetBrains Mono',
+          ui-monospace,
+          monospace;
+      }
+      .frame {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        grid-template: 22px 1fr / 34px 1fr;
+      }
+      .corner {
+        border-right: 1px solid var(--dim);
+        border-bottom: 1px solid var(--dim);
+      }
+      canvas.ruler {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .rt {
+        border-bottom: 1px solid var(--dim);
+      }
+      .rl {
+        border-right: 1px solid var(--dim);
+      }
+      .stage {
+        position: relative;
+      }
+      .stage > canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        cursor: crosshair;
+      }
+
+      .box {
+        position: absolute;
+        border: 1.5px solid var(--line);
+        background: rgba(18, 52, 97, 0.9);
+      }
+      .legend {
+        top: 16px;
+        left: 16px;
+        min-width: 220px;
+      }
+      .legend .h,
+      .title .h {
+        padding: 4px 8px;
+        border-bottom: 1.5px solid var(--line);
+        letter-spacing: 0.12em;
+        font-weight: 600;
+      }
+      .item {
+        display: grid;
+        grid-template-columns: 22px 30px 1fr;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 8px;
+        cursor: pointer;
+      }
+      .item:hover {
+        background: rgba(207, 227, 255, 0.08);
+      }
+      .item.sel {
+        background: var(--line);
+        color: var(--bp);
+      }
+      .item canvas {
+        width: 26px;
+        height: 26px;
+      }
+      .item .k {
+        color: var(--dim);
+      }
+      .item.sel .k {
+        color: var(--bp);
+      }
+
+      .title {
+        right: 16px;
+        bottom: 16px;
+        display: grid;
+        grid-template-columns: auto auto;
+        min-width: 360px;
+      }
+      .title .h {
+        grid-column: 1 / -1;
+        font-size: 15px;
+      }
+      .title > span {
+        padding: 4px 8px;
+        border-top: 1px solid var(--dim);
+      }
+      .title > span:nth-child(even) {
+        border-right: 1px solid var(--dim);
+        color: var(--dim);
+      }
+      .title button {
+        all: unset;
+        cursor: pointer;
+        text-decoration: underline;
+        margin-right: 12px;
+      }
+      .title button:hover {
+        color: var(--hi);
+      }
+
+      .switch {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        display: flex;
+      }
+      .switch button {
+        all: unset;
+        cursor: pointer;
+        padding: 4px 10px;
+        border: 1.5px solid var(--line);
+      }
+      .switch button + button {
+        border-left: 0;
+      }
+      .switch button.on {
+        background: var(--line);
+        color: var(--bp);
+      }
+      .hint {
+        position: absolute;
+        left: 16px;
+        bottom: 16px;
+        color: var(--dim);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      <div class="corner"></div>
+      <div class="rt"><canvas class="ruler" id="rt"></canvas></div>
+      <div class="rl"><canvas class="ruler" id="rl"></canvas></div>
+      <div class="stage">
+        <canvas id="world"></canvas>
+
+        <div class="box legend">
+          <div class="h">COMPONENTS</div>
+          <div id="legend"></div>
+        </div>
+
+        <div class="switch">
+          <button class="on" data-s="blueprint">SCHEMATIC</button
+          ><button data-s="pixel">BLOCKS</button>
+        </div>
+
+        <div class="box title">
+          <div class="h" id="tname">MY FIRST CIRCUIT</div>
+          <span>STATUS</span><span id="tstatus">SAVED</span> <span>CURSOR</span
+          ><span id="tcur">—</span> <span>SCALE</span><span id="tscale">1 : 1</span>
+          <span>TICK</span><span id="ttick">0</span> <span>FILE</span
+          ><span
+            ><button id="tsave">SAVE</button><button>EXPORT</button><button>WORLDS</button></span
+          >
+        </div>
+        <div class="hint">
+          PROPOSAL D · rulers show cell coordinates · toggle SCHEMATIC / BLOCKS
+        </div>
+      </div>
+    </div>
+
+    <script src="shared.js"></script>
+    <script>
+      const $ = (id) => document.getElementById(id);
+      let hover = null;
+      const view = new Ruda.WorldView($('world'), {
+        style: 'blueprint',
+        zoom: 34,
+        onHover: (c) => (hover = c),
+        onEdit: () => ($('tstatus').textContent = 'MODIFIED *'),
+      });
+      $('tsave').onclick = () => ($('tstatus').textContent = 'SAVED');
+      const items = Ruda.TYPES.map((t, i) => {
+        const el = document.createElement('div');
+        el.className = 'item';
+        el.innerHTML = `<span class="k">${i + 1}</span><canvas></canvas><span>${Ruda.NAMES[t].toUpperCase()}</span>`;
+        el.onclick = () => select(i);
+        $('legend').append(el);
+        Ruda.drawIcon(el.querySelector('canvas'), t, 'blueprint', i % 2 === 0);
+        return el;
+      });
+      function select(i) {
+        view.tool = Ruda.TYPES[i];
+        items.forEach((el, j) => el.classList.toggle('sel', i === j));
+      }
+      select(2);
+      Ruda.bindSlots(select);
+      document.querySelectorAll('.switch button').forEach(
+        (b) =>
+          (b.onclick = () => {
+            document
+              .querySelectorAll('.switch button')
+              .forEach((x) => x.classList.toggle('on', x === b));
+            view.setStyle(b.dataset.s);
+          }),
+      );
+
+      function ruler(cv, horizontal) {
+        const dpr = devicePixelRatio || 1,
+          w = cv.clientWidth,
+          h = cv.clientHeight;
+        cv.width = w * dpr;
+        cv.height = h * dpr;
+        const g = cv.getContext('2d');
+        g.scale(dpr, dpr);
+        g.strokeStyle = g.fillStyle = 'rgba(207,227,255,.7)';
+        g.font = '10px JetBrains Mono, monospace';
+        const z = view.zoom,
+          len = horizontal ? w : h,
+          c = horizontal ? view.cx : view.cy;
+        const first = Math.floor(c - len / 2 / z);
+        const step = z < 14 ? 8 : z < 28 ? 4 : 2;
+        g.beginPath();
+        for (let i = first; i < first + len / z + 2; i++) {
+          const p = (i - c) * z + len / 2;
+          const major = i % step === 0,
+            hl = hover && (horizontal ? hover.x : hover.y) === i;
+          const t = major ? 8 : 4;
+          if (horizontal) {
+            g.moveTo(p + 0.5, h);
+            g.lineTo(p + 0.5, h - t);
+          } else {
+            g.moveTo(w, p + 0.5);
+            g.lineTo(w - t, p + 0.5);
+          }
+          if (hl) {
+            g.save();
+            g.fillStyle = 'rgba(255,216,74,.35)';
+            horizontal ? g.fillRect(p, 0, z, h) : g.fillRect(0, p, w, z);
+            g.restore();
+          }
+          if (major) horizontal ? g.fillText(i, p + 3, 10) : g.fillText(i, 2, p + 11);
+        }
+        g.stroke();
+      }
+      setInterval(() => {
+        ruler($('rt'), true);
+        ruler($('rl'), false);
+        $('tcur').textContent = hover ? `X ${hover.x}  Y ${hover.y}` : '—';
+        $('tscale').textContent = `${Math.round(view.zoom)} PX / CELL`;
+        $('ttick').textContent = view.tick;
+      }, 50);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>World list variants</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Silkscreen&family=VT323&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      [hidden] {
+        display: none !important;
+      }
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        font:
+          14px Inter,
+          system-ui,
+          sans-serif;
+      }
+      .tabs {
+        position: fixed;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10;
+        display: flex;
+        gap: 4px;
+        background: #222;
+        padding: 4px;
+        border-radius: 10px;
+      }
+      .tabs button {
+        font: 13px Inter;
+        color: #ccc;
+        background: none;
+        border: 0;
+        padding: 6px 12px;
+        border-radius: 7px;
+        cursor: pointer;
+      }
+      .tabs button.on {
+        background: #fff;
+        color: #111;
+      }
+      section {
+        min-height: 100vh;
+        box-sizing: border-box;
+      }
+
+      /* 1 – cards */
+      #cards {
+        background: #f7f4ee;
+        color: #2b2620;
+        padding: 70px 48px 48px;
+      }
+      #cards header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        max-width: 1100px;
+        margin: 0 auto 24px;
+      }
+      #cards h1 {
+        margin: 0;
+        font-size: 26px;
+        flex: 1;
+      }
+      .b {
+        font: inherit;
+        font-weight: 500;
+        border: 1px solid #e4ddd1;
+        background: #fff;
+        padding: 8px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      .b.dark {
+        background: #2b2620;
+        color: #fff;
+        border-color: #2b2620;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 18px;
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid #e4ddd1;
+        border-radius: 14px;
+        overflow: hidden;
+        cursor: pointer;
+        transition:
+          transform 0.15s,
+          box-shadow 0.15s;
+        position: relative;
+      }
+      .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(60, 40, 20, 0.1);
+      }
+      .card canvas {
+        width: 100%;
+        height: 150px;
+        display: block;
+      }
+      .card .meta {
+        padding: 10px 14px;
+      }
+      .card .meta b {
+        display: block;
+        font-weight: 600;
+      }
+      .card .meta span {
+        color: #8a8073;
+        font-size: 12px;
+      }
+      .card .more {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 6px;
+        padding: 2px 8px;
+        opacity: 0;
+      }
+      .card:hover .more {
+        opacity: 1;
+      }
+      .card.new {
+        display: grid;
+        place-items: center;
+        min-height: 200px;
+        border-style: dashed;
+        color: #8a8073;
+        font-weight: 500;
+      }
+      .badge {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        background: #ffe7a8;
+        color: #6b4b00;
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 99px;
+      }
+
+      /* 2 – title screen */
+      #title {
+        background: #1d1f24;
+        color: #eee;
+        font-family: 'VT323', monospace;
+        font-size: 22px;
+        position: relative;
+        overflow: hidden;
+        display: grid;
+        place-items: center;
+      }
+      #title > canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        filter: blur(2px) brightness(0.45);
+      }
+      .tbox {
+        position: relative;
+        display: grid;
+        gap: 18px;
+        justify-items: center;
+      }
+      .logo {
+        font-family: 'Silkscreen', monospace;
+        font-size: 88px;
+        color: #ff3b2f;
+        text-shadow:
+          6px 6px #5c1410,
+          0 0 40px rgba(255, 59, 47, 0.4);
+        letter-spacing: 6px;
+      }
+      .splash {
+        color: #ffd75e;
+        transform: rotate(-8deg);
+        margin: -26px 0 6px 300px;
+        text-shadow: 2px 2px #3b2a00;
+        animation: pulse 1s infinite alternate;
+      }
+      @keyframes pulse {
+        to {
+          transform: rotate(-8deg) scale(1.08);
+        }
+      }
+      .wlist {
+        width: 520px;
+        max-height: 260px;
+        overflow: auto;
+        background: rgba(0, 0, 0, 0.55);
+        border: 3px solid #000;
+        box-shadow: inset 0 0 0 2px #555;
+      }
+      .wrow {
+        display: flex;
+        gap: 12px;
+        padding: 8px 12px;
+        cursor: pointer;
+        align-items: center;
+      }
+      .wrow:hover,
+      .wrow.sel {
+        background: rgba(255, 255, 255, 0.12);
+        outline: 2px solid #aaa;
+        outline-offset: -2px;
+      }
+      .wrow canvas {
+        width: 48px;
+        height: 48px;
+        image-rendering: pixelated;
+      }
+      .wrow small {
+        display: block;
+        color: #999;
+        font-size: 18px;
+      }
+      .mb {
+        font: inherit;
+        color: #eee;
+        padding: 6px 0;
+        width: 254px;
+        cursor: pointer;
+        background: #6a6a6a;
+        border: 3px solid #000;
+        box-shadow:
+          inset -3px -3px 0 #3d3d3d,
+          inset 3px 3px 0 #9a9a9a;
+        text-shadow: 2px 2px #333;
+      }
+      .mb:hover {
+        background: #7b85c6;
+      }
+      .mrow {
+        display: grid;
+        grid-template-columns: repeat(2, 254px);
+        gap: 10px;
+      }
+
+      /* 3 – launcher */
+      #launcher {
+        background: #0f1118;
+        color: #dfe3ff;
+        display: grid;
+        grid-template-columns: 240px 1fr;
+        padding-top: 0;
+      }
+      .side {
+        background: #151824;
+        padding: 70px 16px 16px;
+        display: grid;
+        align-content: start;
+        gap: 4px;
+      }
+      .side .brand {
+        font-weight: 600;
+        font-size: 20px;
+        margin-bottom: 18px;
+        color: #ff3d7f;
+      }
+      .side a {
+        padding: 8px 10px;
+        border-radius: 8px;
+        color: #aab;
+        text-decoration: none;
+      }
+      .side a.on,
+      .side a:hover {
+        background: #1f2333;
+        color: #fff;
+      }
+      .lmain {
+        padding: 70px 36px 36px;
+      }
+      .lmain h2 {
+        margin: 0 0 16px;
+      }
+      .search {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 10px 14px;
+        background: #151824;
+        border: 1px solid #262b40;
+        border-radius: 10px;
+        color: inherit;
+        font: inherit;
+        margin-bottom: 16px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th {
+        text-align: left;
+        color: #6c7396;
+        font-weight: 500;
+        font-size: 12px;
+        padding: 8px;
+        border-bottom: 1px solid #262b40;
+      }
+      td {
+        padding: 8px;
+        border-bottom: 1px solid #1c2030;
+      }
+      tr:hover td {
+        background: #151824;
+      }
+      td canvas {
+        width: 64px;
+        height: 40px;
+        border-radius: 6px;
+        vertical-align: middle;
+      }
+      .act {
+        color: #6c7396;
+      }
+      .act span {
+        margin-right: 10px;
+        cursor: pointer;
+      }
+      .act span:hover {
+        color: #fff;
+      }
+      .lb {
+        font: inherit;
+        background: #ff3d7f;
+        color: #fff;
+        border: 0;
+        padding: 8px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      .lb.ghost {
+        background: #1f2333;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="tabs">
+      <button data-t="cards" class="on">1 · Cards</button
+      ><button data-t="title">2 · Title screen</button
+      ><button data-t="launcher">3 · Launcher</button>
+    </div>
+
+    <section id="cards">
+      <header>
+        <h1>Your worlds</h1>
+        <button class="b">Import .ruda</button><button class="b dark">+ New world</button>
+      </header>
+      <div class="grid" id="cgrid"></div>
+    </section>
+
+    <section id="title" hidden>
+      <canvas id="bgworld"></canvas>
+      <div class="tbox">
+        <div class="logo">RUDA</div>
+        <div class="splash">Now with crossings!</div>
+        <div class="wlist" id="tlist"></div>
+        <div class="mrow">
+          <button class="mb">Play selected world</button
+          ><button class="mb">Create new world</button>
+        </div>
+        <div class="mrow">
+          <button class="mb">Import / Export…</button><button class="mb">Settings</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="launcher" hidden>
+      <div class="side">
+        <div class="brand">ruda</div>
+        <a class="on" href="#">Worlds</a><a href="#">Blueprints <small>(future)</small></a
+        ><a href="#">Tutorial</a><a href="#">Settings</a><a href="#">About</a>
+      </div>
+      <div class="lmain">
+        <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 16px">
+          <h2 style="flex: 1; margin: 0">Worlds</h2>
+          <button class="lb ghost">Import</button><button class="lb">New world</button>
+        </div>
+        <input class="search" placeholder="Search worlds…" />
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th>Name</th>
+              <th>Blocks</th>
+              <th>Modified</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="ltable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <script src="shared.js"></script>
+    <script>
+      const worlds = [
+        ['My first circuit', '2 min ago', 41, true],
+        ['4-bit adder', 'yesterday', 812],
+        ['Clock experiments', '3 days ago', 96],
+        ['Door lock', 'last week', 233],
+        ['Calculator WIP', 'Oct 12', 3104],
+        ['Sandbox', 'Sep 30', 18],
+      ];
+      const thumb = (cv, i, style, zoom) =>
+        new Ruda.WorldView(cv, {
+          style,
+          world: i === 0 ? Ruda.demoWorld() : Ruda.randomWorld(i * 977),
+          interactive: false,
+          zoom,
+        });
+
+      const grid = document.getElementById('cgrid');
+      grid.insertAdjacentHTML('beforeend', '<div class="card new">+ Create new world</div>');
+      worlds.forEach(([n, t, b, rec], i) => {
+        const el = document.createElement('div');
+        el.className = 'card';
+        el.innerHTML = `<canvas></canvas>${rec ? '<span class="badge">Unsaved changes recovered</span>' : ''}<span class="more">⋯</span><div class="meta"><b>${n}</b><span>${b} blocks · edited ${t}</span></div>`;
+        grid.append(el);
+        thumb(el.querySelector('canvas'), i, 'flat', 12);
+      });
+
+      const tl = document.getElementById('tlist');
+      worlds.forEach(([n, t, b], i) => {
+        const el = document.createElement('div');
+        el.className = 'wrow' + (i === 0 ? ' sel' : '');
+        el.innerHTML = `<canvas></canvas><div>${n}<small>${t} · ${b} blocks</small></div>`;
+        el.onclick = () => {
+          tl.querySelectorAll('.wrow').forEach((r) => r.classList.remove('sel'));
+          el.classList.add('sel');
+        };
+        tl.append(el);
+        thumb(el.querySelector('canvas'), i, 'pixel', 4);
+      });
+      new Ruda.WorldView(document.getElementById('bgworld'), {
+        style: 'pixel',
+        interactive: false,
+        zoom: 40,
+        world: Ruda.demoWorld(),
+      });
+
+      const lt = document.getElementById('ltable');
+      worlds.forEach(([n, t, b], i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td><canvas></canvas></td><td>${n}</td><td>${b}</td><td>${t}</td><td class="act"><span>Open</span><span>Rename</span><span>Export</span><span>Delete</span></td>`;
+        lt.append(tr);
+        thumb(tr.querySelector('canvas'), i, 'neon', 5);
+      });
+
+      document.querySelectorAll('.tabs button').forEach(
+        (b) =>
+          (b.onclick = () => {
+            document
+              .querySelectorAll('.tabs button')
+              .forEach((x) => x.classList.toggle('on', x === b));
+            document.querySelectorAll('section').forEach((s) => (s.hidden = s.id !== b.dataset.t));
+          }),
+      );
+    </script>
+  </body>
+</html>

@@ -40,7 +40,7 @@ Minified JSON. Blocks are grouped by type and state, with coordinates as a flat 
 
 ```json
 {
-  "format": 2,
+  "format": 3,
   "name": "My world",
   "blocks": {
     "redstone_block": [0, 0, 5, 3],
@@ -53,7 +53,8 @@ Minified JSON. Blocks are grouped by type and state, with coordinates as a flat 
 ```
 
 - The key is the block type followed by every state segment, in a fixed order (`type:state…`). States are always written explicitly: `lever:on` / `lever:off`, `torch:<north|east|south|west>:<lit|unlit>`, `delayer:<facing>:<delay>:<line>` (the line is one `0`/`1` per tick of delay, current output first), `button:<ticks remaining>`. Stateless blocks have no suffix.
-- Format history: 1 – initial blocks; 2 – adds delayer and button (no changes to existing content).
+- Pistons: `piston:<facing>:<extended|retracted>`, `piston_head:<facing>`.
+- Format history: 1 – initial blocks; 2 – adds delayer and button; 3 – adds piston (no changes to existing content).
 - The value is a flat list of `x, y` pairs.
 - Output is canonical: keys and cells are sorted, so the same world always gives the same file.
 - `format` is the file version. Loading runs a chain of migrations `vN → vN+1`. A file newer than the app is rejected with a clear message. Old migrations are never edited, only appended.
@@ -80,9 +81,13 @@ One click places one block (no painting). Pressing the right button shows a ghos
 
 One client hosts and is authoritative; others send edit commands and receive state. A browser cannot accept incoming WebSocket connections, so hosting needs either a small relay server (WebSocket) or WebRTC. This is an open decision. The design already helps: deterministic ticks and edits as serializable commands.
 
-## Piston power rule
+## Pistons
 
-A piston ignores power coming from its front (head) side. This lets a piston push a redstone block without being re-powered by it, and costs the simulation only one excluded input side.
+- A piston ignores power coming from its front (head) side. This lets a piston push a redstone block without being re-powered by it, and costs the simulation only one excluded input side.
+- The extended head is its own block (`piston_head`) so every cell query stays a plain world lookup. It is never placed by the player; loading rejects a piston without its head or a head without its piston.
+- The piston's registry `tick` only returns the wanted position. The simulation turns it into a _plan_: the cells the move touches (the piston, every destination cell). After all blocks have read the previous tick, plans that share a cell are dropped, so conflicts are order-independent; the rest are applied as ordinary cell edits.
+- Pushed blocks keep their state; a block whose state changed this tick moves with the new state.
+- The simulation exposes the moves of the last tick (`recentMoves`) so the renderer can animate them; this is transient, not world state.
 
 ## Coordinates
 

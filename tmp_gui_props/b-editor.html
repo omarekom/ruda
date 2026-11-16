@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>B · Editor workbench</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      [hidden] {
+        display: none !important;
+      }
+      :root {
+        --bg: #f7f4ee;
+        --panel: #fffdf9;
+        --line: #e4ddd1;
+        --ink: #2b2620;
+        --mute: #8a8073;
+        --acc: #e8433a;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        font:
+          13px/1.4 Inter,
+          system-ui,
+          sans-serif;
+        color: var(--ink);
+        background: var(--bg);
+      }
+      .app {
+        display: grid;
+        height: 100%;
+        grid-template: 44px 1fr 26px / 200px 1fr 260px;
+      }
+      header {
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 0 12px;
+        background: var(--panel);
+        border-bottom: 1px solid var(--line);
+      }
+      .logo {
+        font-weight: 600;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .logo i {
+        width: 18px;
+        height: 18px;
+        border-radius: 5px;
+        background: var(--acc);
+        display: inline-block;
+      }
+      nav {
+        display: flex;
+        gap: 2px;
+      }
+      nav button,
+      .tbtn {
+        font: inherit;
+        border: 0;
+        background: none;
+        padding: 6px 10px;
+        border-radius: 6px;
+        color: var(--ink);
+        cursor: pointer;
+      }
+      nav button:hover,
+      .tbtn:hover {
+        background: #f0eadf;
+      }
+      .name {
+        margin-left: 8px;
+        border: 1px solid transparent;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font: inherit;
+        font-weight: 500;
+        background: none;
+        width: 180px;
+      }
+      .name:hover,
+      .name:focus {
+        border-color: var(--line);
+        outline: none;
+        background: #fff;
+      }
+      .spacer {
+        flex: 1;
+      }
+      .state {
+        color: var(--mute);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .state b {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #3fa66b;
+      }
+      .state.dirty b {
+        background: #e0a020;
+      }
+      .primary {
+        font: inherit;
+        font-weight: 500;
+        background: var(--ink);
+        color: #fff;
+        border: 0;
+        padding: 6px 14px;
+        border-radius: 7px;
+        cursor: pointer;
+      }
+
+      aside {
+        background: var(--panel);
+        border-right: 1px solid var(--line);
+        overflow: auto;
+        padding: 10px;
+      }
+      aside.right {
+        border-right: 0;
+        border-left: 1px solid var(--line);
+      }
+      h3 {
+        margin: 14px 4px 6px;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--mute);
+        font-weight: 600;
+      }
+      h3:first-child {
+        margin-top: 2px;
+      }
+      .tool {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 8px;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      .tool:hover {
+        background: #f4eee4;
+      }
+      .tool.sel {
+        background: #fde8e4;
+        box-shadow: inset 0 0 0 1px #f4b8ae;
+      }
+      .tool canvas {
+        width: 26px;
+        height: 26px;
+        background: var(--bg);
+        border-radius: 6px;
+      }
+      .tool kbd {
+        margin-left: auto;
+        font: 11px Inter;
+        color: var(--mute);
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        padding: 0 5px;
+      }
+
+      main {
+        position: relative;
+      }
+      main canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        cursor: crosshair;
+      }
+      .zoom {
+        position: absolute;
+        right: 12px;
+        bottom: 12px;
+        display: flex;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .zoom button {
+        font: inherit;
+        border: 0;
+        background: none;
+        padding: 5px 10px;
+        cursor: pointer;
+      }
+      .zoom button + button {
+        border-left: 1px solid var(--line);
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px 12px;
+        margin-bottom: 10px;
+        background: #fff;
+      }
+      .kv {
+        display: grid;
+        grid-template-columns: 90px 1fr;
+        gap: 4px 8px;
+      }
+      .kv span:nth-child(odd) {
+        color: var(--mute);
+      }
+      .pill {
+        display: inline-block;
+        padding: 1px 8px;
+        border-radius: 99px;
+        font-size: 12px;
+        background: #eee6da;
+      }
+      .pill.on {
+        background: #fde0dc;
+        color: #b52a22;
+      }
+      .sim {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+      }
+      .sim button {
+        font: inherit;
+        border: 1px solid var(--line);
+        background: #fff;
+        border-radius: 6px;
+        padding: 4px 9px;
+        cursor: pointer;
+      }
+      .sim button.active {
+        background: var(--ink);
+        color: #fff;
+        border-color: var(--ink);
+      }
+      .future {
+        font-size: 11px;
+        color: var(--mute);
+        margin-top: 6px;
+      }
+
+      footer {
+        grid-column: 1 / -1;
+        display: flex;
+        gap: 18px;
+        align-items: center;
+        padding: 0 12px;
+        background: var(--panel);
+        border-top: 1px solid var(--line);
+        color: var(--mute);
+        font-size: 12px;
+        font-variant-numeric: tabular-nums;
+      }
+      .dropdown {
+        position: absolute;
+        top: 40px;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        padding: 4px;
+        min-width: 200px;
+        z-index: 5;
+      }
+      .dropdown div {
+        padding: 6px 10px;
+        border-radius: 5px;
+        display: flex;
+        justify-content: space-between;
+        cursor: pointer;
+      }
+      .dropdown div:hover {
+        background: #f4eee4;
+      }
+      .dropdown div span {
+        color: var(--mute);
+      }
+      .dropdown hr {
+        border: 0;
+        border-top: 1px solid var(--line);
+        margin: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <span class="logo"><i></i>Ruda</span>
+        <nav id="nav">
+          <button data-m="file">World</button><button data-m="edit">Edit</button
+          ><button data-m="view">View</button><button data-m="help">Help</button>
+        </nav>
+        <input class="name" value="My first circuit" />
+        <span class="spacer"></span>
+        <span class="state" id="state"><b></b><span>Saved</span></span>
+        <button class="primary" id="save">Save</button>
+      </header>
+
+      <aside id="palette"></aside>
+
+      <main>
+        <canvas id="world"></canvas>
+        <div class="zoom">
+          <button id="zo">−</button><button id="zr">100%</button><button id="zi">+</button>
+        </div>
+      </main>
+
+      <aside class="right">
+        <h3>Under cursor</h3>
+        <div class="card" id="insp"></div>
+        <h3>Simulation</h3>
+        <div class="card">
+          <div class="sim">
+            <button class="active">▶ Run</button><button>❚❚</button><button>Step</button
+            ><button>1×</button>
+          </div>
+          <div class="future">
+            Pause/step/speed is the future “advanced mode” — could live here.
+          </div>
+        </div>
+        <h3>World</h3>
+        <div class="card kv" id="stats"></div>
+      </aside>
+
+      <footer id="status"></footer>
+    </div>
+    <div class="dropdown" id="dd" hidden></div>
+
+    <script src="shared.js"></script>
+    <script>
+      const $ = (id) => document.getElementById(id);
+      let hover = { c: null, b: null };
+      const dirty = (d) => {
+        $('state').classList.toggle('dirty', d);
+        $('state').lastChild.textContent = d ? 'Unsaved changes' : 'Saved';
+      };
+      const view = new Ruda.WorldView($('world'), {
+        style: 'flat',
+        onHover: (c, b) => (hover = { c, b }),
+        onEdit: () => dirty(true),
+      });
+      $('save').onclick = () => dirty(false);
+
+      const groups = [
+        ['Power', ['redstone_block', 'lever']],
+        ['Wiring', ['wire', 'crossing']],
+        ['Logic', ['torch']],
+        ['Output', ['lamp']],
+        ['Building', ['stone']],
+      ];
+      const tools = {};
+      for (const [g, types] of groups) {
+        $('palette').insertAdjacentHTML('beforeend', `<h3>${g}</h3>`);
+        for (const t of types) {
+          const el = document.createElement('div');
+          el.className = 'tool';
+          el.title = Ruda.HINTS[t];
+          el.innerHTML = `<canvas></canvas><span>${Ruda.NAMES[t]}</span><kbd>${Ruda.TYPES.indexOf(t) + 1}</kbd>`;
+          el.onclick = () => select(Ruda.TYPES.indexOf(t));
+          $('palette').append(el);
+          Ruda.drawIcon(el.querySelector('canvas'), t, 'flat');
+          tools[t] = el;
+        }
+      }
+      $('palette').insertAdjacentHTML(
+        'beforeend',
+        `<h3>Hint</h3><div style="color:var(--mute);padding:0 4px">Right click places, left click removes. <b>R</b> rotates.</div>`,
+      );
+      function select(i) {
+        view.tool = Ruda.TYPES[i];
+        for (const [t, el] of Object.entries(tools)) el.classList.toggle('sel', t === view.tool);
+      }
+      select(2);
+      Ruda.bindSlots(select);
+
+      const setZoom = (z) => (view.zoom = Math.max(6, Math.min(96, z)));
+      $('zi').onclick = () => setZoom(view.zoom * 1.25);
+      $('zo').onclick = () => setZoom(view.zoom / 1.25);
+      $('zr').onclick = () => setZoom(36);
+
+      const menus = {
+        file: [
+          ['New world…', 'Ctrl+N'],
+          ['Open…', 'Ctrl+O'],
+          '-',
+          ['Save', 'Ctrl+S'],
+          ['Export .ruda', ''],
+          ['Import .ruda…', ''],
+          '-',
+          ['Back to world list', 'Esc'],
+        ],
+        edit: [
+          ['Undo', 'Ctrl+Z'],
+          ['Redo', 'Ctrl+Y'],
+          '-',
+          ['Select', 'V'],
+          ['Copy / paste', 'Ctrl+C'],
+        ],
+        view: [
+          ['Zoom in', '+'],
+          ['Zoom out', '−'],
+          ['Reset view', '0'],
+          '-',
+          ['Grid', 'G'],
+          ['Debug overlay', '/'],
+        ],
+        help: [
+          ['Controls', 'H'],
+          ['Tutorial', ''],
+          ['About Ruda', ''],
+        ],
+      };
+      document.querySelectorAll('#nav button').forEach(
+        (b) =>
+          (b.onclick = (e) => {
+            e.stopPropagation();
+            const dd = $('dd');
+            dd.innerHTML = menus[b.dataset.m]
+              .map((m) => (m === '-' ? '<hr>' : `<div>${m[0]}<span>${m[1]}</span></div>`))
+              .join('');
+            dd.style.left = b.getBoundingClientRect().left + 'px';
+            dd.hidden = false;
+          }),
+      );
+      addEventListener('click', () => ($('dd').hidden = true));
+
+      setInterval(() => {
+        const { c, b } = hover;
+        $('insp').innerHTML = b
+          ? `<div class="kv"><span>Block</span><span>${Ruda.NAMES[b.type]}</span><span>Position</span><span>${c.x}, ${c.y}</span>
+         ${b.type === 'torch' ? `<span>Facing</span><span>${['North', 'East', 'South', 'West'][b.facing]}</span>` : ''}
+         <span>Power</span><span><span class="pill">${b.sig ? 'network ' + b.sig : '—'}</span></span></div>`
+          : `<span style="color:var(--mute)">${c ? `Empty cell ${c.x}, ${c.y}` : 'Hover a block'}</span>`;
+        const counts = {};
+        for (const x of view.world.cells.values()) counts[x.type] = (counts[x.type] || 0) + 1;
+        $('stats').innerHTML =
+          `<span>Blocks</span><span>${view.world.cells.size}</span>` +
+          Object.entries(counts)
+            .map(([t, n]) => `<span>${Ruda.NAMES[t]}</span><span>${n}</span>`)
+            .join('');
+        $('status').innerHTML =
+          `<span>x ${c?.x ?? '—'}  y ${c?.y ?? '—'}</span><span>zoom ${Math.round((view.zoom / 36) * 100)}%</span>
+      <span>tick ${view.tick}</span><span>10 tps</span><span style="margin-left:auto">Proposal B — menus are clickable</span>`;
+        $('zr').textContent = Math.round((view.zoom / 36) * 100) + '%';
+      }, 100);
+    </script>
+  </body>
+</html>

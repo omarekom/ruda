@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Ruda · GUI proposals</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      [hidden] {
+        display: none !important;
+      }
+      body {
+        margin: 0;
+        background: #f7f4ee;
+        color: #2b2620;
+        font:
+          15px/1.5 Inter,
+          system-ui,
+          sans-serif;
+      }
+      main {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 48px 24px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 30px;
+      }
+      .lead {
+        color: #8a8073;
+        margin: 4px 0 32px;
+      }
+      h2 {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #8a8073;
+        margin: 32px 0 12px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 14px;
+      }
+      a.c {
+        display: block;
+        text-decoration: none;
+        color: inherit;
+        background: #fff;
+        border: 1px solid #e4ddd1;
+        border-radius: 14px;
+        padding: 16px 18px;
+        transition: 0.15s;
+      }
+      a.c:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(60, 40, 20, 0.1);
+      }
+      a.c b {
+        font-size: 17px;
+      }
+      a.c p {
+        margin: 6px 0 0;
+        color: #6d645a;
+        font-size: 14px;
+      }
+      .sw {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 10px;
+      }
+      .sw i {
+        width: 22px;
+        height: 8px;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Ruda · GUI proposals</h1>
+      <p class="lead">
+        Throwaway sketches for 0.5. Every editor page has a live demo circuit: right click places,
+        left click removes, drag pans, wheel zooms, 1–7 picks a block, R rotates.
+      </p>
+
+      <h2>Editor layouts</h2>
+      <div class="grid">
+        <a class="c" href="a-game-hud.html"
+          ><div class="sw">
+            <i style="background: #1d1f24"></i><i style="background: #8b8b8b"></i
+            ><i style="background: #ff3b2f"></i>
+          </div>
+          <b>A · Game HUD</b>
+          <p>
+            Minecraft-like. Full-screen world, bottom hotbar, Esc pause menu, H for controls, / for
+            F3-style debug.
+          </p></a
+        >
+        <a class="c" href="b-editor.html"
+          ><div class="sw">
+            <i style="background: #fffdf9; border: 1px solid #ddd"></i
+            ><i style="background: #2b2620"></i><i style="background: #e8433a"></i>
+          </div>
+          <b>B · Editor workbench</b>
+          <p>Tool-like. Menu bar, grouped palette, inspector, status bar. Light paper look.</p></a
+        >
+        <a class="c" href="c-floating.html"
+          ><div class="sw">
+            <i style="background: #0a0a12"></i><i style="background: #ff3d7f"></i
+            ><i style="background: #7df9ff"></i>
+          </div>
+          <b>C · Floating dock</b>
+          <p>Canvas-first, glass panels: side dock, transport pill, minimap. Neon blocks.</p></a
+        >
+        <a class="c" href="d-blueprint.html"
+          ><div class="sw">
+            <i style="background: #123461"></i><i style="background: #cfe3ff"></i
+            ><i style="background: #ffd84a"></i>
+          </div>
+          <b>D · Blueprint</b>
+          <p>
+            Engineering drawing: rulers, component legend, title block. Schematic symbols,
+            switchable to blocks.
+          </p></a
+        >
+      </div>
+
+      <h2>Pieces</h2>
+      <div class="grid">
+        <a class="c" href="worlds.html"
+          ><b>World list</b>
+          <p>
+            Three variants: card grid with thumbnails, game title screen, launcher with table.
+          </p></a
+        >
+        <a class="c" href="blocks.html"
+          ><b>Block styles</b>
+          <p>
+            Every block off/on in pixel, flat, blueprint and neon, plus a live circuit in each.
+          </p></a
+        >
+        <a class="c" href="onboarding.html"
+          ><b>Onboarding</b>
+          <p>Coach-mark tour, controls sheet, tutorial quest panel.</p></a
+        >
+      </div>
+    </main>
+  </body>
+</html>

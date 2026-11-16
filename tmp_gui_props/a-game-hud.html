@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>A · Game HUD</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Silkscreen&family=VT323&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      [hidden] {
+        display: none !important;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #1d1f24;
+        color: #eee;
+        font-family: 'VT323', monospace;
+        font-size: 20px;
+      }
+      canvas#world {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        cursor: crosshair;
+      }
+      .px {
+        font-family: 'Silkscreen', monospace;
+      }
+      .panel {
+        background: rgba(20, 20, 24, 0.78);
+        border: 3px solid #000;
+        box-shadow:
+          inset 0 0 0 2px #555,
+          inset 0 0 0 4px #2a2a2a;
+      }
+
+      /* top-left world chip */
+      .chip {
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        padding: 6px 12px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .dot {
+        width: 10px;
+        height: 10px;
+        background: #6c6;
+        box-shadow: 0 0 0 2px #000;
+      }
+      .dot.dirty {
+        background: #fc3;
+      }
+
+      /* top-right buttons */
+      .corner {
+        position: fixed;
+        top: 12px;
+        right: 12px;
+        display: flex;
+        gap: 6px;
+      }
+      .btn {
+        font: inherit;
+        color: #eee;
+        padding: 4px 12px;
+        cursor: pointer;
+        background: #6a6a6a;
+        border: 3px solid #000;
+        box-shadow:
+          inset -3px -3px 0 #3d3d3d,
+          inset 3px 3px 0 #9a9a9a;
+        text-shadow: 2px 2px #333;
+      }
+      .btn:hover {
+        background: #7b85c6;
+        box-shadow:
+          inset -3px -3px 0 #4a528a,
+          inset 3px 3px 0 #a9b1ee;
+      }
+
+      /* hotbar */
+      .hotbar {
+        position: fixed;
+        bottom: 14px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        padding: 4px;
+        gap: 4px;
+      }
+      .slot {
+        width: 52px;
+        height: 52px;
+        position: relative;
+        background: #8b8b8b;
+        box-shadow:
+          inset 3px 3px 0 #373737,
+          inset -3px -3px 0 #fff;
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+      }
+      .slot canvas {
+        width: 34px;
+        height: 34px;
+      }
+      .slot .n {
+        position: absolute;
+        left: 4px;
+        top: 1px;
+        font-size: 16px;
+        color: #fff;
+        text-shadow: 1px 1px #000;
+      }
+      .slot.sel {
+        outline: 4px solid #fff;
+        outline-offset: 0;
+        box-shadow: inset 0 0 0 3px #000;
+      }
+      .tip {
+        position: fixed;
+        bottom: 86px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 24px;
+        text-shadow: 2px 2px #000;
+        transition: opacity 0.4s;
+        pointer-events: none;
+      }
+
+      /* overlays */
+      .shade {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+        display: grid;
+        place-items: center;
+      }
+      .menu {
+        display: grid;
+        gap: 10px;
+        width: 360px;
+        text-align: center;
+      }
+      .menu h1 {
+        margin: 0 0 14px;
+        font-size: 34px;
+        letter-spacing: 2px;
+        text-shadow: 3px 3px #000;
+      }
+      .menu .btn {
+        padding: 8px;
+        font-size: 22px;
+      }
+      .menu .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .help {
+        padding: 20px 28px;
+        width: min(640px, 90vw);
+      }
+      .help h2 {
+        margin: 0 0 12px;
+        font-size: 22px;
+      }
+      .help table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .help td {
+        padding: 3px 6px;
+      }
+      .help kbd {
+        font-family: inherit;
+        background: #444;
+        border: 2px solid #000;
+        box-shadow:
+          inset -2px -2px #222,
+          inset 2px 2px #666;
+        padding: 0 6px;
+      }
+      .help td:first-child {
+        white-space: nowrap;
+        color: #fc3;
+      }
+
+      /* debug overlay, F3-style */
+      .debug {
+        position: fixed;
+        top: 54px;
+        left: 12px;
+        font-size: 19px;
+        line-height: 1.15;
+        pointer-events: none;
+      }
+      .debug div {
+        background: rgba(80, 80, 80, 0.55);
+        display: table;
+        padding: 0 4px;
+        margin-bottom: 1px;
+      }
+      .debug.right {
+        left: auto;
+        right: 12px;
+        text-align: right;
+      }
+      .debug.right div {
+        margin-left: auto;
+      }
+      .note {
+        position: fixed;
+        bottom: 14px;
+        right: 14px;
+        font-size: 16px;
+        color: #888;
+        max-width: 260px;
+        text-align: right;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="world"></canvas>
+
+    <div class="chip panel">
+      <span class="dot" id="dot"></span><span class="px" id="wname">My first circuit</span>
+    </div>
+    <div class="corner">
+      <button class="btn" title="Save (Ctrl+S)" id="save">Save</button>
+      <button class="btn" title="Help (H)" id="helpBtn">?</button>
+      <button class="btn" title="Menu (Esc)" id="menuBtn">≡</button>
+    </div>
+
+    <div class="tip px" id="tip"></div>
+    <div class="hotbar panel" id="hotbar"></div>
+
+    <div class="debug" id="dbgL" hidden></div>
+    <div class="debug right" id="dbgR" hidden></div>
+
+    <div class="shade" id="pause" hidden>
+      <div class="menu">
+        <h1 class="px">Game paused</h1>
+        <button class="btn" data-close>Back to world</button>
+        <div class="row">
+          <button class="btn">Save</button><button class="btn">Export .ruda</button>
+        </div>
+        <div class="row">
+          <button class="btn">Settings…</button><button class="btn" id="helpBtn2">Controls…</button>
+        </div>
+        <button class="btn">Save and quit to worlds</button>
+      </div>
+    </div>
+
+    <div class="shade" id="help" hidden>
+      <div class="help panel">
+        <h2 class="px">Controls</h2>
+        <table>
+          <tr>
+            <td>Right click</td>
+            <td>Place selected block · toggle lever</td>
+          </tr>
+          <tr>
+            <td>Right drag</td>
+            <td>Place and aim (torch direction)</td>
+          </tr>
+          <tr>
+            <td>Left click</td>
+            <td>Remove block</td>
+          </tr>
+          <tr>
+            <td><kbd>1</kbd>–<kbd>7</kbd></td>
+            <td>Select hotbar slot</td>
+          </tr>
+          <tr>
+            <td><kbd>R</kbd></td>
+            <td>Rotate held block</td>
+          </tr>
+          <tr>
+            <td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / drag</td>
+            <td>Move around</td>
+          </tr>
+          <tr>
+            <td>Wheel</td>
+            <td>Zoom</td>
+          </tr>
+          <tr>
+            <td><kbd>Ctrl</kbd>+<kbd>S</kbd></td>
+            <td>Save</td>
+          </tr>
+          <tr>
+            <td><kbd>/</kbd></td>
+            <td>Debug info</td>
+          </tr>
+          <tr>
+            <td><kbd>Esc</kbd></td>
+            <td>Menu</td>
+          </tr>
+        </table>
+        <p style="margin: 14px 0 0; text-align: right">
+          <button class="btn" data-close>Done</button>
+        </p>
+      </div>
+    </div>
+
+    <div class="note">Proposal A — try: 1–7, right click, Esc, H, /</div>
+
+    <script src="shared.js"></script>
+    <script>
+      const $ = (id) => document.getElementById(id);
+      let hovered = null;
+      const view = new Ruda.WorldView($('world'), {
+        style: 'pixel',
+        onHover: (c, b) => (hovered = { c, b }),
+        onEdit: () => $('dot').classList.add('dirty'),
+      });
+
+      const slots = Ruda.TYPES.map((t, i) => {
+        const el = document.createElement('div');
+        el.className = 'slot';
+        el.innerHTML = `<span class="n">${i + 1}</span><canvas></canvas>`;
+        el.onclick = () => select(i);
+        $('hotbar').append(el);
+        Ruda.drawIcon(el.querySelector('canvas'), t, 'pixel');
+        return el;
+      });
+      let tipTimer;
+      function select(i) {
+        slots.forEach((s, j) => s.classList.toggle('sel', i === j));
+        view.tool = Ruda.TYPES[i];
+        $('tip').textContent = Ruda.NAMES[view.tool];
+        $('tip').style.opacity = 1;
+        clearTimeout(tipTimer);
+        tipTimer = setTimeout(() => ($('tip').style.opacity = 0), 1500);
+      }
+      select(2);
+      Ruda.bindSlots(select);
+
+      const toggle = (id, on) => ($(id).hidden = !(on ?? $(id).hidden));
+      $('menuBtn').onclick = () => toggle('pause', true);
+      $('helpBtn').onclick = $('helpBtn2').onclick = () => {
+        toggle('pause', false);
+        toggle('help', true);
+      };
+      $('save').onclick = () => $('dot').classList.remove('dirty');
+      document
+        .querySelectorAll('[data-close]')
+        .forEach((b) => (b.onclick = () => (b.closest('.shade').hidden = true)));
+      addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          if (!$('help').hidden) toggle('help', false);
+          else toggle('pause');
+        }
+        if (e.key.toLowerCase() === 'h') toggle('help');
+        if (e.key === '/') {
+          e.preventDefault();
+          toggle('dbgL');
+          toggle('dbgR');
+        }
+        if (e.key === 's' && e.ctrlKey) {
+          e.preventDefault();
+          $('dot').classList.remove('dirty');
+        }
+      });
+
+      setInterval(() => {
+        if ($('dbgL').hidden) return;
+        const c = hovered?.c,
+          b = hovered?.b;
+        const lines = [
+          'Ruda 0.6-dev (debug)',
+          `${Math.round(view.fps)} fps · 10 tps`,
+          `tick ${view.tick}`,
+          `camera ${view.cx.toFixed(2)} / ${view.cy.toFixed(2)} · zoom ${Math.round(view.zoom)} px`,
+          c
+            ? `cell ${c.x} / ${c.y} · chunk ${Math.floor(c.x / 32)} / ${Math.floor(c.y / 32)}`
+            : 'cell —',
+          `blocks ${view.world.cells.size} · chunks 1 · networks 7`,
+        ];
+        $('dbgL').innerHTML = lines.map((l) => `<div>${l}</div>`).join('');
+        $('dbgR').innerHTML = b
+          ? [
+              `Targeted: ${Ruda.NAMES[b.type]}`,
+              `facing: ${['north', 'east', 'south', 'west'][b.facing]}`,
+              `network: ${b.sig ?? '—'}`,
+            ]
+              .map((l) => `<div>${l}</div>`)
+              .join('')
+          : '<div>Targeted: air</div>';
+      }, 100);
+    </script>
+  </body>
+</html>
