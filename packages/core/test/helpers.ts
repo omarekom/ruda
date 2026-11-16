@@ -4,7 +4,8 @@ import { createBlock, Direction, Simulation, type BlockType } from '../src';
  * Builds a simulation from an ASCII map. Each character is one cell, the top-left
  * character is (0, 0). Legend: `#` redstone block, `L` lever off, `l` lever on,
  * `-` wire, `+` crossing, `o` lamp, `S` stone, `B` button, `>` `<` `^` `v` torch facing that
- * way, `)` delayer facing east (delay 1), `.` or space empty.
+ * way, `)` delayer facing east (delay 1), `p` / `q` piston facing east / west, `.` or space
+ * empty.
  */
 export function simulationFrom(map: string): Simulation {
   const simulation = new Simulation();
@@ -41,6 +42,8 @@ const TORCHES: Readonly<Record<string, Direction>> = {
 function blockFor(char: string) {
   if (char === 'l') return { type: 'lever', on: true } as const;
   if (char === ')') return createBlock('delayer', Direction.East);
+  if (char === 'p') return createBlock('piston', Direction.East);
+  if (char === 'q') return createBlock('piston', Direction.West);
   const simple = SIMPLE[char];
   if (simple) return createBlock(simple);
   const facing = TORCHES[char];

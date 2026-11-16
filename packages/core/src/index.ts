@@ -11,6 +11,7 @@ export {
   type BlockType,
 } from './blocks';
 export type { Command } from './commands';
+export { sameBlock } from './blocks';
 export { wireAttaches } from './connections';
 export {
   Axis,
@@ -25,6 +26,7 @@ export {
   WORLD_MAX,
   WORLD_MIN,
 } from './coords';
+export { MAX_PUSH, type BlockMove } from './pistons';
 export { Simulation } from './simulation';
 export { CHUNK_SIZE, World, type BlockVisitor, type ReadonlyWorld } from './world';
 export { RudaFileError, type RudaFileErrorCode } from './file/errors';

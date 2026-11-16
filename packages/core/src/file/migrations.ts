@@ -9,6 +9,8 @@ export type Migration = (file: JsonObject) => JsonObject;
 export const MIGRATIONS: readonly Migration[] = [
   // 1 → 2: adds the delayer and button blocks; existing content is unchanged.
   (file) => file,
+  // 2 → 3: adds the piston and piston head blocks; existing content is unchanged.
+  (file) => file,
 ];
 
 export const CURRENT_FORMAT = MIGRATIONS.length + 1;

@@ -1,4 +1,12 @@
-import { Axis, axisOf, Direction, directionFromName, directionName, opposite } from './coords';
+import {
+  Axis,
+  axisOf,
+  Direction,
+  directionFromName,
+  directionName,
+  DIRECTIONS,
+  opposite,
+} from './coords';
 
 export type Block =
   | { readonly type: 'redstone_block' }
@@ -14,6 +22,10 @@ export type Block =
   | { readonly type: 'delayer'; readonly facing: Direction; readonly line: readonly boolean[] }
   /** Powered while `remaining` ticks are left. */
   | { readonly type: 'button'; readonly remaining: number }
+  /** Pushes the blocks in front of it while powered. When extended, its head is in front. */
+  | { readonly type: 'piston'; readonly facing: Direction; readonly extended: boolean }
+  /** The extended part of a piston; the piston is behind it, facing the same way. */
+  | { readonly type: 'piston_head'; readonly facing: Direction }
   | { readonly type: 'stone' };
 
 export const MIN_DELAY = 1;
@@ -57,6 +69,8 @@ const noInputs = (): readonly Direction[] => [];
 const back = (block: { readonly facing: Direction }): readonly Direction[] => [
   opposite(block.facing),
 ];
+const allButFront = (block: { readonly facing: Direction }): readonly Direction[] =>
+  DIRECTIONS.filter((side) => side !== block.facing);
 const frontAndBack = (block: { readonly facing: Direction }, side: Direction): boolean =>
   side === block.facing || side === opposite(block.facing);
 
@@ -199,6 +213,36 @@ const REGISTRY: { readonly [T in BlockType]: BlockDefinition<T> } = {
     inputs: noInputs,
     tick: (block) => ({ ...block, remaining: Math.max(0, block.remaining - 1) }),
     interact: (block) => (block.remaining > 0 ? undefined : { ...block, remaining: BUTTON_TICKS }),
+  },
+  piston: {
+    rotatable: true,
+    create: (facing) => ({ type: 'piston', facing, extended: false }),
+    emitsPower: never,
+    channel: noChannel,
+    attachesWire: (block, side) => side !== block.facing,
+    stateOf: (block) => [directionName(block.facing), block.extended ? 'extended' : 'retracted'],
+    fromState: ([name, position, ...rest]) => {
+      const facing = parseDirection(name);
+      const extended = onOff(position, 'extended', 'retracted');
+      if (facing === undefined || extended === undefined || rest.length > 0) return undefined;
+      return { type: 'piston', facing, extended };
+    },
+    inputs: allButFront,
+    // The wanted position; the simulation performs the push or pull, which may be blocked.
+    tick: (block, input) => ({ ...block, extended: allButFront(block).some(input) }),
+  },
+  piston_head: {
+    rotatable: false,
+    create: (facing) => ({ type: 'piston_head', facing }),
+    emitsPower: never,
+    channel: noChannel,
+    attachesWire: never,
+    stateOf: (block) => [directionName(block.facing)],
+    fromState: ([name, ...rest]) => {
+      const facing = parseDirection(name);
+      return facing === undefined || rest.length > 0 ? undefined : { type: 'piston_head', facing };
+    },
+    inputs: noInputs,
   },
   stone: {
     rotatable: false,

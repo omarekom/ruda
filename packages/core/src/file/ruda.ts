@@ -1,5 +1,6 @@
 import { blockFromState, isBlockType, stateOf, type Block } from '../blocks';
 import { cellKey, isInWorld } from '../coords';
+import { findBrokenPiston } from '../pistons';
 import { World, type ReadonlyWorld } from '../world';
 import { RudaFileError } from './errors';
 import { CURRENT_FORMAT, migrate, type JsonObject } from './migrations';
@@ -71,6 +72,8 @@ export function parseWorld(text: string): LoadedWorld {
       world.set(x, y, block);
     }
   }
+  const brokenPiston = findBrokenPiston(world);
+  if (brokenPiston) throw invalid(brokenPiston);
   return { name, world };
 }
 

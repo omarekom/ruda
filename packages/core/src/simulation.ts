@@ -26,6 +26,7 @@ import {
   type Channel,
   type Network,
 } from './networks';
+import { isPlaceable, pistonPartner, planPiston, type BlockMove, type PistonPlan } from './pistons';
 import { World, type ReadonlyWorld } from './world';
 
 /**
@@ -37,6 +38,7 @@ export class Simulation {
   private readonly world: World;
   private readonly networks: Networks;
   private readonly pending = new Set<number>();
+  private moves: BlockMove[] = [];
   private ticks = 0;
 
   constructor(world: World = new World()) {
@@ -58,6 +60,11 @@ export class Simulation {
     return this.ticks;
   }
 
+  /** Blocks moved by pistons during the most recent tick. */
+  get recentMoves(): readonly BlockMove[] {
+    return this.moves;
+  }
+
   /** True when further ticks would change nothing. */
   get isStable(): boolean {
     return this.pending.size === 0;
@@ -70,13 +77,17 @@ export class Simulation {
     const current = this.world.get(x, y);
     switch (command.kind) {
       case 'place':
-        if (current) return false;
+        if (current || !isPlaceable(command.block)) return false;
         this.edit(x, y, command.block);
         return true;
-      case 'remove':
+      case 'remove': {
         if (!current) return false;
+        // The two halves of an extended piston are removed together.
+        const partner = pistonPartner(this.world, x, y);
         this.edit(x, y, undefined);
+        if (partner) this.edit(...partner, undefined);
         return true;
+      }
       case 'interact': {
         const next = current && interactWith(current);
         if (!next) return false;
@@ -126,16 +137,45 @@ export class Simulation {
   }
 
   private tick(): void {
-    // Every block reads the settled state of the previous tick before any of them changes.
+    // Every block reads the settled state of the previous tick before anything changes.
     const changes: [number, number, Block, Block][] = [];
+    const plans: PistonPlan[] = [];
+    const blocked: number[] = [];
     for (const key of this.pending) {
       const [x, y] = cellFromKey(key);
       const block = this.world.get(x, y);
       const next = block && tickBlock(block, (side) => this.receivesPower(x, y, side));
-      if (block && next && !sameBlock(block, next)) changes.push([x, y, block, next]);
+      if (!block || !next || sameBlock(block, next)) continue;
+      if (next.type === 'piston') {
+        const plan = planPiston(this.world, x, y, next);
+        if (plan) plans.push(plan);
+        else blocked.push(key);
+      } else {
+        changes.push([x, y, block, next]);
+      }
     }
     this.pending.clear();
 
+    this.applyStateChanges(changes);
+    // A block that would change again with unchanged inputs (a delay line still shifting,
+    // a button counting down) stays scheduled.
+    for (const [x, y, , after] of changes) {
+      const next = tickBlock(after, (side) => this.receivesPower(x, y, side));
+      if (next && !sameBlock(after, next)) this.pending.add(cellKey(x, y));
+    }
+
+    this.moves = [];
+    const unblocked = withoutConflicts(plans);
+    for (const plan of unblocked) this.applyPlan(plan);
+    for (const plan of plans) {
+      if (!unblocked.includes(plan)) blocked.push(cellKey(plan.x, plan.y));
+    }
+    // Blocked pistons try again every tick until they can move or no longer want to.
+    for (const key of blocked) this.pending.add(key);
+    this.ticks++;
+  }
+
+  private applyStateChanges(changes: readonly [number, number, Block, Block][]): void {
     const touched = new Set<Network>();
     for (const [x, y, before, after] of changes) {
       this.world.set(x, y, after);
@@ -150,13 +190,23 @@ export class Simulation {
     for (const network of touched) {
       if (this.networks.refresh(network)) this.markReadersAround(network.channels);
     }
-    // A block that would change again with unchanged inputs (a delay line still shifting,
-    // a button counting down) stays scheduled.
-    for (const [x, y, , after] of changes) {
-      const next = tickBlock(after, (side) => this.receivesPower(x, y, side));
-      if (next && !sameBlock(after, next)) this.pending.add(cellKey(x, y));
+  }
+
+  private applyPlan(plan: PistonPlan): void {
+    for (const move of plan.moves) {
+      if (move.block.type === 'piston_head') {
+        // The head appears in front when extending and vanishes when retracting.
+        if (plan.piston.extended) this.edit(move.toX, move.toY, move.block);
+        else this.edit(move.fromX, move.fromY, undefined);
+        this.moves.push(move);
+      } else {
+        const block = this.world.get(move.fromX, move.fromY) ?? move.block;
+        this.edit(move.fromX, move.fromY, undefined);
+        this.edit(move.toX, move.toY, block);
+        this.moves.push({ ...move, block });
+      }
     }
-    this.ticks++;
+    this.edit(plan.x, plan.y, plan.piston);
   }
 
   /** Replaces a cell and rebuilds every network the cell touches. */
@@ -211,4 +261,13 @@ export class Simulation {
     const block = this.world.get(x, y);
     if (block && inputsOf(block).includes(side)) this.pending.add(cellKey(x, y));
   }
+}
+
+/** Drops every plan that claims a cell another plan also claims. */
+function withoutConflicts(plans: readonly PistonPlan[]): PistonPlan[] {
+  const claimCount = new Map<number, number>();
+  for (const plan of plans) {
+    for (const cell of plan.claims) claimCount.set(cell, (claimCount.get(cell) ?? 0) + 1);
+  }
+  return plans.filter((plan) => plan.claims.every((cell) => claimCount.get(cell) === 1));
 }
