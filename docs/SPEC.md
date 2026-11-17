@@ -80,8 +80,8 @@ Direction so far:
 
 - Start screen on the first visit, split into two parts: the bigger left part (about 2/3) starts **game mode** right away, the right third opens **expert mode**. Later visits skip it and open the mode the player used last.
 - Both modes show the same world; switching between them is a quick flip animation.
-- **Game mode**: real time, simple and playful, with a deliberately blocky, game-like look (pixel font, bevelled buttons, hotbar, pause menu). As few on-screen controls as possible: the hotbar (no number hints) and, in the top right corner, an **Expert mode** button and a menu.
-- **Expert mode**: a hand-drawn look (pencil on paper in the light theme, chalk on a blackboard in the dark theme) and a tool layout. It has light and dark themes, following the system setting by default, with a switch in the top right corner next to a **Game mode** button.
+- **Game mode**: real time, simple and playful, with a deliberately blocky, game-like look (pixel font, bevelled buttons, hotbar, pause menu). As few on-screen controls as possible: the hotbar (no number hints) and, in the top right corner, an **Expert mode** button and a menu. Always dark, no theme switch. Opening the menu (button or Esc) pauses the simulation.
+- **Expert mode**: a clean hand-drawn look, with no paper texture (pencil on paper in the light theme, chalk on a blackboard in the dark theme) and a tool layout. It has light and dark themes, following the system setting by default, with a switch in the top right corner next to a **Game mode** button.
 - Lamps and powered parts softly light their surroundings.
 - Expert mode layout: a menu bar, a block palette grouped by role (power, wiring, logic, output, mechanics, building), an inspector for the block under the cursor, world statistics, a status bar, and a zoomable minimap.
 - World list: a grid of cards with a thumbnail of each world.
