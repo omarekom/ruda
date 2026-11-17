@@ -3,6 +3,7 @@ import { parseWorld, serializeWorld } from '@ruda/core';
 import { onBeforeUnmount, onMounted, ref, shallowRef } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ConfirmDialog from './components/ConfirmDialog.vue';
+import GameLoading from './components/GameLoading.vue';
 import GameWorlds from './components/GameWorlds.vue';
 import StartScreen from './components/StartScreen.vue';
 import WorldScreen from './components/WorldScreen.vue';
@@ -28,6 +29,12 @@ const mode = ref<Mode>(readPreferences().mode ?? 'game');
  * has its own world selection ('gameWorlds'); 'home' is the shared world list and library.
  */
 const screen = ref<'loading' | 'start' | 'home' | 'gameWorlds'>('loading');
+/**
+ * Game mode covers loading a world with a loading screen, kept up a little longer than needed
+ * because it is part of the fun. Expert mode opens worlds without it.
+ */
+const LOADING_SCREEN_MS = 1200;
+const loadingScreen = ref(false);
 
 /** The world list that belongs to the current mode. */
 const worldsScreen = (): 'home' | 'gameWorlds' => (mode.value === 'game' ? 'gameWorlds' : 'home');
@@ -69,8 +76,8 @@ async function resume(): Promise<void> {
     screen.value = location.hash ? 'home' : 'start';
     return;
   }
-  screen.value = worldsScreen();
   if (lastWorld) await openWorld(lastWorld);
+  screen.value = worldsScreen();
 }
 
 function setMode(next: Mode): void {
@@ -81,12 +88,30 @@ function setMode(next: Mode): void {
 /** From the start screen: continue the last world, or start a fresh one. */
 async function play(next: Mode): Promise<void> {
   setMode(next);
-  if (!store.value) return;
+  const worlds = store.value;
+  if (!worlds) return;
+  await withLoadingScreen(async () => {
+    const { lastWorld } = readPreferences();
+    if (lastWorld && (await loadWorld(lastWorld))) return true;
+    const created = await createEmptyWorld(worlds, t('worlds.defaultName'));
+    return loadWorld(created.id);
+  });
   screen.value = worldsScreen();
-  const { lastWorld } = readPreferences();
-  if (lastWorld && (await openWorld(lastWorld))) return;
-  const created = await createEmptyWorld(store.value, t('worlds.defaultName'));
-  await openWorld(created.id);
+}
+
+/** Runs `load` behind game mode's loading screen; in expert mode it simply runs it. */
+async function withLoadingScreen(load: () => Promise<boolean>): Promise<boolean> {
+  if (mode.value !== 'game') return load();
+  loadingScreen.value = true;
+  try {
+    const [found] = await Promise.all([
+      load(),
+      new Promise((resolve) => setTimeout(resolve, LOADING_SCREEN_MS)),
+    ]);
+    return found;
+  } finally {
+    loadingScreen.value = false;
+  }
 }
 
 onBeforeUnmount(() => window.removeEventListener('hashchange', readHash));
@@ -109,7 +134,11 @@ const libraryHost: LibraryHost = {
 };
 
 /** Opens a stored world (asking first if it has newer unsaved changes); false if it is gone. */
-async function openWorld(id: string): Promise<boolean> {
+function openWorld(id: string): Promise<boolean> {
+  return withLoadingScreen(() => loadWorld(id));
+}
+
+async function loadWorld(id: string): Promise<boolean> {
   if (!store.value) return false;
   const stored = await store.value.load(id);
   if (!stored) return false;
@@ -200,6 +229,11 @@ function show(stored: StoredWorld, data: string, restored: boolean): void {
       <LibraryView v-else :host="libraryHost" :admin="admin" />
     </main>
   </template>
+  <!-- The loading screen stays behind the question about unsaved changes, if one comes up. -->
+  <GameLoading
+    v-if="loadingScreen || (restoring && mode === 'game')"
+    :duration-ms="LOADING_SCREEN_MS"
+  />
   <ConfirmDialog
     v-if="restoring"
     :blocky="mode === 'game'"
