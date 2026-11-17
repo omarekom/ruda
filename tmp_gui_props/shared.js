@@ -169,7 +169,7 @@
       new ResizeObserver(() => this.resize()).observe(canvas);
       this.resize();
       const loop = (t) => {
-        this.frame(t);
+        this.frame(performance.now());
         requestAnimationFrame(loop);
       };
       requestAnimationFrame(loop);
@@ -187,6 +187,8 @@
       this.canvas.width = this.w * dpr;
       this.canvas.height = this.h * dpr;
       this.dpr = dpr;
+      // Resizing clears the canvas; redraw now instead of waiting for the next frame.
+      if (this.w && this.style) this.draw(performance.now());
     }
     cellAt(px, py) {
       return { x: Math.floor((px - this.w / 2) / this.zoom + this.cx), y: Math.floor((py - this.h / 2) / this.zoom + this.cy) };
@@ -373,7 +375,7 @@
       for (const head of heads) put(head, head.x, head.y, { att: [false, false, false, false], on: false, t });
       if (this.lighting === 'night') this.paintNight(lights, style);
       // A softer bloom over the blocks, so lit things tint their neighbours too.
-      else if (style.dark) this.paintLights(lights, 'lighter', 0.35);
+      else if (style.dark) this.paintLights(lights, 'lighter', 0.2);
 
       if (this.hover) {
         const { x, y } = this.hover;
@@ -398,9 +400,7 @@
       for (const l of lights) {
         const cx = this.sx(l.x + 0.5), cy = this.sy(l.y + 0.5), r = l.radius * z;
         const grad = g.createRadialGradient(cx, cy, 0, cx, cy, r);
-        grad.addColorStop(0, rgba(l.color, l.alpha * strength));
-        grad.addColorStop(0.35, rgba(l.color, l.alpha * strength * 0.45));
-        grad.addColorStop(1, rgba(l.color, 0));
+        for (const [stop, f] of [[0, 1], [0.25, 0.66], [0.5, 0.33], [0.75, 0.1], [1, 0]]) grad.addColorStop(stop, rgba(l.color, l.alpha * strength * f));
         g.fillStyle = grad;
         g.fillRect(cx - r, cy - r, r * 2, r * 2);
       }
@@ -413,14 +413,14 @@
       dark.width = w;
       dark.height = h;
       const d = dark.getContext('2d');
-      d.fillStyle = style.night || (style.dark ? 'rgba(4,6,16,0.72)' : 'rgba(30,30,60,0.42)');
+      d.fillStyle = style.night || (style.dark ? 'rgba(4,6,16,0.55)' : 'rgba(30,30,60,0.28)');
       d.fillRect(0, 0, w, h);
       d.globalCompositeOperation = 'destination-out';
       for (const l of lights) {
-        const cx = this.sx(l.x + 0.5), cy = this.sy(l.y + 0.5), r = l.radius * z * 1.25;
+        const cx = this.sx(l.x + 0.5), cy = this.sy(l.y + 0.5), r = l.radius * z * 1.3;
         const grad = d.createRadialGradient(cx, cy, 0, cx, cy, r);
-        grad.addColorStop(0, `rgba(0,0,0,${Math.min(1, l.alpha * 1.8)})`);
-        grad.addColorStop(1, 'rgba(0,0,0,0)');
+        const a = Math.min(1, l.alpha * 2.6);
+        for (const [stop, f] of [[0, 1], [0.3, 0.7], [0.6, 0.3], [1, 0]]) grad.addColorStop(stop, `rgba(0,0,0,${a * f})`);
         d.fillStyle = grad;
         d.fillRect(cx - r, cy - r, r * 2, r * 2);
       }
@@ -433,12 +433,12 @@
 
   /** Light radius (cells) and strength per lit block type. */
   const LIGHTS = {
-    lamp: { radius: 4.2, alpha: 0.6, color: 'lamp' },
-    torch: { radius: 2, alpha: 0.45, color: 'power' },
-    redstone_block: { radius: 1.8, alpha: 0.35, color: 'power' },
-    button: { radius: 1.4, alpha: 0.35, color: 'power' },
-    wire: { radius: 0.9, alpha: 0.16, color: 'power' },
-    crossing: { radius: 0.9, alpha: 0.16, color: 'power' },
+    lamp: { radius: 4.8, alpha: 0.34, color: 'lamp' },
+    torch: { radius: 2.2, alpha: 0.22, color: 'power' },
+    redstone_block: { radius: 2, alpha: 0.18, color: 'power' },
+    button: { radius: 1.6, alpha: 0.18, color: 'power' },
+    wire: { radius: 1, alpha: 0.07, color: 'power' },
+    crossing: { radius: 1, alpha: 0.07, color: 'power' },
   };
   function collectLights(drawn, style) {
     const out = [];
