@@ -6,7 +6,7 @@ Not a 1:1 Minecraft clone: signals are on/off, the world is flat, and crossings 
 
 ## Status
 
-Versions 0.1–0.4 (playable core, saving, timing and inputs, pistons) and 0.7 (library) are implemented; 0.5 (graphical interface: start screen, game mode and expert mode) is implemented, with the world list and onboarding still to design. See [docs/SPEC.md](docs/SPEC.md) for the feature list per version and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the design.
+Versions 0.1–0.4 (playable core, saving, timing and inputs, pistons), 0.5 (graphical interface: start screen, the game, world selection) and 0.7 (library) are implemented; 0.6 (debug mode) is designed. See [docs/SPEC.md](docs/SPEC.md) for the feature list per version and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the design.
 
 ## Development
 

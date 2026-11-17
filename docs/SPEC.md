@@ -74,42 +74,31 @@ Other
 
 ## 0.5 – Graphical interface
 
-Two modes over the same world. Sketches of the options considered live in `tmp_gui_props/`.
+One game, in one blocky, game-like style. Older sketches of the options considered live in `tmp_gui_props/` (the current direction in `tmp_gui_props/v2/`).
 
 Start screen
 
-- Shown on the first visit, split in two: the bigger left part (about 2/3) starts **game mode**, the right third opens **expert mode**.
-- Calm on purpose. Behind the game side a slow ring of delayers runs at reduced speed, so one lamp at a time lights up and hands over to the next. The expert side shows a still, tidy drawing of a few small circuits.
-- Choosing a side continues the last opened world, or creates a new one if there is none.
-- Later visits skip it and reopen the last world in the last mode. A link to a tab (`#library`, `#admin`) opens the home page instead.
-- Reachable again from both modes' menus and from the home page.
+- Shown on every visit. The whole screen is a live preview of the game: a slow ring of delayers runs at reduced speed behind it, so one lamp at a time lights up and hands over to the next.
+- In the middle the blocky **RUDA** logo and three buttons: **Play** (continues the last world, or creates a new one if there is none), **Worlds…** and **Controls…**.
+- A link to the library (`#library`, `#admin`) opens it instead; nothing in the game links there for now.
 
-Game mode
+The game
 
-- Real time, simple and playful, with a deliberately blocky, game-like look: pixel fonts, bevelled grey buttons, a framed hotbar.
-- On screen only: the hotbar (no number hints; the keys still work), the name of the held block popping up briefly when it changes, and in the top right corner an **Expert mode** button and a menu button.
-- The menu (button or Esc) pauses the simulation. It offers: back to game, save, worlds, controls, expert mode, start screen. Saving shows a short confirmation.
+- Real time, simple and playful, with a deliberately blocky look: pixel fonts, bevelled grey buttons, a framed hotbar.
+- On screen only: the hotbar (no number hints; the keys still work), the name of the held block popping up briefly when it changes, and in the top right corner the light/dark switch and a menu button.
+- The menu (button or Esc) pauses the simulation. It offers: back to game, save, worlds, controls, debug mode, start screen. Saving shows a short confirmation.
 - **Controls** lists every key and mouse action by section (movement, building, using blocks, game, hotbar), each shown as a key cap. The hotbar is one row with its number keys.
-- Opening a world (from the start screen, Select World or on a later visit) shows a loading screen: a plain dark backdrop, "Loading world", playful status lines and a filling bar. It stays up for at least 1.2 s on purpose, as part of the game feel, so no menu flashes by on the way in.
-- **Block look (Workshop)**: 16×16 Minecraft-like textures seen from straight above on a bright, warm floor of smooth stone slabs. Solid blocks (stone, power blocks, lamps, pistons) have a dark pixel outline, a bevel and a shadow. Light glows on the floor: yellow around lit lamps, red around power blocks and other powered parts. The same look is used by the hotbar, world thumbnails, library previews and the start screen.
-- **Worlds…** opens game mode's own **Select World** screen: worlds with thumbnails, play, create, rename and delete, and back to the start screen. Game mode never sends the player through expert mode's world list. Worlds are shared between the modes.
-- Dialogs (unsaved changes, delete) use the blocky look too. Text in game mode's menus is large, for easy reading.
-- The world is bright; menus, dialogs and the loading screen are dark. No theme switch.
+- Opening a world shows a loading screen: a plain dark backdrop, "Loading world", playful status lines and a filling bar. It stays up for at least 1.2 s on purpose, as part of the game feel, so no menu flashes by on the way in.
+- **Block look (Workshop)**: 16×16 Minecraft-like textures seen from straight above. Solid blocks (stone, power blocks, lamps, pistons) have a dark pixel outline, a bevel and a shadow. Light glows on the floor: yellow around lit lamps, red around power blocks and other powered parts. The same look is used by the hotbar, world thumbnails, library previews and the start screen.
+- **Light and dark**: in light, a bright, warm floor of smooth stone slabs; in dark, the same slabs at night, where the light pools stand out. One button shows the other variant and switches to it. The variant follows the system; a choice that differs from the system is remembered, and choosing the system's variant again forgets it. Menus, dialogs and the loading screen are dark in both.
+- Dialogs (unsaved changes, delete) use the blocky look. Text in menus is large, for easy reading.
 
-Expert mode
+Worlds
 
-- A clean hand-drawn look: pencil on paper in the light theme, chalk on a blackboard in the dark theme. The theme follows the system unless the player picks one with the switch in the top right corner; the choice is remembered.
-- Menu bar (World: save, export, all worlds (for now the shared world list and library), start screen; View: zoom in, zoom out, back to the centre), world name, save status, Save button, theme switch and a **Game mode** button.
-- Block palette grouped by role (power, wiring, logic, output, mechanics, building) with the number keys shown.
-- Inspector for the block under the cursor: type, position, facing, and its state (on/off, lit, powered, delay, extended…).
-- Time: run, pause, single step (while paused) and speed (1×, 2×, 4×).
-- A minimap around the view; clicking it moves the view there.
-- World statistics (block counts per type) and a status bar (cursor cell, zoom, tick, ticks per second).
-
-Both modes
-
-- Switching between the modes flips the screen; the world, view and held block stay.
-- Lamps, torches, sources and powered wires softly light their surroundings.
+- **Worlds…** (from the start screen or the menu) shows the worlds as a grid of cards on a calm dark backdrop: a thumbnail, the name and when it was saved.
+- Clicking a card plays the world. Clicking the name renames it in place (Enter keeps, Esc cancels). A small delete button on the card asks before deleting. Each card can also export its world as a `.ruda` file.
+- The first card creates a new world; **Import** next to the search field adds a `.ruda` file as a new world and opens it. A search field filters the worlds by name.
+- Fully usable with the keyboard: arrows move between cards, Enter plays, F2 renames, Delete deletes, E exports, `/` focuses the search, Esc goes back.
 
 Naming
 
@@ -117,20 +106,19 @@ Naming
 
 Still to design:
 
-- Expert mode's own world list (a grid of cards with a thumbnail of each world) and the library within it.
-- Open: where the library of ready-made worlds (built-in and community creations) and sharing a creation live once each mode has its own world selection. Both stay; their place in game mode and expert mode is not decided yet.
-- UI icons, and further tuning of expert mode details and block visuals.
+- Where the library of ready-made worlds (built-in and community creations) and sharing a creation appear in the game. Both stay; for now the library is reachable only by its link and the built-in creations only through it.
+- UI icons and further tuning of block visuals.
 
 ## 0.6 – Debug mode
 
-- Pressing `/` turns debug mode on and off.
+Extra information and control over time, for understanding and testing circuits. It keeps the game's look for buttons and titles, but shows its data in a monospace font, which reads much better than the pixel font.
 
-Contents still to be decided. Candidates:
+- Turned on and off with `/` or from the menu. The game stays fully playable while it is on.
+- Top left, a block of text like a game's debug screen: tick, speed, measured ticks per second, the cell under the cursor (x, y) and the block there with its state (facing, on/off, lit, delay…), and the camera's position and zoom.
+- At the top in the middle, time control: pause, ▶ normal speed, ▶▶ 3×, ▶▶▶ 10×, **max** (as many ticks as the browser manages), a field for any speed, and a single step (while paused). Turning debug mode off returns to normal speed.
+- Bottom left, switches for panels that are hidden by default, each with its key: **I** the information text, **C** the world's contents (block counts per type), **M** a minimap (clicking it moves the view there). They work with the mouse as well.
 
-- Cell coordinates under the cursor and camera position / zoom.
-- Tick counter, ticks per second and frame rate.
-- World statistics: block, chunk and wire-network counts.
-- Overlays: chunk borders, wire networks highlighted, torches pending evaluation.
+Still to decide: overlays such as chunk borders and highlighted wire networks; better keys if the letters clash with the game later.
 
 ## 0.7 – Library
 
