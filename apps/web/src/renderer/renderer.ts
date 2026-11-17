@@ -8,8 +8,17 @@ import {
   type BlockMove,
   type ReadonlyWorld,
   type Simulation,
+  WORLD_MAX,
+  WORLD_MIN,
 } from '@ruda/core';
 import type { Camera } from './camera';
+import {
+  lightOf,
+  MAX_LIGHT_RADIUS,
+  MIN_LIGHT_CELL_SIZE,
+  paintLights,
+  type Light,
+} from './lighting';
 import type { CellAppearance, Skin } from './skins/skin';
 
 const MIN_GRID_CELL_SIZE = 12;
@@ -54,6 +63,10 @@ export class Renderer {
 
     if (camera.cellSize >= MIN_GRID_CELL_SIZE) this.drawGrid();
 
+    const lights = camera.cellSize >= MIN_LIGHT_CELL_SIZE ? this.collectLights(simulation) : [];
+    // Light pools on the floor, under the blocks.
+    this.paintLights(lights, this.skin.dark ? 1 : 0.8);
+
     // Blocks that arrived at their cell this tick are drawn sliding in instead of in place.
     // Blocks that left the world (a retracting head) slide away beneath the static blocks.
     const arrived = new Set<number>();
@@ -73,6 +86,8 @@ export class Renderer {
     for (const move of simulation.recentMoves) {
       if (arrived.has(cellKey(move.toX, move.toY))) this.drawMoving(simulation, move, progress);
     }
+    // On dark skins a faint second pass tints the lit blocks themselves.
+    if (this.skin.dark) this.paintLights(lights, 0.2);
 
     if (overlay.ghost) {
       const { x, y, block } = overlay.ghost;
@@ -81,6 +96,36 @@ export class Renderer {
       g.globalAlpha = 1;
     }
     if (overlay.hover) this.drawHover(...overlay.hover);
+  }
+
+  /** Lights from blocks on screen and from those close enough for their glow to reach it. */
+  private collectLights(simulation: Simulation): Light[] {
+    const rect = this.camera.visibleCells();
+    const margin = Math.ceil(MAX_LIGHT_RADIUS);
+    const lights: Light[] = [];
+    simulation.blocks.forEachInRect(
+      Math.max(WORLD_MIN, rect.minX - margin),
+      Math.max(WORLD_MIN, rect.minY - margin),
+      Math.min(WORLD_MAX - 1, rect.maxX + margin),
+      Math.min(WORLD_MAX - 1, rect.maxY + margin),
+      (x, y, block) => {
+        const light = lightOf(x, y, block, simulation, this.skin);
+        if (light) lights.push(light);
+      },
+    );
+    return lights;
+  }
+
+  private paintLights(lights: readonly Light[], strength: number): void {
+    const mode = this.skin.dark ? 'lighter' : 'source-over';
+    paintLights(
+      this.g,
+      lights,
+      this.camera.cellSize,
+      (x, y) => this.camera.worldToScreen(x, y),
+      mode,
+      strength,
+    );
   }
 
   private drawMoving(simulation: Simulation, move: BlockMove, progress: number): void {
