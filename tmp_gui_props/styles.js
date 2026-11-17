@@ -20,6 +20,12 @@
     g.rotate(((facing ?? 0) * Math.PI) / 2);
     g.translate(-s / 2, -s / 2);
   }
+  function mix(a, b, t) {
+    const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
+    const ch = (n, sh) => Math.round(((n >> sh) & 255) * (1 - t) + ((pb >> sh) & 255) * t);
+    const out = [16, 8, 0].map((sh) => ch(pa, sh));
+    return '#' + out.map((v) => v.toString(16).padStart(2, '0')).join('');
+  }
   const seedOf = (c) => ((c.x ?? 0) * 73856093) ^ ((c.y ?? 0) * 19349663);
 
   /** Primitive shapes in cell fractions (0..1), rendered according to the theme's options. */
@@ -31,7 +37,7 @@
       h = Math.imul(h ^ (h >>> 13), 1274126177);
       return ((h ^ (h >>> 16)) >>> 0) / 4294967296 - 0.5;
     };
-    const J = T.sketch ? 0.035 : 0;
+    const J = T.sketch ? (T.jitter ?? 0.035) : 0;
     const j = () => rnd() * J * 2 * s;
     const path = (pts, closed) => {
       g.beginPath();
@@ -50,6 +56,11 @@
         g.shadowColor = T.shadowColor || 'rgba(0,0,0,0.28)';
         g.shadowBlur = s * 0.08;
         g.shadowOffsetY = s * 0.05;
+      } else if (o.body && T.hardShadow) {
+        g.shadowColor = T.shadowColor || 'rgba(0,0,0,0.2)';
+        g.shadowBlur = s * 0.02;
+        g.shadowOffsetX = s * 0.04;
+        g.shadowOffsetY = s * 0.07;
       }
       if (T.outline && !o.solid) {
         build();
@@ -57,11 +68,14 @@
         g.lineWidth = lw(T.lw);
         g.stroke();
       } else if (T.sketch) {
-        build();
-        g.globalAlpha *= 0.85;
-        g.fillStyle = o.fill;
-        g.fill();
-        g.globalAlpha = 1;
+        if (T.hatchFill && !o.solid) hatch(build, o.fill);
+        else {
+          build();
+          g.globalAlpha *= 0.85;
+          g.fillStyle = o.fill;
+          g.fill();
+          g.globalAlpha = 1;
+        }
         g.shadowColor = 'transparent';
         if (!o.solid) {
           g.strokeStyle = T.ink;
@@ -73,7 +87,7 @@
         }
       } else {
         build();
-        g.fillStyle = o.fill;
+        g.fillStyle = o.paint || o.fill;
         g.fill();
         g.shadowColor = 'transparent';
         if (T.ink && !o.solid) {
@@ -85,8 +99,33 @@
       g.restore();
     }
 
+    /** Coloured-pencil fill: a pale wash plus diagonal strokes clipped to the shape. */
+    function hatch(build, color) {
+      build();
+      g.globalAlpha = 0.3;
+      g.fillStyle = color;
+      g.fill();
+      g.globalAlpha = 1;
+      g.save();
+      build();
+      g.clip();
+      g.strokeStyle = color;
+      g.lineWidth = lw(0.05);
+      for (let i = -1; i < 1; i += 0.1) {
+        path([[i, 1], [i + 1, 0]]);
+        g.stroke();
+      }
+      g.restore();
+    }
+
     return {
       rect(x, y, w, h, o) {
+        if (T.relief && o.body && !T.outline && o.fill.startsWith('#')) {
+          const grad = g.createLinearGradient(0, y * s, 0, (y + h) * s);
+          grad.addColorStop(0, mix(o.fill, '#ffffff', 0.18));
+          grad.addColorStop(1, mix(o.fill, '#000000', 0.12));
+          o = { ...o, paint: grad };
+        }
         const r = (o.r ?? T.radius ?? 0) * Math.min(w, h) * s;
         shape(() => {
           if (T.sketch) path([[x, y], [x + w, y], [x + w, y + h], [x, y + h]], true);
@@ -169,7 +208,10 @@
       redstone_block(g, c, s) {
         const p = P(g, s, c);
         p.rect(0.08, 0.08, 0.84, 0.84, { fill: C.source, body: true, glow: true });
-        p.rect(0.32, 0.32, 0.36, 0.36, { fill: T.outline ? C.source : C.mark || 'rgba(255,255,255,0.35)', solid: !T.outline, r: 0.3 });
+        if (T.detail) {
+          p.poly([[0.5, 0.22], [0.78, 0.5], [0.5, 0.78], [0.22, 0.5]], { fill: C.mark || '#ff8a80' });
+          p.poly([[0.5, 0.22], [0.64, 0.36], [0.5, 0.5], [0.36, 0.36]], { fill: '#ffffff', alpha: 0.35, solid: true });
+        } else p.rect(0.32, 0.32, 0.36, 0.36, { fill: T.outline ? C.source : C.mark || 'rgba(255,255,255,0.35)', solid: !T.outline, r: 0.3 });
       },
       stone(g, c, s) {
         const p = P(g, s, c);
@@ -183,9 +225,21 @@
           for (let i = -1; i < 1; i += 0.2) p.line([[i, 1], [i + 1, 0]], C.stoneDark, 0.04, { cap: 'butt' });
           g.restore();
         }
+        if (T.detail) p.line([[0.3, 0.18], [0.42, 0.42], [0.36, 0.58], [0.5, 0.82]], C.stoneDark || mix(C.stone, '#000000', 0.2), 0.035);
       },
       lamp(g, c, s, k) {
         const p = P(g, s, c);
+        if (T.lampCore) {
+          p.rect(0.06, 0.06, 0.88, 0.88, { fill: C.frame, body: true });
+          if (k.on) {
+            p.circle(0.5, 0.5, 0.33, { fill: C.light, glow: true });
+            p.circle(0.5, 0.5, 0.16, { fill: C.core, solid: true });
+          } else {
+            p.circle(0.5, 0.5, 0.3, { fill: C.lightOff });
+            p.circle(0.42, 0.42, 0.07, { fill: '#ffffff', alpha: 0.22, solid: true });
+          }
+          return;
+        }
         p.rect(0.08, 0.08, 0.84, 0.84, { fill: C.frame, body: true });
         if (k.on && T.halo !== false) p.circle(0.5, 0.5, 0.42, { fill: C.light, alpha: 0.3, solid: true });
         p.circle(0.5, 0.5, 0.24, { fill: k.on ? C.light : C.lightOff, glow: k.on, solid: T.outline && k.on });
@@ -199,7 +253,11 @@
         face(g, s, c.facing);
         const p = P(g, s, c);
         p.rect(0.12, 0.58, 0.76, 0.3, { fill: C.plate, body: true });
-        p.poly([[0.5, 0.1], [0.76, 0.56], [0.24, 0.56]], { fill: pw(k.on), glow: k.on });
+        if (T.detail) {
+          p.rect(0.44, 0.36, 0.12, 0.26, { fill: C.face, r: 0 });
+          p.poly([[0.5, 0.04], [0.64, 0.27], [0.5, 0.42], [0.36, 0.27]], { fill: pw(k.on), glow: k.on });
+          if (k.on) p.circle(0.5, 0.29, 0.06, { fill: C.core || '#ffffff', solid: true });
+        } else p.poly([[0.5, 0.1], [0.76, 0.56], [0.24, 0.56]], { fill: pw(k.on), glow: k.on });
       },
       delayer(g, c, s, k) {
         face(g, s, c.facing);
@@ -244,6 +302,9 @@
       gridMajor: C.gridMajor,
       cursor: C.cursor,
       dark: meta.dark ?? true,
+      lightColor: { lamp: C.light, power: C.on },
+      texture: T.texture,
+      night: T.night,
       pixelate: T.pixelate,
       post: T.post,
       mini: {
@@ -691,4 +752,48 @@
       termLine(g, s, [[0.5, 0.14], [0.5, 1]], true);
     },
   });
+
+  // ---------- round 2: families with a light and a dark variant ----------
+
+  const PAPER_LIGHT = { bg: '#f1ebe0', grid: 'rgba(60,40,20,0.07)', cursor: 'rgba(40,30,20,0.55)', on: '#e5372c', off: '#d3bab2', light: '#ffc21a', lightOff: '#6f675c',
+    core: '#fff7d1', source: '#e5372c', mark: '#ff8f84', stone: '#bcb5a9', stoneDark: '#a39c90', plate: '#8a8175', frame: '#3f3a33', knob: '#fbf8f2', face: '#5f574c', slot: '#b0a796' };
+  const PAPER_DARK = { bg: '#1f2023', grid: 'rgba(255,255,255,0.045)', cursor: 'rgba(255,255,255,0.55)', on: '#ff4b3e', off: '#4d3432', light: '#ffcc33', lightOff: '#3a3631',
+    core: '#fff8dc', source: '#e5372c', mark: '#ff8f84', stone: '#4a4d54', stoneDark: '#3c3f45', plate: '#646973', frame: '#121315', knob: '#d9dce2', face: '#9ca2ad', slot: '#2a2c31' };
+  const SKETCH_LIGHT = { bg: '#fbf8f1', grid: 'rgba(80,130,200,0.16)', cursor: '#2d2d2d', on: '#e63946', off: '#cfc8bc', light: '#ffcc1a', lightOff: '#8b8577',
+    core: '#fffbe0', source: '#e63946', mark: '#ff9aa2', stone: '#b8b2a7', stoneDark: '#8f897e', plate: '#9fb7c9', frame: '#4a4640', knob: '#ffffff', face: '#8d6e4c', slot: '#ddd5c4' };
+  const CHALK = { bg: '#263530', grid: 'rgba(255,255,255,0.05)', cursor: '#ecebe4', on: '#ff6b6b', off: '#5d6b64', light: '#ffe066', lightOff: '#46534d',
+    core: '#fffbe6', source: '#ff6b6b', mark: '#ffb3b3', stone: '#6c7a73', stoneDark: '#56635c', plate: '#8fa7b3', frame: '#1b2622', knob: '#ecebe4', face: '#c7a57a', slot: '#3a4842' };
+  const WOOD_LIGHT = { bg: '#e6e5d3', grid: 'rgba(40,60,30,0.08)', cursor: 'rgba(30,40,20,0.55)', on: '#d8342a', off: '#c4ad9a', light: '#ffc93c', lightOff: '#5e5a46',
+    core: '#fff6cf', source: '#c62f25', mark: '#ff8a7a', stone: '#8e9a86', stoneDark: '#76836e', plate: '#8a6a45', frame: '#3e4a35', knob: '#f2ead6', face: '#6b4f2e', slot: '#b5ae96' };
+  const WOOD_DARK = { bg: '#17201a', grid: 'rgba(200,255,200,0.04)', cursor: 'rgba(220,255,200,0.5)', on: '#ff4a3a', off: '#4b3428', light: '#ffd46b', lightOff: '#2f3326',
+    core: '#fff4d0', source: '#d4382c', mark: '#ff8a7a', stone: '#4e5a4b', stoneDark: '#3f4a3d', plate: '#7a5a3a', frame: '#0d120e', knob: '#d8c9a8', face: '#a77b4a', slot: '#26302a' };
+
+  const BASE = { lampCore: true, detail: true, wireW: 0.2 };
+  const FAMILIES = [];
+  function family(id, name, desc, light, dark) {
+    define(id + '-light', { name, desc, dark: false }, { ...BASE, ...light });
+    define(id + '-dark', { name, desc, dark: true }, { ...BASE, ...dark });
+    FAMILIES.push({ id, name, desc, light: id + '-light', dark: id + '-dark' });
+  }
+
+  family('paper2', 'Paper', 'The flat paper look, with dark lamp frames so lit lamps pop, and a bit more detail.',
+    { radius: 0.2, c: PAPER_LIGHT },
+    { radius: 0.2, c: PAPER_DARK });
+  family('relief', 'Paper relief', 'Paper with a gentle top-lit gradient and soft contact shadows: tactile, not toy.',
+    { radius: 0.18, relief: true, shadow: true, shadowColor: 'rgba(60,40,20,0.22)', c: PAPER_LIGHT },
+    { radius: 0.18, relief: true, shadow: true, shadowColor: 'rgba(0,0,0,0.5)', c: PAPER_DARK });
+  family('papercut', 'Paper cut', 'Layered cut paper: hard offset shadows and a fibrous paper texture.',
+    { radius: 0.05, hardShadow: true, shadowColor: 'rgba(70,50,30,0.25)', texture: { color: '#5a4630', amount: 2600 }, c: PAPER_LIGHT },
+    { radius: 0.05, hardShadow: true, shadowColor: 'rgba(0,0,0,0.6)', texture: { color: '#ffffff', amount: 1800 }, c: PAPER_DARK });
+  family('sketch2', 'Sketch', 'Pencil on notebook paper; in dark mode, chalk on a blackboard.',
+    { sketch: true, jitter: 0.025, ink: '#2d2d2d', wireW: 0.17, texture: { color: '#6b5a40', amount: 1000 }, c: SKETCH_LIGHT },
+    { sketch: true, jitter: 0.025, ink: '#ecebe4', wireW: 0.17, texture: { color: '#ffffff', amount: 1700 }, c: CHALK });
+  family('crayon', 'Coloured pencil', 'Sketch, but filled with hatched coloured-pencil strokes.',
+    { sketch: true, hatchFill: true, jitter: 0.025, ink: '#2d2d2d', wireW: 0.17, texture: { color: '#6b5a40', amount: 1000 }, c: SKETCH_LIGHT },
+    { sketch: true, hatchFill: true, jitter: 0.025, ink: '#ecebe4', wireW: 0.17, texture: { color: '#ffffff', amount: 1700 }, c: CHALK });
+  family('woodland', 'Woodland', 'Moss, stone and wood, with red power kept. At night only the lamps light the forest.',
+    { radius: 0.12, relief: true, stoneDots: true, c: WOOD_LIGHT },
+    { radius: 0.12, relief: true, stoneDots: true, c: WOOD_DARK });
+
+  Ruda.FAMILIES = FAMILIES;
 })();

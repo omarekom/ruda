@@ -163,6 +163,7 @@
       this.start = performance.now();
       this.last = this.start;
       this.fps = 60;
+      this.lighting = opts.lighting || 'off';
       this.interactive = opts.interactive !== false;
       if (this.interactive) this.bind();
       new ResizeObserver(() => this.resize()).observe(canvas);
@@ -313,6 +314,12 @@
       g.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
       g.fillStyle = style.bg;
       g.fillRect(0, 0, w, h);
+      if (style.texture) {
+        const pattern = texturePattern(g, style);
+        pattern.setTransform(new DOMMatrix().translate(w / 2 - this.cx * z, h / 2 - this.cy * z));
+        g.fillStyle = pattern;
+        g.fillRect(0, 0, w, h);
+      }
       const x0 = Math.floor(this.cx - w / 2 / z) - 1, x1 = Math.ceil(this.cx + w / 2 / z) + 1;
       const y0 = Math.floor(this.cy - h / 2 / z) - 1, y1 = Math.ceil(this.cy + h / 2 / z) + 1;
       const grid = (step, color) => {
@@ -354,11 +361,19 @@
         renderBlock(g, style, c, z, k);
         g.restore();
       };
+      const drawn = [];
       for (const c of this.world.cells.values()) {
         const [x, y] = moved.get(c) || [c.x, c.y];
-        put(c, x, y, this.appearance(c, S, t));
+        drawn.push([c, x, y, this.appearance(c, S, t)]);
       }
+      const lights = this.lighting === 'off' ? [] : collectLights(drawn, style);
+      // Light pools on the floor, under the blocks.
+      this.paintLights(lights, style.dark ? 'lighter' : 'source-over', style.dark ? 1 : 0.8);
+      for (const [c, x, y, k] of drawn) put(c, x, y, k);
       for (const head of heads) put(head, head.x, head.y, { att: [false, false, false, false], on: false, t });
+      if (this.lighting === 'night') this.paintNight(lights, style);
+      // A softer bloom over the blocks, so lit things tint their neighbours too.
+      else if (style.dark) this.paintLights(lights, 'lighter', 0.35);
 
       if (this.hover) {
         const { x, y } = this.hover;
@@ -376,6 +391,95 @@
       }
       if (style.post) style.post(g, w, h, t);
     }
+    paintLights(lights, mode, strength) {
+      const { g, zoom: z } = this;
+      g.save();
+      g.globalCompositeOperation = mode;
+      for (const l of lights) {
+        const cx = this.sx(l.x + 0.5), cy = this.sy(l.y + 0.5), r = l.radius * z;
+        const grad = g.createRadialGradient(cx, cy, 0, cx, cy, r);
+        grad.addColorStop(0, rgba(l.color, l.alpha * strength));
+        grad.addColorStop(0.35, rgba(l.color, l.alpha * strength * 0.45));
+        grad.addColorStop(1, rgba(l.color, 0));
+        g.fillStyle = grad;
+        g.fillRect(cx - r, cy - r, r * 2, r * 2);
+      }
+      g.restore();
+    }
+    /** Darkens the whole scene except around light sources. */
+    paintNight(lights, style) {
+      const { g, zoom: z, w, h } = this;
+      const dark = this.nightCanvas || (this.nightCanvas = document.createElement('canvas'));
+      dark.width = w;
+      dark.height = h;
+      const d = dark.getContext('2d');
+      d.fillStyle = style.night || (style.dark ? 'rgba(4,6,16,0.72)' : 'rgba(30,30,60,0.42)');
+      d.fillRect(0, 0, w, h);
+      d.globalCompositeOperation = 'destination-out';
+      for (const l of lights) {
+        const cx = this.sx(l.x + 0.5), cy = this.sy(l.y + 0.5), r = l.radius * z * 1.25;
+        const grad = d.createRadialGradient(cx, cy, 0, cx, cy, r);
+        grad.addColorStop(0, `rgba(0,0,0,${Math.min(1, l.alpha * 1.8)})`);
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+        d.fillStyle = grad;
+        d.fillRect(cx - r, cy - r, r * 2, r * 2);
+      }
+      g.drawImage(dark, 0, 0, w, h);
+      this.paintLights(lights, style.dark ? 'lighter' : 'source-over', 0.3);
+    }
+  }
+
+  // ---------- lighting and texture ----------
+
+  /** Light radius (cells) and strength per lit block type. */
+  const LIGHTS = {
+    lamp: { radius: 4.2, alpha: 0.6, color: 'lamp' },
+    torch: { radius: 2, alpha: 0.45, color: 'power' },
+    redstone_block: { radius: 1.8, alpha: 0.35, color: 'power' },
+    button: { radius: 1.4, alpha: 0.35, color: 'power' },
+    wire: { radius: 0.9, alpha: 0.16, color: 'power' },
+    crossing: { radius: 0.9, alpha: 0.16, color: 'power' },
+  };
+  function collectLights(drawn, style) {
+    const out = [];
+    for (const [c, x, y, k] of drawn) {
+      const spec = LIGHTS[c.type];
+      const lit = c.type === 'redstone_block' || k.on || (c.type === 'crossing' && k.on2);
+      if (!spec || !lit) continue;
+      const color = spec.color === 'lamp' ? style.lightColor.lamp : style.lightColor.power;
+      out.push({ x, y, radius: spec.radius, alpha: spec.alpha, color });
+    }
+    return out;
+  }
+  function rgba(hex, a) {
+    const n = parseInt(hex.slice(1), 16);
+    return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+  }
+  /** A tileable speckle texture (paper fibres, chalk dust), cached per style. */
+  function texturePattern(g, style) {
+    if (!style.textureTile) style.textureTile = makeTextureTile(style.texture);
+    return g.createPattern(style.textureTile, 'repeat');
+  }
+  function makeTextureTile({ color, amount }) {
+    const size = 160;
+    const cv = document.createElement('canvas');
+    cv.width = cv.height = size;
+    const t = cv.getContext('2d');
+    let a = 12345;
+    const rnd = () => ((a = (a * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+    for (let i = 0; i < amount; i++) {
+      t.fillStyle = rgba(color, 0.04 + rnd() * 0.08);
+      const x = rnd() * size, y = rnd() * size;
+      if (rnd() < 0.85) t.fillRect(x, y, 1 + rnd() * 1.5, 1 + rnd() * 1.5);
+      else {
+        t.strokeStyle = t.fillStyle;
+        t.beginPath();
+        t.moveTo(x, y);
+        t.lineTo(x + (rnd() - 0.5) * 14, y + (rnd() - 0.5) * 14);
+        t.stroke();
+      }
+    }
+    return cv;
   }
 
   /** Draws a block on its own (hotbar, palettes). Pistons and buttons default to their rest state. */

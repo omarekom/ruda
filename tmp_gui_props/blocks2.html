@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Block styles · round 2</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  [hidden] { display: none !important; }
+  :root { --bg: #f4efe6; --panel: #fffdf9; --line: #e2dacd; --ink: #2b2620; --mute: #8a8073; --sel: #2b2620; --selInk: #fff; }
+  :root.dark { --bg: #17181b; --panel: #222327; --line: #33353b; --ink: #e8e6e1; --mute: #8d8f96; --sel: #e8e6e1; --selInk: #17181b; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 14px Inter, system-ui, sans-serif; }
+  body { display: grid; grid-template-rows: auto 1fr auto auto; height: 100vh; }
+
+  header { display: flex; align-items: center; gap: 14px; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  header h1 { font-size: 15px; margin: 0 8px 0 0; }
+  .seg { display: flex; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; padding: 2px; }
+  .seg button { font: inherit; color: var(--ink); background: none; border: 0; padding: 5px 11px; border-radius: 7px; cursor: pointer; white-space: nowrap; }
+  .seg button.on { background: var(--sel); color: var(--selInk); }
+  .spacer { flex: 1; }
+  .lbl { color: var(--mute); font-size: 12px; margin-right: -8px; }
+
+  .stage { position: relative; margin: 14px 16px 0; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); min-height: 0; }
+  .stage canvas { width: 100%; height: 100%; display: block; cursor: crosshair; }
+  .desc { position: absolute; left: 12px; top: 12px; background: var(--panel); border: 1px solid var(--line); padding: 6px 10px; border-radius: 9px; max-width: 60%; }
+  .desc b { margin-right: 6px; } .desc span { color: var(--mute); }
+
+  .hotbar { display: flex; gap: 4px; padding: 5px; margin: 10px auto 0; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); }
+  .slot { width: 44px; height: 44px; border-radius: 8px; display: grid; place-items: center; cursor: pointer; position: relative; }
+  .slot.sel { box-shadow: 0 0 0 2px var(--sel); }
+  .slot canvas { width: 34px; height: 34px; }
+  .slot span { position: absolute; left: 4px; top: 1px; font-size: 10px; color: var(--mute); }
+
+  .strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; padding: 12px 16px 16px; }
+  .mini { border-radius: 10px; overflow: hidden; border: 2px solid transparent; cursor: pointer; position: relative; }
+  .mini.sel { border-color: var(--sel); }
+  .mini canvas { width: 100%; height: 120px; display: block; }
+  .mini b { position: absolute; left: 6px; bottom: 6px; font-size: 12px; background: var(--panel); padding: 2px 7px; border-radius: 6px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Block styles · round 2</h1>
+  <div class="seg" id="fams"></div>
+  <span class="spacer"></span>
+  <span class="lbl">Lighting</span>
+  <div class="seg" id="lighting"><button data-v="off">Off</button><button data-v="glow" class="on">Glow</button><button data-v="night">Night</button></div>
+  <div class="seg" id="theme" title="Theme"><button data-v="auto" class="on">Auto</button><button data-v="light">☀</button><button data-v="dark">☾</button></div>
+</header>
+
+<div class="stage">
+  <canvas id="world"></canvas>
+  <div class="desc"><b id="dn"></b><span id="dd"></span></div>
+</div>
+<div class="hotbar" id="hotbar"></div>
+<div class="strip" id="strip"></div>
+
+<script src="shared.js"></script>
+<script src="styles.js"></script>
+<script>
+  const $ = (id) => document.getElementById(id);
+  const FAM = Ruda.FAMILIES;
+  const media = matchMedia('(prefers-color-scheme: dark)');
+  const state = { family: FAM[0].id, theme: 'auto', lighting: 'glow' };
+
+  const view = new Ruda.WorldView($('world'), { zoom: 34, lighting: 'glow', style: FAM[0].light });
+  const minis = FAM.map((f) => {
+    const el = document.createElement('div');
+    el.className = 'mini';
+    el.innerHTML = `<canvas></canvas><b>${f.name}</b>`;
+    el.onclick = () => set({ family: f.id });
+    $('strip').append(el);
+    return { f, el, view: new Ruda.WorldView(el.querySelector('canvas'), { zoom: 10, interactive: false, lighting: 'glow', style: f.light }) };
+  });
+  for (const f of FAM) $('fams').insertAdjacentHTML('beforeend', `<button data-v="${f.id}">${f.name}</button>`);
+
+  const slots = Ruda.TYPES.map((t, i) => {
+    const el = document.createElement('div');
+    el.className = 'slot';
+    el.title = Ruda.NAMES[t];
+    el.innerHTML = `<canvas></canvas><span>${Ruda.slotKey(i)}</span>`;
+    el.onclick = () => pick(i);
+    $('hotbar').append(el);
+    return el;
+  });
+  function pick(i) { view.tool = Ruda.TYPES[i]; slots.forEach((s, j) => s.classList.toggle('sel', i === j)); }
+  pick(2);
+  Ruda.bindSlots(pick);
+
+  const isDark = () => (state.theme === 'auto' ? media.matches : state.theme === 'dark');
+  const styleOf = (f) => (isDark() ? f.dark : f.light);
+
+  function set(patch) {
+    Object.assign(state, patch);
+    const dark = isDark();
+    document.documentElement.classList.toggle('dark', dark);
+    const f = FAM.find((x) => x.id === state.family);
+    const id = styleOf(f);
+    view.setStyle(id);
+    view.lighting = state.lighting;
+    $('dn').textContent = f.name;
+    $('dd').textContent = f.desc;
+    slots.forEach((el, i) => { el.style.background = Ruda.STYLES[id].bg; Ruda.drawIcon(el.querySelector('canvas'), Ruda.TYPES[i], id); });
+    for (const m of minis) {
+      m.view.setStyle(styleOf(m.f));
+      m.view.lighting = state.lighting;
+      m.el.classList.toggle('sel', m.f.id === f.id);
+    }
+    for (const [seg, key] of [['fams', 'family'], ['lighting', 'lighting'], ['theme', 'theme']])
+      $(seg).querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.v === state[key]));
+  }
+  for (const [seg, key] of [['fams', 'family'], ['lighting', 'lighting'], ['theme', 'theme']])
+    $(seg).querySelectorAll('button').forEach((b) => (b.onclick = () => set({ [key]: b.dataset.v })));
+  media.addEventListener('change', () => set({}));
+
+  const q = new URLSearchParams(location.search);
+  set({ family: q.get('family') || state.family, theme: q.get('theme') || 'auto', lighting: q.get('lighting') || 'glow' });
+</script>
+</body>
+</html>
