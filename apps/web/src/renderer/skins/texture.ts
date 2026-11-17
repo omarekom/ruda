@@ -1,6 +1,8 @@
 /**
- * Tiny pixel-art textures painted once in code and scaled up without smoothing. Painting is
- * driven by a seeded random generator, so every texture looks the same on every run.
+ * Tiny pixel-art textures painted once in code. Scaled up they stay crisp; scaled down they
+ * are drawn from smaller, averaged copies (mipmaps), so a zoomed-out world blends smoothly
+ * instead of shimmering. Painting is driven by a seeded random generator, so every texture
+ * looks the same on every run.
  */
 
 /** Pixels per cell side in a texture. */
@@ -89,12 +91,66 @@ export function lazyTexture(paint: () => HTMLCanvasElement): () => HTMLCanvasEle
   return () => (texture ??= paint());
 }
 
-/** Draws a texture over the square (0, 0)–(size, size), with crisp pixels. */
+const mipmaps = new WeakMap<HTMLCanvasElement, readonly HTMLCanvasElement[]>();
+
+/** Halves the texture again and again down to a single pixel, each step averaging 2×2 pixels. */
+function mipChain(texture: HTMLCanvasElement): readonly HTMLCanvasElement[] {
+  let chain = mipmaps.get(texture);
+  if (chain) return chain;
+  const levels = [texture];
+  for (let level = texture; level.width > 1 || level.height > 1;) {
+    const smaller = document.createElement('canvas');
+    smaller.width = Math.max(1, level.width >> 1);
+    smaller.height = Math.max(1, level.height >> 1);
+    const g = smaller.getContext('2d');
+    if (!g) break;
+    g.imageSmoothingEnabled = true;
+    g.imageSmoothingQuality = 'high';
+    g.drawImage(level, 0, 0, smaller.width, smaller.height);
+    levels.push(smaller);
+    level = smaller;
+  }
+  chain = levels;
+  mipmaps.set(texture, chain);
+  return chain;
+}
+
+/**
+ * The texture to draw `pixels` device pixels wide: the original when it is enlarged (drawn
+ * crisp), else the smallest averaged copy still at least that wide (drawn smoothed).
+ */
+export function textureForSize(
+  texture: HTMLCanvasElement,
+  pixels: number,
+): { readonly image: HTMLCanvasElement; readonly smooth: boolean } {
+  if (pixels >= texture.width) return { image: texture, smooth: false };
+  const chain = mipChain(texture);
+  let image = texture;
+  for (const level of chain) {
+    if (level.width < pixels) break;
+    image = level;
+  }
+  return { image, smooth: true };
+}
+
+/** A single pixel holding the texture's average colour. */
+export function averagePixel(texture: HTMLCanvasElement): HTMLCanvasElement {
+  return mipChain(texture).at(-1) ?? texture;
+}
+
+/** How many device pixels one unit of the context's current transform covers. */
+export function deviceScale(g: CanvasRenderingContext2D): number {
+  const { a, b } = g.getTransform();
+  return Math.hypot(a, b);
+}
+
+/** Draws a texture over the square (0, 0)–(size, size). */
 export function drawTexture(
   g: CanvasRenderingContext2D,
-  texture: CanvasImageSource,
+  texture: HTMLCanvasElement,
   size: number,
 ): void {
-  g.imageSmoothingEnabled = false;
-  g.drawImage(texture, 0, 0, size, size);
+  const { image, smooth } = textureForSize(texture, size * deviceScale(g));
+  g.imageSmoothingEnabled = smooth;
+  g.drawImage(image, 0, 0, size, size);
 }

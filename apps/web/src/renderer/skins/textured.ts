@@ -18,7 +18,7 @@ import {
 } from './blockTextures';
 import { faceToward, wireArms } from './shapes';
 import type { Look, LookTable, Skin } from './skin';
-import { drawTexture, TEXTURE_SIZE } from './texture';
+import { averagePixel, deviceScale, drawTexture, TEXTURE_SIZE, textureForSize } from './texture';
 
 /** Draws one face of a block over the square (0, 0)–(size, size). */
 export type Face = (g: CanvasRenderingContext2D, size: number) => void;
@@ -104,8 +104,12 @@ export function texturedLooks(drawSolid: DrawSolid): LookTable {
   };
 }
 
-/** Below this cell size a floor texture would only flicker, so the plain colour is used. */
-const MIN_FLOOR_CELL_SIZE = 8;
+/**
+ * Between these cell sizes (in device pixels) the floor's slab pattern fades into its average
+ * colour, so far out the floor is plain instead of a fine grid.
+ */
+const FLOOR_DETAIL_FULL_PX = 18;
+const FLOOR_DETAIL_GONE_PX = 6;
 
 /** A `drawFloor` that repeats a floor tile, aligned with the world's cells. */
 export function tiledFloor(
@@ -113,12 +117,23 @@ export function tiledFloor(
   background: string,
 ): NonNullable<Skin['drawFloor']> {
   return (g, cellSize, [ox, oy], width, height) => {
-    const pattern = cellSize >= MIN_FLOOR_CELL_SIZE ? g.createPattern(tile(), 'repeat') : null;
+    const texture = tile();
+    const scale = deviceScale(g);
+    const tileSize = (cellSize * texture.width) / TEXTURE_SIZE;
+    const { image, smooth } = textureForSize(texture, tileSize * scale);
+    const pattern = g.createPattern(image, 'repeat');
     if (pattern) {
-      pattern.setTransform(new DOMMatrix().translate(ox, oy).scale(cellSize / TEXTURE_SIZE));
-      g.imageSmoothingEnabled = false;
+      pattern.setTransform(new DOMMatrix().translate(ox, oy).scale(tileSize / image.width));
     }
+    g.imageSmoothingEnabled = smooth;
     g.fillStyle = pattern ?? background;
     g.fillRect(0, 0, width, height);
+
+    const plain =
+      (FLOOR_DETAIL_FULL_PX - cellSize * scale) / (FLOOR_DETAIL_FULL_PX - FLOOR_DETAIL_GONE_PX);
+    if (plain <= 0) return;
+    g.globalAlpha = Math.min(1, plain);
+    g.drawImage(averagePixel(texture), 0, 0, width, height);
+    g.globalAlpha = 1;
   };
 }

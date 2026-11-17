@@ -11,7 +11,8 @@ const SHADOW_OFFSET = 0.1;
  */
 const LOOKS = texturedLooks((g, size, top) => {
   top(g, size);
-  const px = Math.max(1, size / 16);
+  // Not rounded up to a whole pixel: when zoomed out, the outline thins and fades with the block.
+  const px = size / 16;
   g.strokeStyle = 'rgba(0, 0, 0, 0.6)';
   g.lineWidth = px;
   g.strokeRect(px / 2, px / 2, size - px, size - px);
