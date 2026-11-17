@@ -19,10 +19,18 @@ import {
   paintLights,
   type Light,
 } from './lighting';
-import type { CellAppearance, Skin } from './skins/skin';
+import { paintFloor, type CellAppearance, type Skin } from './skins/skin';
 
 const MIN_GRID_CELL_SIZE = 12;
 const GHOST_ALPHA = 0.5;
+
+interface ShownBlock {
+  readonly x: number;
+  readonly y: number;
+  readonly block: Block;
+  readonly appearance: CellAppearance;
+  readonly seed: number;
+}
 
 export interface Overlay {
   readonly hover: readonly [number, number] | undefined;
@@ -58,8 +66,9 @@ export class Renderer {
     const { g, camera } = this;
     const ratio = this.canvas.width / Math.max(1, this.canvas.clientWidth);
     g.setTransform(ratio, 0, 0, ratio, 0, 0);
-    g.fillStyle = this.skin.background;
-    g.fillRect(0, 0, this.canvas.clientWidth, this.canvas.clientHeight);
+    const { clientWidth, clientHeight } = this.canvas;
+    const origin = camera.worldToScreen(0, 0);
+    paintFloor(g, this.skin, camera.cellSize, origin, clientWidth, clientHeight);
 
     if (camera.cellSize >= MIN_GRID_CELL_SIZE) this.drawGrid();
 
@@ -67,25 +76,14 @@ export class Renderer {
     // Light pools on the floor, under the blocks.
     this.paintLights(lights, this.skin.dark ? 1 : 0.8);
 
-    // Blocks that arrived at their cell this tick are drawn sliding in instead of in place.
-    // Blocks that left the world (a retracting head) slide away beneath the static blocks.
-    const arrived = new Set<number>();
-    const vanished: BlockMove[] = [];
-    for (const move of simulation.recentMoves) {
-      const there = simulation.blocks.get(move.toX, move.toY);
-      if (there && sameBlock(there, move.block)) arrived.add(cellKey(move.toX, move.toY));
-      else vanished.push(move);
+    const shown = this.shownBlocks(simulation, tickProgress);
+    const { drawUnder } = this.skin;
+    if (drawUnder) {
+      for (const cell of shown) {
+        this.inCell(cell.x, cell.y, () => drawUnder(g, cell.block, camera.cellSize));
+      }
     }
-    const progress = easeOut(tickProgress);
-    for (const move of vanished) this.drawMoving(simulation, move, progress);
-
-    const rect = camera.visibleCells();
-    simulation.blocks.forEachInRect(rect.minX, rect.minY, rect.maxX, rect.maxY, (x, y, block) => {
-      if (!arrived.has(cellKey(x, y))) this.drawCell(x, y, block, appearanceOf(simulation, x, y));
-    });
-    for (const move of simulation.recentMoves) {
-      if (arrived.has(cellKey(move.toX, move.toY))) this.drawMoving(simulation, move, progress);
-    }
+    for (const cell of shown) this.drawCell(cell.x, cell.y, cell.block, cell.appearance, cell.seed);
     // On dark skins a faint second pass tints the lit blocks themselves.
     if (this.skin.dark) this.paintLights(lights, 0.2);
 
@@ -128,11 +126,47 @@ export class Renderer {
     );
   }
 
-  private drawMoving(simulation: Simulation, move: BlockMove, progress: number): void {
-    const x = move.fromX + (move.toX - move.fromX) * progress;
-    const y = move.fromY + (move.toY - move.fromY) * progress;
-    const appearance = appearanceOf(simulation, move.toX, move.toY);
-    this.drawCell(x, y, move.block, appearance, cellSeed(move.toX, move.toY));
+  /**
+   * The blocks to draw this frame, in drawing order. Blocks that arrived at their cell this
+   * tick slide in instead of standing in place; blocks that left the world (a retracting head)
+   * slide away first, beneath the static blocks.
+   */
+  private shownBlocks(simulation: Simulation, tickProgress: number): ShownBlock[] {
+    const arrived = new Set<number>();
+    const vanished: BlockMove[] = [];
+    for (const move of simulation.recentMoves) {
+      const there = simulation.blocks.get(move.toX, move.toY);
+      if (there && sameBlock(there, move.block)) arrived.add(cellKey(move.toX, move.toY));
+      else vanished.push(move);
+    }
+    const progress = easeOut(tickProgress);
+    const moving = (move: BlockMove): ShownBlock => ({
+      x: move.fromX + (move.toX - move.fromX) * progress,
+      y: move.fromY + (move.toY - move.fromY) * progress,
+      block: move.block,
+      appearance: appearanceOf(simulation, move.toX, move.toY),
+      seed: cellSeed(move.toX, move.toY),
+    });
+
+    const shown = vanished.map(moving);
+    const rect = this.camera.visibleCells();
+    simulation.blocks.forEachInRect(rect.minX, rect.minY, rect.maxX, rect.maxY, (x, y, block) => {
+      if (arrived.has(cellKey(x, y))) return;
+      shown.push({ x, y, block, appearance: appearanceOf(simulation, x, y), seed: cellSeed(x, y) });
+    });
+    for (const move of simulation.recentMoves) {
+      if (arrived.has(cellKey(move.toX, move.toY))) shown.push(moving(move));
+    }
+    return shown;
+  }
+
+  /** Runs `draw` with the context moved so the cell's square starts at (0, 0). */
+  private inCell(x: number, y: number, draw: () => void): void {
+    const [sx, sy] = this.camera.worldToScreen(x, y);
+    this.g.save();
+    this.g.translate(sx, sy);
+    draw();
+    this.g.restore();
   }
 
   private drawCell(
@@ -142,11 +176,9 @@ export class Renderer {
     appearance: CellAppearance,
     seed = cellSeed(x, y),
   ): void {
-    const [sx, sy] = this.camera.worldToScreen(x, y);
-    this.g.save();
-    this.g.translate(sx, sy);
-    this.skin.drawBlock(this.g, block, this.camera.cellSize, appearance, seed);
-    this.g.restore();
+    this.inCell(x, y, () =>
+      this.skin.drawBlock(this.g, block, this.camera.cellSize, appearance, seed),
+    );
   }
 
   private drawGrid(): void {

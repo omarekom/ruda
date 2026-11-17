@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, shallowRef, useTemplateRef } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { pixelSkin } from '../renderer/skins/pixel';
+import { gameSkin } from '../gameLook';
 import { fileErrorKey } from '../storage/fileErrors';
 import { createEmptyWorld, renameWorld } from '../storage/worldActions';
 import type { StoredWorld, WorldStore } from '../storage/worldStore';
@@ -82,7 +82,7 @@ async function onDeleteChoice(choice: 'delete' | 'cancel'): Promise<void> {
         @click="selectedId = world.id"
         @dblclick="emit('open', world.id)"
       >
-        <WorldThumbnail class="thumbnail" :data="world.data" :skin="pixelSkin" />
+        <WorldThumbnail class="thumbnail" :data="world.data" :skin="gameSkin" />
         <span class="text">
           <span class="name">{{ world.name }}</span>
           <span class="date">{{

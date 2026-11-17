@@ -1,0 +1,100 @@
+/**
+ * Tiny pixel-art textures painted once in code and scaled up without smoothing. Painting is
+ * driven by a seeded random generator, so every texture looks the same on every run.
+ */
+
+/** Pixels per cell side in a texture. */
+export const TEXTURE_SIZE = 16;
+
+export type Random = () => number;
+
+/** mulberry32: small, fast and good enough for picking pixel colours. */
+export function seededRandom(seed: number): Random {
+  let state = seed >>> 0;
+  return () => {
+    state = (state + 0x6d2b79f5) >>> 0;
+    let t = state;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+export function pick<T>(random: Random, items: readonly T[]): T {
+  const item = items[Math.floor(random() * items.length)];
+  if (item === undefined) throw new Error('Cannot pick from an empty list');
+  return item;
+}
+
+/** Drawing helpers over a texture's pixel grid. */
+export interface Painter {
+  readonly random: Random;
+  readonly width: number;
+  readonly height: number;
+  pixel(x: number, y: number, color: string): void;
+  rect(x: number, y: number, w: number, h: number, color: string): void;
+  /** Fills a rectangle with colours picked at random from the palette, pixel by pixel. */
+  noise(x: number, y: number, w: number, h: number, palette: readonly string[]): void;
+}
+
+export function paintTexture(
+  seed: number,
+  paint: (p: Painter) => void,
+  width = TEXTURE_SIZE,
+  height = width,
+): HTMLCanvasElement {
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const g = canvas.getContext('2d');
+  if (!g) throw new Error('Canvas 2D is not supported');
+  const random = seededRandom(seed);
+  const rect = (x: number, y: number, w: number, h: number, color: string): void => {
+    g.fillStyle = color;
+    g.fillRect(x, y, w, h);
+  };
+  paint({
+    random,
+    width,
+    height,
+    pixel: (x, y, color) => rect(x, y, 1, 1, color),
+    rect,
+    noise(x, y, w, h, palette) {
+      for (let py = y; py < y + h; py++) {
+        for (let px = x; px < x + w; px++) rect(px, py, 1, 1, pick(random, palette));
+      }
+    },
+  });
+  return canvas;
+}
+
+/** Remembers textures by key, so each one is painted only the first time it is needed. */
+export function textureCache<K>(
+  paint: (key: K) => HTMLCanvasElement,
+): (key: K) => HTMLCanvasElement {
+  const cache = new Map<K, HTMLCanvasElement>();
+  return (key) => {
+    let texture = cache.get(key);
+    if (!texture) {
+      texture = paint(key);
+      cache.set(key, texture);
+    }
+    return texture;
+  };
+}
+
+/** A single texture, painted the first time it is needed. */
+export function lazyTexture(paint: () => HTMLCanvasElement): () => HTMLCanvasElement {
+  let texture: HTMLCanvasElement | undefined;
+  return () => (texture ??= paint());
+}
+
+/** Draws a texture over the square (0, 0)–(size, size), with crisp pixels. */
+export function drawTexture(
+  g: CanvasRenderingContext2D,
+  texture: CanvasImageSource,
+  size: number,
+): void {
+  g.imageSmoothingEnabled = false;
+  g.drawImage(texture, 0, 0, size, size);
+}

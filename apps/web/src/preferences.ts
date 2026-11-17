@@ -1,4 +1,5 @@
 import type { Mode } from './game/mode';
+import { GAME_LOOK_NAMES, type GameLook } from './renderer/skins/gameLooks';
 
 export type Theme = 'auto' | 'light' | 'dark';
 
@@ -9,12 +10,15 @@ export interface Preferences {
   readonly theme: Theme;
   /** The world the player had open last. */
   readonly lastWorld: string | undefined;
+  /** How blocks look in game mode. */
+  readonly gameLook: GameLook;
 }
 
 const KEYS: { readonly [K in keyof Preferences]: string } = {
   mode: 'ruda.mode',
   theme: 'ruda.theme',
   lastWorld: 'ruda.lastWorld',
+  gameLook: 'ruda.gameLook',
 };
 
 const MODES: readonly string[] = ['game', 'expert'] satisfies Mode[];
@@ -41,10 +45,12 @@ function read(storage: Storage | undefined, key: string): string | undefined {
 export function readPreferences(storage = browserStorage()): Preferences {
   const mode = read(storage, KEYS.mode);
   const theme = read(storage, KEYS.theme);
+  const gameLook = read(storage, KEYS.gameLook);
   return {
     mode: mode !== undefined && MODES.includes(mode) ? (mode as Mode) : undefined,
     theme: theme !== undefined && THEMES.includes(theme) ? (theme as Theme) : 'auto',
     lastWorld: read(storage, KEYS.lastWorld),
+    gameLook: GAME_LOOK_NAMES.find((name) => name === gameLook) ?? 'original',
   };
 }
 

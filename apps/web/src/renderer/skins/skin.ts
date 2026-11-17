@@ -48,6 +48,22 @@ export interface Skin {
     appearance: CellAppearance,
     seed?: number,
   ): void;
+  /**
+   * Paints the ground instead of the plain background colour. `origin` is where the world's
+   * cell (0, 0) is on screen, so a texture can stay aligned with the cells.
+   */
+  drawFloor?(
+    g: CanvasRenderingContext2D,
+    cellSize: number,
+    origin: readonly [number, number],
+    width: number,
+    height: number,
+  ): void;
+  /**
+   * Drawn for every block before any block itself, in the same cell square, for things that
+   * may fall onto neighbouring cells but must stay under their blocks, such as shadows.
+   */
+  drawUnder?(g: CanvasRenderingContext2D, block: Block, size: number): void;
 }
 
 /** Dispatches a block to its look in the table. */
@@ -62,4 +78,21 @@ export function drawFromTable(
   // The table pairs each type with its own look; TypeScript cannot correlate the union here.
   const look = looks[block.type] as Look<BlockType>;
   look(g, block, size, appearance, seed);
+}
+
+/** Paints the skin's floor, or its plain background where it has none. */
+export function paintFloor(
+  g: CanvasRenderingContext2D,
+  skin: Skin,
+  cellSize: number,
+  origin: readonly [number, number],
+  width: number,
+  height: number,
+): void {
+  if (skin.drawFloor) {
+    skin.drawFloor(g, cellSize, origin, width, height);
+  } else {
+    g.fillStyle = skin.background;
+    g.fillRect(0, 0, width, height);
+  }
 }

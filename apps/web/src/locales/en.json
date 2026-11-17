@@ -56,7 +56,8 @@
       "save": "Save",
       "worlds": "Worlds…",
       "controls": "Controls…",
-      "startScreen": "Start screen"
+      "startScreen": "Start screen",
+      "look": "Blocks: {name}"
     },
     "controls": {
       "title": "Controls",
@@ -109,6 +110,23 @@
       "nameLabel": "World name",
       "saveName": "Done",
       "confirmDelete": "Delete “{name}”? It will be lost forever!"
+    },
+    "looks": {
+      "original": "Original",
+      "meadow": "Meadow",
+      "workshop": "Workshop",
+      "depth": "Deep Cave"
+    },
+    "loading": {
+      "title": "Loading world",
+      "steps": {
+        "terrain": "Building terrain",
+        "dust": "Sprinkling redstone dust",
+        "lamps": "Polishing lamps",
+        "pistons": "Oiling pistons",
+        "torches": "Lighting torches",
+        "levers": "Flipping levers back"
+      }
     }
   },
   "expert": {

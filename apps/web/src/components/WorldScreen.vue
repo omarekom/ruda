@@ -16,11 +16,11 @@ import { createHotbarState } from '../game/hotbar';
 import type { Mode } from '../game/mode';
 import type { OpenWorld } from '../game/openWorld';
 import type { SaveResult } from '../game/saving';
-import { pixelSkin } from '../renderer/skins/pixel';
 import { sketchDarkSkin, sketchLightSkin } from '../renderer/skins/sketch';
 import type { Skin } from '../renderer/skins/skin';
 import { downloadRudaFile } from '../storage/files';
 import type { WorldStore } from '../storage/worldStore';
+import { gameSkin } from '../gameLook';
 import { isDark } from '../theme';
 import ConfirmDialog from './ConfirmDialog.vue';
 import ExpertHud, { type SaveStatus } from './ExpertHud.vue';
@@ -57,7 +57,7 @@ let autosaveTimer: ReturnType<typeof setInterval> | undefined;
 let flipTimer: ReturnType<typeof setTimeout> | undefined;
 
 const skin = computed<Skin>(() => {
-  if (shownMode.value === 'game') return pixelSkin;
+  if (shownMode.value === 'game') return gameSkin.value;
   return isDark.value ? sketchDarkSkin : sketchLightSkin;
 });
 const paused = computed(() =>

@@ -29,6 +29,7 @@ describe('preferences', () => {
       mode: undefined,
       theme: 'auto',
       lastWorld: undefined,
+      gameLook: 'original',
     });
   });
 
@@ -37,7 +38,13 @@ describe('preferences', () => {
     writePreference('mode', 'expert', storage);
     writePreference('theme', 'dark', storage);
     writePreference('lastWorld', 'w1', storage);
-    expect(readPreferences(storage)).toEqual({ mode: 'expert', theme: 'dark', lastWorld: 'w1' });
+    writePreference('gameLook', 'meadow', storage);
+    expect(readPreferences(storage)).toEqual({
+      mode: 'expert',
+      theme: 'dark',
+      lastWorld: 'w1',
+      gameLook: 'meadow',
+    });
     writePreference('lastWorld', undefined, storage);
     expect(readPreferences(storage).lastWorld).toBeUndefined();
   });
@@ -46,7 +53,12 @@ describe('preferences', () => {
     const storage = new MemoryStorage();
     storage.setItem('ruda.mode', 'creative');
     storage.setItem('ruda.theme', 'purple');
-    expect(readPreferences(storage)).toMatchObject({ mode: undefined, theme: 'auto' });
+    storage.setItem('ruda.gameLook', 'neon');
+    expect(readPreferences(storage)).toMatchObject({
+      mode: undefined,
+      theme: 'auto',
+      gameLook: 'original',
+    });
   });
 
   it('works without storage', () => {
