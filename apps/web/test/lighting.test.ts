@@ -1,7 +1,7 @@
 import { Axis, createBlock, Direction, type Block } from '@ruda/core';
 import { describe, expect, it } from 'vitest';
 import { lightOf, withAlpha, type PowerState } from '../src/renderer/lighting';
-import { WORKSHOP_LOOKS } from '../src/renderer/skins/workshop';
+import { workshopSkin as skin } from '../src/renderer/skins/workshop';
 
 function power(lit: boolean, powered: boolean): PowerState {
   return {
@@ -10,7 +10,6 @@ function power(lit: boolean, powered: boolean): PowerState {
   };
 }
 
-const skin = WORKSHOP_LOOKS.classic;
 const light = (block: Block, state: PowerState) => lightOf(3, 4, block, state, skin);
 
 describe('lightOf', () => {

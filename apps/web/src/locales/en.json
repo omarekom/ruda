@@ -56,8 +56,7 @@
       "save": "Save",
       "worlds": "Worlds…",
       "controls": "Controls…",
-      "startScreen": "Start screen",
-      "look": "Blocks: {name}"
+      "startScreen": "Start screen"
     },
     "controls": {
       "title": "Controls",
@@ -109,15 +108,7 @@
       "renameTitle": "Rename World",
       "nameLabel": "World name",
       "saveName": "Done",
-      "confirmDelete": "Delete “{name}”? It will be lost forever!",
-      "showcase": "Showcase World",
-      "showcaseName": "Showcase"
-    },
-    "looks": {
-      "classic": "Workshop",
-      "soft": "Soft Shadows",
-      "crisp": "Crisp Outline",
-      "slabs": "Big Slabs"
+      "confirmDelete": "Delete “{name}”? It will be lost forever!"
     },
     "loading": {
       "steps": {

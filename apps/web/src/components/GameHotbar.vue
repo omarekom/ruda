@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { createBlock } from '@ruda/core';
 import { HOTBAR_SLOTS, type HotbarState } from '../game/hotbar';
-import { gameSkin } from '../gameLook';
+import { workshopSkin } from '../renderer/skins/workshop';
 import BlockIcon from './BlockIcon.vue';
 
 defineProps<{ state: HotbarState }>();
@@ -19,7 +19,7 @@ const emit = defineEmits<{ select: [index: number] }>();
       :title="$t(`blocks.${type}`)"
       @click="emit('select', index)"
     >
-      <BlockIcon :block="createBlock(type, state.facing)" :skin="gameSkin" :size="34" />
+      <BlockIcon :block="createBlock(type, state.facing)" :skin="workshopSkin" :size="34" />
     </button>
   </nav>
 </template>

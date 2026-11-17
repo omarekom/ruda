@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import type { Mode } from '../game/mode';
-import { gameSkin } from '../gameLook';
 import { sketchDarkSkin, sketchLightSkin } from '../renderer/skins/sketch';
+import { workshopSkin } from '../renderer/skins/workshop';
 import { lightRing } from '../start/lightRing';
 import { sampleCircuits } from '../start/samples';
 import { isDark } from '../theme';
@@ -22,7 +22,7 @@ const EXPERT_POINTS = ['time', 'inspect', 'overview', 'big'] as const;
       <LiveWorld
         class="backdrop"
         :world="gameWorld"
-        :skin="gameSkin"
+        :skin="workshopSkin"
         :cell-size="36"
         :speed="0.4"
       />

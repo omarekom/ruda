@@ -259,30 +259,21 @@ export const pistonHeadTexture = lazyTexture(() =>
   }),
 );
 
-/** Floor tiles cover 2×2 cells, so slabs can span two cells and repetition is less obvious. */
+/** The floor tile covers 2×2 cells, so the noise repeats less obviously. */
 const FLOOR_CELLS = 2;
 
-/** A floor of flat slabs, each with a light top-left and a dark bottom-right edge. */
-export interface SlabStyle {
-  readonly fill: readonly string[];
-  readonly light: string;
-  readonly dark: string;
-  /** Cells per slab side: 1 or 2. */
-  readonly slabCells: number;
-}
-
-export const slabFloor = textureCache((style: SlabStyle) =>
+/** A floor of warm smooth stone slabs, each with a light top-left and a dark bottom-right edge. */
+export const slabFloor = lazyTexture(() =>
   paintTexture(
     127,
     (p) => {
-      const slab = N * style.slabCells;
-      for (let y = 0; y < p.height; y += slab) {
-        for (let x = 0; x < p.width; x += slab) {
-          p.noise(x, y, slab, slab, style.fill);
-          p.rect(x, y, slab, 1, style.light);
-          p.rect(x, y, 1, slab, style.light);
-          p.rect(x, y + slab - 1, slab, 1, style.dark);
-          p.rect(x + slab - 1, y, 1, slab, style.dark);
+      for (let y = 0; y < p.height; y += N) {
+        for (let x = 0; x < p.width; x += N) {
+          p.noise(x, y, N, N, ['#d2ccc0', '#cdc7bb', '#d7d1c5']);
+          p.rect(x, y, N, 1, '#e3ded4');
+          p.rect(x, y, 1, N, '#e3ded4');
+          p.rect(x, y + LAST, N, 1, '#afa899');
+          p.rect(x + LAST, y, 1, N, '#afa899');
         }
       }
     },

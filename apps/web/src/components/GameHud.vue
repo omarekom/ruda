@@ -3,7 +3,6 @@ import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { selectedType, selectSlot, type HotbarState } from '../game/hotbar';
 import type { SaveResult } from '../game/saving';
-import { gameLook, nextGameLook } from '../gameLook';
 import GameControls from './GameControls.vue';
 import GameHotbar from './GameHotbar.vue';
 
@@ -120,9 +119,6 @@ function save(): void {
             {{ t('modes.expert') }}
           </button>
         </div>
-        <button type="button" class="blocky-button" @click="nextGameLook">
-          {{ t('game.menu.look', { name: t(`game.looks.${gameLook}`) }) }}
-        </button>
         <button type="button" class="blocky-button" @click="emit('start')">
           {{ t('game.menu.startScreen') }}
         </button>

@@ -18,9 +18,9 @@ import type { OpenWorld } from '../game/openWorld';
 import type { SaveResult } from '../game/saving';
 import { sketchDarkSkin, sketchLightSkin } from '../renderer/skins/sketch';
 import type { Skin } from '../renderer/skins/skin';
+import { workshopSkin } from '../renderer/skins/workshop';
 import { downloadRudaFile } from '../storage/files';
 import type { WorldStore } from '../storage/worldStore';
-import { gameSkin } from '../gameLook';
 import { isDark } from '../theme';
 import ConfirmDialog from './ConfirmDialog.vue';
 import ExpertHud, { type SaveStatus } from './ExpertHud.vue';
@@ -57,7 +57,7 @@ let autosaveTimer: ReturnType<typeof setInterval> | undefined;
 let flipTimer: ReturnType<typeof setTimeout> | undefined;
 
 const skin = computed<Skin>(() => {
-  if (shownMode.value === 'game') return gameSkin.value;
+  if (shownMode.value === 'game') return workshopSkin;
   return isDark.value ? sketchDarkSkin : sketchLightSkin;
 });
 const paused = computed(() =>
