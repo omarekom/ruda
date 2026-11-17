@@ -1,3 +1,10 @@
+:root {
+  --font-pixel: 'Silkscreen', monospace;
+  --font-retro: 'VT323', monospace;
+  --font-hand: 'Patrick Hand', 'Comic Sans MS', cursive;
+  --font-hand-title: 'Caveat', 'Patrick Hand', cursive;
+}
+
 html,
 body,
 #app {
