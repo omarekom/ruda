@@ -89,9 +89,11 @@ Game mode
 - Real time, simple and playful, with a deliberately blocky, game-like look: pixel fonts, bevelled grey buttons, a framed hotbar.
 - On screen only: the hotbar (no number hints; the keys still work), the name of the held block popping up briefly when it changes, and in the top right corner an **Expert mode** button and a menu button.
 - The menu (button or Esc) pauses the simulation. It offers: back to game, save, worlds, controls, expert mode, start screen. Saving shows a short confirmation.
-- **Controls** lists every key and mouse action by section (movement, building, using blocks, game, hotbar slots), each shown as a key cap.
+- **Controls** lists every key and mouse action by section (movement, building, using blocks, game, hotbar), each shown as a key cap. The hotbar is one row with its number keys.
+- Opening a world (from the start screen, Select World or on a later visit) shows a loading screen: a dark dirt backdrop, "Loading world", playful status lines and a filling bar. It stays up for at least 1.2 s on purpose, as part of the game feel, so no menu flashes by on the way in.
+- **Block looks** (being tuned): the menu's **Blocks:** button cycles through the original flat look and three Minecraft-like textured ones: **Meadow** (16×16 textures from straight above on grass), **Workshop** (bright smooth stone floor, solid blocks bevelled and casting shadows) and **Deep Cave** (dark deepslate floor, solid blocks seen at an angle with a visible side). The choice is remembered and also used by the hotbar, thumbnails and the start screen. Once one look is chosen, the others go away.
 - **Worlds…** opens game mode's own **Select World** screen: worlds with thumbnails, play, create, rename and delete, and back to the start screen. Game mode never sends the player through expert mode's world list. Worlds are shared between the modes.
-- Dialogs (unsaved changes, delete) use the blocky look too.
+- Dialogs (unsaved changes, delete) use the blocky look too. Text in game mode's menus is large, for easy reading.
 - Always dark; no theme switch.
 
 Expert mode
@@ -140,6 +142,14 @@ A shared library of creations in its own tab next to **Your worlds**. It is a se
 - Built-in creations, built and tested in code: block tour, logic gates (NOT, OR, NOR, AND, NAND, XOR), clocks, light chaser, pulse tools (edge detectors, delay line), memory cell (latch), adders (half, full, 2-bit), piston switches, lamp sign.
 - Backend: PHP 8.1+ with SQLite on ordinary PHP hosting (see `apps/library-api/README.md`).
 
+## 0.8 – Sounds
+
+Game mode gets sounds, tuned to its playful feel. To design:
+
+- Which events make a sound: placing and breaking blocks, flipping levers, pressing buttons, pistons pushing and pulling, delayers clicking, torches burning out, menu clicks.
+- How they are made (recorded samples or synthesized in the browser) and how loud a busy circuit may get, so many events at once don't turn into noise.
+- A volume setting and mute in the pause menu; whether expert mode has sounds at all.
+
 ## Future
 
 Ideas, not committed:
@@ -154,6 +164,6 @@ Ideas, not committed:
 - Multiplayer: one client hosts, others join (see ARCHITECTURE.md).
 - Fully playable with only a keyboard or only a mouse (the default is both together).
 - Mobile / touch support.
-- Textures, sounds and richer game-like visuals.
+- Richer game-like visuals.
 - Simulation in a Web Worker.
 - Running worlds headless from a file (CLI / library use).
