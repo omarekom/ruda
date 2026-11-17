@@ -36,6 +36,50 @@
     "leavePrompt": "Save changes to “{name}” before leaving?",
     "discard": "Discard"
   },
+  "modes": {
+    "game": "Game mode",
+    "expert": "Expert mode"
+  },
+  "game": {
+    "saved": "World saved",
+    "saveFailed": "Saving failed!",
+    "menu": {
+      "open": "Menu",
+      "title": "Game paused",
+      "resume": "Back to game",
+      "save": "Save",
+      "worlds": "Worlds…",
+      "controls": "Controls…",
+      "startScreen": "Start screen"
+    },
+    "controls": {
+      "place": {
+        "keys": "Right click",
+        "action": "place a block, flip a lever, press a button"
+      },
+      "remove": {
+        "keys": "Left click",
+        "action": "break a block"
+      },
+      "zoom": {
+        "keys": "Wheel",
+        "action": "zoom"
+      },
+      "move": {
+        "keys": "W A S D / middle drag",
+        "action": "move around"
+      },
+      "rotate": {
+        "keys": "R / right drag",
+        "action": "turn the block"
+      },
+      "menu": {
+        "keys": "Esc",
+        "action": "menu"
+      },
+      "done": "Done"
+    }
+  },
   "dialog": {
     "cancel": "Cancel",
     "save": "Save",
@@ -48,8 +92,7 @@
     "invalid_content": "The world in the file is damaged and cannot be loaded."
   },
   "hotbar": {
-    "label": "Hotbar",
-    "slot": "{key}: {name}"
+    "label": "Hotbar"
   },
   "blocks": {
     "redstone_block": "Redstone block",
@@ -63,9 +106,6 @@
     "button": "Button",
     "piston": "Piston",
     "piston_head": "Piston head"
-  },
-  "help": {
-    "controls": "Right click: place / use (lever, button, delayer delay) · Left click: remove · R or right-drag: rotate · WASD, arrows or middle drag: move · Wheel: zoom · Ctrl+S: save"
   },
   "library": {
     "title": "Library",

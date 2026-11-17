@@ -3,8 +3,9 @@ import { parseWorld, serializeWorld } from '@ruda/core';
 import { onBeforeUnmount, onMounted, ref, shallowRef } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ConfirmDialog from './components/ConfirmDialog.vue';
-import EditorView from './components/EditorView.vue';
+import WorldScreen from './components/WorldScreen.vue';
 import WorldList from './components/WorldList.vue';
+import type { Mode } from './game/mode';
 import type { OpenWorld } from './game/openWorld';
 import type { LibraryHost } from './library/host';
 import LibraryView from './library/LibraryView.vue';
@@ -17,6 +18,7 @@ const storageUnavailable = ref(false);
 const opened = shallowRef<OpenWorld>();
 const restoring = shallowRef<{ stored: StoredWorld; recovery: Recovery }>();
 const listError = ref<string>();
+const mode = ref<Mode>('game');
 
 type Tab = 'worlds' | 'library';
 const ADMIN_HASH = '#admin';
@@ -101,7 +103,15 @@ function show(stored: StoredWorld, data: string, restored: boolean): void {
 <template>
   <p v-if="storageUnavailable" class="fatal" role="alert">{{ t('app.storageUnavailable') }}</p>
   <template v-else-if="store">
-    <EditorView v-if="opened" :store="store" :world="opened" @close="opened = undefined" />
+    <WorldScreen
+      v-if="opened"
+      :store="store"
+      :world="opened"
+      :mode="mode"
+      @switch-mode="(next) => (mode = next)"
+      @close="opened = undefined"
+      @start-screen="opened = undefined"
+    />
     <main v-else class="home">
       <h1>{{ t('app.title') }}</h1>
       <nav class="tabs" :aria-label="t('app.sections')">
