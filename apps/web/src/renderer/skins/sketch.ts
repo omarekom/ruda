@@ -301,6 +301,7 @@ function sketchSkin(palette: SketchPalette, dark: boolean): Skin {
     background: palette.background,
     grid: palette.grid,
     hover: palette.hover,
+    ink: palette.ink,
     dark,
     light: { lamp: palette.lampOn, power: palette.powerOn },
     drawBlock: (g, block, size, appearance, seed = 0) =>

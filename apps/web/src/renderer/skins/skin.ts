@@ -35,6 +35,8 @@ export interface Skin {
   readonly background: string;
   readonly grid: string;
   readonly hover: string;
+  /** A neutral foreground colour, e.g. for inert blocks on the minimap. */
+  readonly ink: string;
   /** Whether the background is dark; light then adds up, on a light background it tints. */
   readonly dark: boolean;
   /** Colours of the light cast by lit lamps and by powered parts. */

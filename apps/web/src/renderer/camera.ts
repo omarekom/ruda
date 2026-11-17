@@ -2,6 +2,7 @@ import { WORLD_MAX, WORLD_MIN } from '@ruda/core';
 
 export const MIN_CELL_SIZE = 4;
 export const MAX_CELL_SIZE = 96;
+export const DEFAULT_CELL_SIZE = 32;
 
 export interface CellRect {
   readonly minX: number;
@@ -15,7 +16,7 @@ export class Camera {
   /** World point shown at the centre of the screen, in cells. */
   private centerX = 0.5;
   private centerY = 0.5;
-  private size = 32;
+  private size = DEFAULT_CELL_SIZE;
   private width = 0;
   private height = 0;
 
@@ -27,6 +28,11 @@ export class Camera {
   /** World point shown at the centre of the screen, in cells. */
   get center(): readonly [number, number] {
     return [this.centerX, this.centerY];
+  }
+
+  /** Size of the view in CSS pixels. */
+  get viewSize(): readonly [number, number] {
+    return [this.width, this.height];
   }
 
   centerOn(x: number, y: number): void {

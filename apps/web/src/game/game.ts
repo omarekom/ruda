@@ -3,6 +3,7 @@ import { KeyboardInput } from '../input/keyboard';
 import { PointerInput } from '../input/pointer';
 import { Camera } from '../renderer/camera';
 import { Renderer } from '../renderer/renderer';
+import type { PowerState } from '../renderer/lighting';
 import type { Skin } from '../renderer/skins/skin';
 import type { HotbarState } from './hotbar';
 import { TickLoop } from './tickLoop';
@@ -78,6 +79,11 @@ export class Game {
 
   get blocks(): ReadonlyWorld {
     return this.simulation.blocks;
+  }
+
+  /** Derived power, for showing what is lit or powered. */
+  get power(): PowerState {
+    return this.simulation;
   }
 
   get tickCount(): number {

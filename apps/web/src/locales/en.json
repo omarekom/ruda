@@ -26,13 +26,6 @@
     "discardChanges": "Discard"
   },
   "editor": {
-    "back": "Worlds",
-    "save": "Save",
-    "saving": "Saving…",
-    "saved": "Saved",
-    "unsaved": "Unsaved changes",
-    "export": "Export",
-    "saveFailed": "Saving failed.",
     "leavePrompt": "Save changes to “{name}” before leaving?",
     "discard": "Discard"
   },
@@ -78,6 +71,94 @@
         "action": "menu"
       },
       "done": "Done"
+    }
+  },
+  "expert": {
+    "menu": {
+      "world": "World",
+      "view": "View",
+      "save": "Save",
+      "export": "Export .ruda",
+      "worlds": "All worlds…",
+      "startScreen": "Start screen",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "origin": "Back to the centre"
+    },
+    "status": {
+      "saving": "saving…",
+      "saved": "saved ✓",
+      "unsaved": "unsaved changes",
+      "failed": "saving failed!"
+    },
+    "theme": {
+      "label": "Theme",
+      "auto": "Follow the system",
+      "light": "Light (pencil on paper)",
+      "dark": "Dark (chalk on a blackboard)"
+    },
+    "palette": {
+      "label": "Blocks",
+      "groups": {
+        "power": "power",
+        "wiring": "wiring",
+        "logic": "logic",
+        "output": "output",
+        "mechanics": "mechanics",
+        "building": "building"
+      }
+    },
+    "inspector": {
+      "title": "under the cursor",
+      "nothing": "point at something…",
+      "empty": "empty cell {x}, {y}",
+      "block": "block",
+      "at": "at",
+      "facing": "facing",
+      "stateLabel": "state",
+      "directions": {
+        "north": "north",
+        "east": "east",
+        "south": "south",
+        "west": "west"
+      },
+      "state": {
+        "on": "on",
+        "off": "off",
+        "lit": "lit",
+        "unlit": "dark",
+        "pressed": "pressed",
+        "released": "released",
+        "extended": "extended",
+        "retracted": "retracted",
+        "delay": "delays {ticks} tick | delays {ticks} ticks",
+        "powering": "always powering",
+        "powered": "powered",
+        "unpowered": "unpowered"
+      }
+    },
+    "time": {
+      "title": "time",
+      "run": "run",
+      "pause": "pause",
+      "step": "step",
+      "speed": "Speed: click to change"
+    },
+    "map": {
+      "title": "map",
+      "hint": "Click to look there"
+    },
+    "stats": {
+      "title": "this world",
+      "blocks": "blocks"
+    },
+    "statusBar": {
+      "cell": "x {x}, y {y}",
+      "noCell": "x –, y –",
+      "zoom": "zoom {percent}%",
+      "tick": "tick {tick}",
+      "rate": "{rate} ticks/s",
+      "paused": "paused"
     }
   },
   "dialog": {

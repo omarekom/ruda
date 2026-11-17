@@ -214,6 +214,7 @@ export const pixelSkin: Skin = {
   background: '#1d1f24',
   grid: 'rgba(255, 255, 255, 0.05)',
   hover: 'rgba(255, 255, 255, 0.45)',
+  ink: COLORS.stone,
   dark: true,
   light: { lamp: COLORS.lampOn, power: COLORS.wireOn },
   drawBlock: (g, block, size, appearance) => drawFromTable(LOOKS, g, block, size, appearance),
