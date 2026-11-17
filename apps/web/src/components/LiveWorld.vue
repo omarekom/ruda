@@ -66,7 +66,7 @@ onMounted(() => {
   }
   loop = new TickLoop(
     () => simulation.step(),
-    (_dt, progress) => view.draw(simulation, NO_OVERLAY, progress),
+    (_dt, progress) => view.drawIfChanged(simulation, NO_OVERLAY, progress),
   );
   loop.speed = props.speed;
   loop.start();

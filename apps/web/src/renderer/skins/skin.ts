@@ -38,9 +38,9 @@ export interface Skin {
   /** A neutral foreground colour, e.g. for inert blocks on the minimap. */
   readonly ink: string;
   /**
-   * How the light is blended in. It is painted on the floor under the blocks with `strength`,
-   * then once more over them with `overBlocks` (0 for none). Light adds up on dark skins
-   * ('lighter'); light skins tint or overlay.
+   * How the light is blended in. All lights are added up at `strength`, then blended with
+   * `mode` onto the floor under the blocks, and once more over them at `overBlocks` (0 for
+   * none). Dark skins add the light ('lighter'); light skins tint or overlay.
    */
   readonly glow: {
     readonly mode: GlobalCompositeOperation;

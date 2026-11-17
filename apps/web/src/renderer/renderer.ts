@@ -22,6 +22,8 @@ import {
 import { paintFloor, type CellAppearance, type Skin } from './skins/skin';
 
 const MIN_GRID_CELL_SIZE = 12;
+/** Screen pixels (CSS) per pixel of the light buffer. */
+const LIGHT_BUFFER_PX = 4;
 const GHOST_ALPHA = 0.5;
 
 interface ShownBlock {
@@ -40,16 +42,60 @@ export interface Overlay {
 /** Draws the visible part of the world onto a full-window canvas. */
 export class Renderer {
   private readonly g: CanvasRenderingContext2D;
+  /** What the last frame showed, see frameKey; empty forces the next frame to be drawn. */
+  private drawnKey = '';
+  /** Where the lights are added up before being blended over the screen, see renderLights. */
+  private readonly lightBuffer = document.createElement('canvas');
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
     private readonly camera: Camera,
-    /** Can be swapped at any time; the next frame uses the new skin. */
-    public skin: Skin,
+    private currentSkin: Skin,
   ) {
-    const g = canvas.getContext('2d');
+    // The floor always covers the canvas, so it can be opaque, which is cheaper to composite.
+    const g = canvas.getContext('2d', { alpha: false });
     if (!g) throw new Error('Canvas 2D is not supported');
     this.g = g;
+  }
+
+  get skin(): Skin {
+    return this.currentSkin;
+  }
+
+  /** Can be swapped at any time; the next frame uses the new skin. */
+  set skin(skin: Skin) {
+    this.currentSkin = skin;
+    this.invalidate();
+  }
+
+  /** Makes the next drawIfChanged draw, e.g. after the world was edited. */
+  invalidate(): void {
+    this.drawnKey = '';
+  }
+
+  /**
+   * Draws a frame unless it would look exactly like the last one, so an idle world costs
+   * almost nothing. Anything that changes the picture outside the camera, the ticks and the
+   * overlay must call invalidate().
+   */
+  drawIfChanged(simulation: Simulation, overlay: Overlay, tickProgress: number): void {
+    const key = this.frameKey(simulation, overlay, tickProgress);
+    if (key === this.drawnKey) return;
+    this.drawnKey = key;
+    this.draw(simulation, overlay, tickProgress);
+  }
+
+  private frameKey(simulation: Simulation, overlay: Overlay, tickProgress: number): string {
+    const { camera } = this;
+    const [cx, cy] = camera.center;
+    const [width, height] = camera.viewSize;
+    // Progress only matters while pistons are moving blocks.
+    const progress = simulation.recentMoves.length > 0 ? tickProgress : 1;
+    const hover = overlay.hover?.join(',') ?? '';
+    const ghost = overlay.ghost
+      ? `${overlay.ghost.x},${overlay.ghost.y},${JSON.stringify(overlay.ghost.block)}`
+      : '';
+    return `${cx},${cy},${camera.cellSize},${width},${height}|${simulation.tickCount}|${progress}|${hover}|${ghost}`;
   }
 
   /** Matches the backing store to the element size and device pixel ratio. */
@@ -59,6 +105,7 @@ export class Renderer {
     this.canvas.width = Math.round(clientWidth * ratio);
     this.canvas.height = Math.round(clientHeight * ratio);
     this.camera.resize(clientWidth, clientHeight);
+    this.invalidate();
   }
 
   /** `tickProgress` (0–1) animates the blocks pistons moved during the last tick. */
@@ -73,8 +120,9 @@ export class Renderer {
     if (camera.cellSize >= MIN_GRID_CELL_SIZE) this.drawGrid();
 
     const lights = camera.cellSize >= MIN_LIGHT_CELL_SIZE ? this.collectLights(simulation) : [];
+    const lit = lights.length > 0 && this.renderLights(lights);
     // Light pools on the floor, under the blocks.
-    this.paintLights(lights, this.skin.glow.strength);
+    if (lit) this.compositeLights(1);
 
     const shown = this.shownBlocks(simulation, tickProgress);
     const { drawUnder } = this.skin;
@@ -85,7 +133,8 @@ export class Renderer {
     }
     for (const cell of shown) this.drawCell(cell.x, cell.y, cell.block, cell.appearance, cell.seed);
     // A faint second pass can tint the lit blocks themselves.
-    if (this.skin.glow.overBlocks > 0) this.paintLights(lights, this.skin.glow.overBlocks);
+    const { strength, overBlocks } = this.skin.glow;
+    if (lit && overBlocks > 0) this.compositeLights(overBlocks / strength);
 
     if (overlay.ghost) {
       const { x, y, block } = overlay.ghost;
@@ -114,15 +163,50 @@ export class Renderer {
     return lights;
   }
 
-  private paintLights(lights: readonly Light[], strength: number): void {
+  /**
+   * Paints all lights, added up, into the small light buffer; false if it cannot. Light is
+   * soft, so a low resolution is enough, and the screen is then blended with the buffer only
+   * once instead of once per light.
+   */
+  private renderLights(lights: readonly Light[]): boolean {
+    const { lightBuffer, camera } = this;
+    const [width, height] = camera.viewSize;
+    const bufferWidth = Math.max(1, Math.ceil(width / LIGHT_BUFFER_PX));
+    const bufferHeight = Math.max(1, Math.ceil(height / LIGHT_BUFFER_PX));
+    if (lightBuffer.width !== bufferWidth || lightBuffer.height !== bufferHeight) {
+      lightBuffer.width = bufferWidth;
+      lightBuffer.height = bufferHeight;
+    }
+    const g = lightBuffer.getContext('2d');
+    if (!g) return false;
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.clearRect(0, 0, bufferWidth, bufferHeight);
+    g.setTransform(1 / LIGHT_BUFFER_PX, 0, 0, 1 / LIGHT_BUFFER_PX, 0, 0);
     paintLights(
-      this.g,
+      g,
       lights,
-      this.camera.cellSize,
-      (x, y) => this.camera.worldToScreen(x, y),
-      this.skin.glow.mode,
-      strength,
+      camera.cellSize,
+      (x, y) => camera.worldToScreen(x, y),
+      this.skin.glow.strength,
     );
+    return true;
+  }
+
+  /** Blends the light buffer over the screen in the skin's way, at `opacity`. */
+  private compositeLights(opacity: number): void {
+    const { g, lightBuffer } = this;
+    g.save();
+    g.globalCompositeOperation = this.skin.glow.mode;
+    g.globalAlpha = Math.min(1, opacity);
+    g.imageSmoothingEnabled = true;
+    g.drawImage(
+      lightBuffer,
+      0,
+      0,
+      lightBuffer.width * LIGHT_BUFFER_PX,
+      lightBuffer.height * LIGHT_BUFFER_PX,
+    );
+    g.restore();
   }
 
   /**
@@ -162,10 +246,10 @@ export class Renderer {
   /** Runs `draw` with the context moved so the cell's square starts at (0, 0). */
   private inCell(x: number, y: number, draw: () => void): void {
     const [sx, sy] = this.camera.worldToScreen(x, y);
-    this.g.save();
+    // Translating back is much cheaper than save() and restore() for every cell.
     this.g.translate(sx, sy);
     draw();
-    this.g.restore();
+    this.g.translate(-sx, -sy);
   }
 
   private drawCell(

@@ -175,10 +175,28 @@ export function averagePixel(texture: HTMLCanvasElement): HTMLCanvasElement {
   return mipChain(texture).at(-1) ?? texture;
 }
 
-/** How many device pixels one unit of the context's current transform covers. */
-export function deviceScale(g: CanvasRenderingContext2D): number {
-  const { a, b } = g.getTransform();
-  return Math.hypot(a, b);
+/**
+ * How many device pixels one unit of a canvas covers. Every canvas in the app is drawn with
+ * its transform scaled by the device pixel ratio, so that is the answer; reading it from the
+ * context's transform instead would allocate a matrix for every block in every frame.
+ */
+export function deviceScale(): number {
+  return window.devicePixelRatio || 1;
+}
+
+const patterns = new WeakMap<HTMLCanvasElement, CanvasPattern | null>();
+
+/** A repeating pattern of the image, made once; callers set its transform before each use. */
+export function patternOf(
+  g: CanvasRenderingContext2D,
+  image: HTMLCanvasElement,
+): CanvasPattern | null {
+  let pattern = patterns.get(image);
+  if (pattern === undefined) {
+    pattern = g.createPattern(image, 'repeat');
+    patterns.set(image, pattern);
+  }
+  return pattern;
 }
 
 /** Draws a texture over the square (0, 0)–(size, size). */
@@ -187,7 +205,7 @@ export function drawTexture(
   texture: HTMLCanvasElement,
   size: number,
 ): void {
-  const { image } = textureForSize(texture, size * deviceScale(g));
+  const { image } = textureForSize(texture, size * deviceScale());
   g.imageSmoothingEnabled = true;
   g.drawImage(image, 0, 0, size, size);
 }

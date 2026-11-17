@@ -128,7 +128,10 @@ export class Game {
 
   private execute(command: Command): boolean {
     const applied = this.simulation.execute(command);
-    if (applied) this.onEdit();
+    if (applied) {
+      this.renderer.invalidate();
+      this.onEdit();
+    }
     return applied;
   }
 
@@ -139,6 +142,6 @@ export class Game {
     const dx = Math.sign(kx + ex);
     const dy = Math.sign(ky + ey);
     if (dx || dy) this.camera.panBy(dx * distance, dy * distance);
-    this.renderer.draw(this.simulation, this.pointer.overlay(), tickProgress);
+    this.renderer.drawIfChanged(this.simulation, this.pointer.overlay(), tickProgress);
   }
 }

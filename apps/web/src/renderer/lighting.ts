@@ -1,5 +1,6 @@
 import { Axis, type Block } from '@ruda/core';
 import type { Skin } from './skins/skin';
+import { textureForSize } from './skins/texture';
 
 /** The part of the simulation lighting reads; derived power is only computed when needed. */
 export interface PowerState {
@@ -80,29 +81,56 @@ export function lightOf(
   return { x, y, radius: spec.radius, strength: spec.strength, color };
 }
 
+/** Resolution of a pre-painted glow; it is scaled to each light's size when drawn. */
+const SPRITE_SIZE = 256;
+const sprites = new Map<string, HTMLCanvasElement>();
+
 /**
- * Paints the lights as radial glows. `toScreen` maps a cell corner to screen pixels.
- * `mode` is the skin's blending, see Skin.glow.
+ * A fully opaque glow of the colour, painted once: drawing an image is much cheaper than
+ * building and filling a radial gradient for every light in every frame. Its strength is
+ * applied with globalAlpha, which keeps faint glows from losing precision in the sprite.
+ */
+function glowSprite(color: string): HTMLCanvasElement {
+  let sprite = sprites.get(color);
+  if (!sprite) {
+    sprite = document.createElement('canvas');
+    sprite.width = sprite.height = SPRITE_SIZE;
+    const g = sprite.getContext('2d');
+    if (g) {
+      const c = SPRITE_SIZE / 2;
+      const gradient = g.createRadialGradient(c, c, 0, c, c, c);
+      for (const [stop, share] of FALLOFF) gradient.addColorStop(stop, withAlpha(color, share));
+      g.fillStyle = gradient;
+      g.fillRect(0, 0, SPRITE_SIZE, SPRITE_SIZE);
+    }
+    sprites.set(color, sprite);
+  }
+  return sprite;
+}
+
+/**
+ * Paints the lights as radial glows, adding up where they overlap. `toScreen` maps a cell
+ * corner to screen pixels; `strength` scales every light.
  */
 export function paintLights(
   g: CanvasRenderingContext2D,
   lights: readonly Light[],
   cellSize: number,
   toScreen: (x: number, y: number) => readonly [number, number],
-  mode: GlobalCompositeOperation,
   strength: number,
 ): void {
+  const { a, b } = g.getTransform();
+  const pixelScale = Math.hypot(a, b);
   g.save();
-  g.globalCompositeOperation = mode;
+  g.globalCompositeOperation = 'lighter';
+  g.imageSmoothingEnabled = true;
   for (const light of lights) {
     const [cx, cy] = toScreen(light.x + 0.5, light.y + 0.5);
     const r = light.radius * cellSize;
-    const gradient = g.createRadialGradient(cx, cy, 0, cx, cy, r);
-    for (const [stop, share] of FALLOFF) {
-      gradient.addColorStop(stop, withAlpha(light.color, light.strength * strength * share));
-    }
-    g.fillStyle = gradient;
-    g.fillRect(cx - r, cy - r, r * 2, r * 2);
+    g.globalAlpha = Math.min(1, light.strength * strength);
+    // A mipmap near the drawn size: shrinking the full sprite every time would be slow.
+    const { image } = textureForSize(glowSprite(light.color), r * 2 * pixelScale);
+    g.drawImage(image, cx - r, cy - r, r * 2, r * 2);
   }
   g.restore();
 }

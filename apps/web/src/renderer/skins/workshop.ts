@@ -7,22 +7,29 @@ const SHADOW_OFFSET = 0.1;
 
 /**
  * Solid blocks get a dark pixel outline and, inside it, a bevel like an inventory icon:
- * light along the top and left edge, dark along the bottom and right.
+ * light along the top and left edge, dark along the bottom and right. Both are one texel wide,
+ * so they are painted into the texture and scale (and fade when zoomed out) with it.
  */
-const LOOKS = texturedLooks((g, size, top) => {
-  top(g, size);
-  // Not rounded up to a whole pixel: when zoomed out, the outline thins and fades with the block.
-  const px = size / 16;
-  g.strokeStyle = 'rgba(0, 0, 0, 0.6)';
-  g.lineWidth = px;
-  g.strokeRect(px / 2, px / 2, size - px, size - px);
-  const inner = size - 2 * px;
+const LOOKS = texturedLooks((top) => {
+  const n = top.width;
+  const image = document.createElement('canvas');
+  image.width = n;
+  image.height = top.height;
+  const g = image.getContext('2d');
+  if (!g) return top;
+  g.drawImage(top, 0, 0);
+  g.fillStyle = 'rgba(0, 0, 0, 0.6)';
+  g.fillRect(0, 0, n, 1);
+  g.fillRect(0, n - 1, n, 1);
+  g.fillRect(0, 1, 1, n - 2);
+  g.fillRect(n - 1, 1, 1, n - 2);
   g.fillStyle = 'rgba(255, 255, 255, 0.28)';
-  g.fillRect(px, px, inner, px);
-  g.fillRect(px, 2 * px, px, inner - px);
+  g.fillRect(1, 1, n - 2, 1);
+  g.fillRect(1, 2, 1, n - 3);
   g.fillStyle = 'rgba(0, 0, 0, 0.32)';
-  g.fillRect(2 * px, px + inner - px, inner - px, px);
-  g.fillRect(px + inner - px, 2 * px, px, inner - 2 * px);
+  g.fillRect(2, n - 2, n - 3, 1);
+  g.fillRect(n - 2, 2, 1, n - 4);
+  return image;
 });
 
 function solidShadow(alpha: number): NonNullable<Skin['drawUnder']> {

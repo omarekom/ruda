@@ -105,10 +105,6 @@ export const stoneTexture = textureCache((variant: number) =>
   paintTexture(11 + variant, paintStone),
 );
 
-export const cobbleTexture = textureCache((variant: number) =>
-  paintTexture(23 + variant, (p) => paintCobble(p)),
-);
-
 export const powerBlockTexture = textureCache((variant: number) =>
   paintTexture(37 + variant, (p) => {
     p.noise(0, 0, N, N, PALETTE.redstone);
