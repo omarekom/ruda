@@ -1,4 +1,5 @@
 import { Axis, Direction, MAX_DELAY } from '@ruda/core';
+import { faceToward, wireArms } from './shapes';
 import { drawFromTable, type Look, type LookTable, type Skin } from './skin';
 
 const COLORS = {
@@ -21,30 +22,16 @@ const COLORS = {
   slotUnused: '#3c3c3c',
 } as const;
 
-/** Rotates the context so that a look drawn facing north faces `facing`. */
-function faceToward(g: CanvasRenderingContext2D, facing: Direction, size: number): void {
-  g.translate(size / 2, size / 2);
-  g.rotate((facing * Math.PI) / 2);
-  g.translate(-size / 2, -size / 2);
-}
-
 const wireColor = (on: boolean): string => (on ? COLORS.wireOn : COLORS.wireOff);
 
 const drawWire: Look<'wire'> = (g, _block, s, { attached, powered }) => {
   const w = Math.max(2, s * 0.22);
   const c = s / 2;
   g.fillStyle = wireColor(powered[Axis.Horizontal] ?? false);
-  const sides = [Direction.North, Direction.East, Direction.South, Direction.West];
-  const count = sides.filter((side) => attached[side]).length;
-  // An unattached wire is drawn as a plus; a wire attached on one side runs straight through.
-  const shown = sides.filter((side) => {
-    if (count === 0) return true;
-    if (count === 1) return attached[side] || attached[(side + 2) % 4];
-    return attached[side];
-  });
-  const arm = count === 0 ? s * 0.3 : c;
+  const arms = wireArms(attached);
+  const arm = arms.length * s;
   g.fillRect(c - w / 2, c - w / 2, w, w);
-  for (const side of shown) {
+  for (const side of arms.sides) {
     if (side === Direction.North) g.fillRect(c - w / 2, c - arm, w, arm);
     if (side === Direction.South) g.fillRect(c - w / 2, c, w, arm);
     if (side === Direction.West) g.fillRect(c - arm, c - w / 2, arm, w);
