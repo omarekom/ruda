@@ -2,6 +2,7 @@ import { isInteractive, type Command, type ReadonlyWorld, type Simulation } from
 import { KeyboardInput } from '../input/keyboard';
 import { PointerInput } from '../input/pointer';
 import { Camera } from '../renderer/camera';
+import { crossfade } from '../renderer/crossfade';
 import { Renderer } from '../renderer/renderer';
 import type { PowerState } from '../renderer/lighting';
 import type { Skin } from '../renderer/skins/skin';
@@ -22,7 +23,7 @@ export class Game {
 
   /** `onEdit` runs after every command that changed the world. */
   constructor(
-    canvas: HTMLCanvasElement,
+    private readonly canvas: HTMLCanvasElement,
     hotbar: HotbarState,
     private readonly simulation: Simulation,
     private readonly onEdit: () => void,
@@ -73,7 +74,10 @@ export class Game {
     }
   }
 
+  /** Switches the look, fading over from the old one. */
   setSkin(skin: Skin): void {
+    if (skin === this.renderer.skin) return;
+    crossfade(this.canvas);
     this.renderer.skin = skin;
   }
 

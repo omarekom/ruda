@@ -89,8 +89,8 @@ The game
 - The menu (button or Esc) pauses the simulation. It offers: back to game, save, worlds, controls, debug mode, start screen. Saving shows a short confirmation. It takes the keyboard when it opens: arrows move between the buttons as they are laid out, Enter chooses. The start screen's buttons work the same way.
 - **Controls** lists every key and mouse action by section (movement, building, using blocks, game, hotbar), each shown as a key cap. The hotbar is one row with its number keys.
 - Opening a world shows a loading screen: a plain dark backdrop, "Loading world", playful status lines and a filling bar. It stays up for at least 1.2 s on purpose, as part of the game feel, so no menu flashes by on the way in.
-- **Block look (Workshop)**: 16×16 Minecraft-like textures seen from straight above. Solid blocks (stone, power blocks, lamps, pistons) have a dark pixel outline, a bevel and a shadow. Light glows on the floor: yellow around lit lamps, red around power blocks and other powered parts. The same look is used by the hotbar, world thumbnails, library previews and the start screen.
-- **Light and dark**: in light, a bright, warm floor of smooth stone slabs; in dark, the same slabs at night, where the light pools stand out. One button shows the other variant and switches to it. The variant follows the system; a choice that differs from the system is remembered, and choosing the system's variant again forgets it. Menus, dialogs and the loading screen are dark in both.
+- **Block look (Workshop)**: 16×16 Minecraft-like textures seen from straight above. Solid blocks (stone, power blocks, lamps, pistons) have a dark pixel outline, a bevel and a shadow. Light glows on the floor: yellow around lit lamps, red around power blocks and other powered parts. Zoomed out, blocks and floor blend smoothly into their average colours, with no shimmering or moiré. The same look is used by the hotbar, world thumbnails, library previews and the start screen.
+- **Light and dark**: in light, a bright, warm floor of smooth stone slabs; in dark, the same slabs at night, where the light pools stand out. One button shows the other variant and switches to it; the world fades smoothly from one to the other. The variant follows the system; a choice that differs from the system is remembered, and choosing the system's variant again forgets it. Menus, dialogs and the loading screen are dark in both.
 - Dialogs (unsaved changes, delete) use the blocky look. Text in menus is large, for easy reading.
 
 Worlds
@@ -159,4 +159,3 @@ Ideas, not committed:
 - Running worlds headless from a file (CLI / library use).
 - A 3D flat world, multiplayer included, controlled like Minecraft (first-person movement and building).
 - Cross-browser rendering checks: test the display in both Chrome and Firefox.
-- Zoomed-out rendering: when zoomed far out, blend blocks smoothly into a plain color (anti-aliased) so no grid or moiré pattern appears; possibly dedicated low-detail textures for far zoom levels.

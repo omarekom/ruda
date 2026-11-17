@@ -3,6 +3,7 @@ import { Simulation, type World } from '@ruda/core';
 import { onBeforeUnmount, onMounted, useTemplateRef, watch } from 'vue';
 import { TickLoop } from '../game/tickLoop';
 import { Camera } from '../renderer/camera';
+import { crossfade } from '../renderer/crossfade';
 import { Renderer } from '../renderer/renderer';
 import type { Skin } from '../renderer/skins/skin';
 
@@ -74,7 +75,8 @@ onMounted(() => {
 watch(
   () => props.skin,
   (skin) => {
-    if (!renderer) return;
+    if (!renderer || !canvas.value) return;
+    crossfade(canvas.value);
     renderer.skin = skin;
     if (props.still) drawStill();
   },
