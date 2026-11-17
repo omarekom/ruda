@@ -10,11 +10,8 @@ import {
   type Simulation,
 } from '@ruda/core';
 import type { Camera } from './camera';
-import { drawBlock, type CellAppearance } from './looks';
+import type { CellAppearance, Skin } from './skins/skin';
 
-const BACKGROUND = '#1d1f24';
-const GRID = 'rgba(255, 255, 255, 0.05)';
-const HOVER = 'rgba(255, 255, 255, 0.45)';
 const MIN_GRID_CELL_SIZE = 12;
 const GHOST_ALPHA = 0.5;
 
@@ -30,6 +27,8 @@ export class Renderer {
   constructor(
     private readonly canvas: HTMLCanvasElement,
     private readonly camera: Camera,
+    /** Can be swapped at any time; the next frame uses the new skin. */
+    public skin: Skin,
   ) {
     const g = canvas.getContext('2d');
     if (!g) throw new Error('Canvas 2D is not supported');
@@ -50,7 +49,7 @@ export class Renderer {
     const { g, camera } = this;
     const ratio = this.canvas.width / Math.max(1, this.canvas.clientWidth);
     g.setTransform(ratio, 0, 0, ratio, 0, 0);
-    g.fillStyle = BACKGROUND;
+    g.fillStyle = this.skin.background;
     g.fillRect(0, 0, this.canvas.clientWidth, this.canvas.clientHeight);
 
     if (camera.cellSize >= MIN_GRID_CELL_SIZE) this.drawGrid();
@@ -87,21 +86,28 @@ export class Renderer {
   private drawMoving(simulation: Simulation, move: BlockMove, progress: number): void {
     const x = move.fromX + (move.toX - move.fromX) * progress;
     const y = move.fromY + (move.toY - move.fromY) * progress;
-    this.drawCell(x, y, move.block, appearanceOf(simulation, move.toX, move.toY));
+    const appearance = appearanceOf(simulation, move.toX, move.toY);
+    this.drawCell(x, y, move.block, appearance, cellSeed(move.toX, move.toY));
   }
 
-  private drawCell(x: number, y: number, block: Block, appearance: CellAppearance): void {
+  private drawCell(
+    x: number,
+    y: number,
+    block: Block,
+    appearance: CellAppearance,
+    seed = cellSeed(x, y),
+  ): void {
     const [sx, sy] = this.camera.worldToScreen(x, y);
     this.g.save();
     this.g.translate(sx, sy);
-    drawBlock(this.g, block, this.camera.cellSize, appearance);
+    this.skin.drawBlock(this.g, block, this.camera.cellSize, appearance, seed);
     this.g.restore();
   }
 
   private drawGrid(): void {
     const { g, camera } = this;
     const rect = camera.visibleCells();
-    g.strokeStyle = GRID;
+    g.strokeStyle = this.skin.grid;
     g.lineWidth = 1;
     g.beginPath();
     for (let x = rect.minX; x <= rect.maxX + 1; x++) {
@@ -120,10 +126,15 @@ export class Renderer {
   private drawHover(x: number, y: number): void {
     const [sx, sy] = this.camera.worldToScreen(x, y);
     const size = this.camera.cellSize;
-    this.g.strokeStyle = HOVER;
+    this.g.strokeStyle = this.skin.hover;
     this.g.lineWidth = 2;
     this.g.strokeRect(sx + 1, sy + 1, size - 2, size - 2);
   }
+}
+
+/** A per-cell number that stays the same between frames. */
+export function cellSeed(x: number, y: number): number {
+  return Math.imul(x, 73856093) ^ Math.imul(y, 19349663);
 }
 
 function easeOut(t: number): number {

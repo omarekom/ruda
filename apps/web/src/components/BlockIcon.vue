@@ -1,28 +1,31 @@
 <script setup lang="ts">
 import type { Block } from '@ruda/core';
 import { onMounted, useTemplateRef, watch } from 'vue';
-import { drawBlock, ISOLATED } from '../renderer/looks';
+import { pixelSkin } from '../renderer/skins/pixel';
+import { ISOLATED, type Skin } from '../renderer/skins/skin';
 
-const SIZE = 38;
-const props = defineProps<{ block: Block }>();
+const props = withDefaults(defineProps<{ block: Block; skin?: Skin; size?: number }>(), {
+  skin: () => pixelSkin,
+  size: 38,
+});
 const canvas = useTemplateRef<HTMLCanvasElement>('canvas');
 
 function draw(): void {
   const g = canvas.value?.getContext('2d');
   if (!g || !canvas.value) return;
   const ratio = window.devicePixelRatio || 1;
-  canvas.value.width = SIZE * ratio;
-  canvas.value.height = SIZE * ratio;
+  canvas.value.width = props.size * ratio;
+  canvas.value.height = props.size * ratio;
   g.setTransform(ratio, 0, 0, ratio, 0, 0);
-  drawBlock(g, props.block, SIZE, ISOLATED);
+  props.skin.drawBlock(g, props.block, props.size, ISOLATED);
 }
 
 onMounted(draw);
-watch(() => props.block, draw);
+watch(() => [props.block, props.skin, props.size], draw);
 </script>
 
 <template>
-  <canvas ref="canvas" class="icon" :style="{ width: `${SIZE}px`, height: `${SIZE}px` }" />
+  <canvas ref="canvas" class="icon" :style="{ width: `${size}px`, height: `${size}px` }" />
 </template>
 
 <style scoped>

@@ -1,21 +1,5 @@
-import { Axis, Direction, MAX_DELAY, type Block, type BlockOf, type BlockType } from '@ruda/core';
-
-/** Everything about a cell's surroundings and power that affects how it is drawn. */
-export interface CellAppearance {
-  /** Wire attachments, indexed by Direction. */
-  readonly attached: readonly boolean[];
-  /** Channel power, indexed by Axis. */
-  readonly powered: readonly boolean[];
-  readonly lit: boolean;
-}
-
-/** Draws a block into the square (0, 0)–(size, size) of the context. */
-type Look<T extends BlockType> = (
-  g: CanvasRenderingContext2D,
-  block: BlockOf<T>,
-  size: number,
-  appearance: CellAppearance,
-) => void;
+import { Axis, Direction, MAX_DELAY } from '@ruda/core';
+import { drawFromTable, type Look, type LookTable, type Skin } from './skin';
 
 const COLORS = {
   wireOff: '#5c1410',
@@ -224,7 +208,7 @@ const drawPistonHead: Look<'piston_head'> = (g, block, s) => {
   g.restore();
 };
 
-const LOOKS: { readonly [T in BlockType]: Look<T> } = {
+const LOOKS: LookTable = {
   redstone_block: drawRedstoneBlock,
   lever: drawLever,
   wire: drawWire,
@@ -238,20 +222,12 @@ const LOOKS: { readonly [T in BlockType]: Look<T> } = {
   piston_head: drawPistonHead,
 };
 
-export function drawBlock(
-  g: CanvasRenderingContext2D,
-  block: Block,
-  size: number,
-  appearance: CellAppearance,
-): void {
-  // The registry pairs each type with its own look; TypeScript cannot correlate the union here.
-  const look = LOOKS[block.type] as Look<BlockType>;
-  look(g, block, size, appearance);
-}
-
-/** How a block looks on its own, e.g. in the hotbar. */
-export const ISOLATED: CellAppearance = {
-  attached: [false, true, false, true],
-  powered: [true, true],
-  lit: true,
+/** The original look: dark background, simple flat pixel-ish blocks. Used by game mode. */
+export const pixelSkin: Skin = {
+  background: '#1d1f24',
+  grid: 'rgba(255, 255, 255, 0.05)',
+  hover: 'rgba(255, 255, 255, 0.45)',
+  dark: true,
+  light: { lamp: COLORS.lampOn, power: COLORS.wireOn },
+  drawBlock: (g, block, size, appearance) => drawFromTable(LOOKS, g, block, size, appearance),
 };

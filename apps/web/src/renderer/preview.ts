@@ -1,13 +1,17 @@
 import { Simulation, type World } from '@ruda/core';
-import { drawBlock } from './looks';
-import { appearanceOf } from './renderer';
+import { appearanceOf, cellSeed } from './renderer';
+import { pixelSkin } from './skins/pixel';
+import type { Skin } from './skins/skin';
 
-const BACKGROUND = '#1d1f24';
 const MAX_CELL_SIZE = 24;
 const PADDING_CELLS = 1;
 
 /** Draws the whole world scaled to fit the canvas, centred. */
-export function drawWorldPreview(canvas: HTMLCanvasElement, world: World): void {
+export function drawWorldPreview(
+  canvas: HTMLCanvasElement,
+  world: World,
+  skin: Skin = pixelSkin,
+): void {
   const g = canvas.getContext('2d');
   if (!g) return;
   const ratio = window.devicePixelRatio || 1;
@@ -16,7 +20,7 @@ export function drawWorldPreview(canvas: HTMLCanvasElement, world: World): void 
   canvas.width = Math.round(width * ratio);
   canvas.height = Math.round(height * ratio);
   g.setTransform(ratio, 0, 0, ratio, 0, 0);
-  g.fillStyle = BACKGROUND;
+  g.fillStyle = skin.background;
   g.fillRect(0, 0, width, height);
 
   let minX = Infinity;
@@ -41,7 +45,7 @@ export function drawWorldPreview(canvas: HTMLCanvasElement, world: World): void 
   world.forEach((x, y, block) => {
     g.save();
     g.translate(originX + (x - minX) * size, originY + (y - minY) * size);
-    drawBlock(g, block, size, appearanceOf(simulation, x, y));
+    skin.drawBlock(g, block, size, appearanceOf(simulation, x, y), cellSeed(x, y));
     g.restore();
   });
 }

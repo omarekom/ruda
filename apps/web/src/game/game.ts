@@ -3,6 +3,7 @@ import { KeyboardInput } from '../input/keyboard';
 import { PointerInput } from '../input/pointer';
 import { Camera } from '../renderer/camera';
 import { Renderer } from '../renderer/renderer';
+import { pixelSkin } from '../renderer/skins/pixel';
 import type { HotbarState } from './hotbar';
 import { TickLoop } from './tickLoop';
 
@@ -24,7 +25,7 @@ export class Game {
     private readonly simulation: Simulation,
     private readonly onEdit: () => void,
   ) {
-    this.renderer = new Renderer(canvas, this.camera);
+    this.renderer = new Renderer(canvas, this.camera, pixelSkin);
     this.keyboard = new KeyboardInput(hotbar);
     this.pointer = new PointerInput(
       canvas,
