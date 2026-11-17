@@ -64,6 +64,10 @@ export class Camera {
     return [Math.floor(wx), Math.floor(wy)];
   }
 
+  setCellSize(size: number): void {
+    this.size = clamp(size, MIN_CELL_SIZE, MAX_CELL_SIZE);
+  }
+
   /** Moves the view by a screen-space distance. */
   panBy(dx: number, dy: number): void {
     this.centerX = clamp(this.centerX + dx / this.size, WORLD_MIN, WORLD_MAX);

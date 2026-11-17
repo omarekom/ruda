@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { parseWorld, serializeWorld } from '@ruda/core';
+import { parseWorld, serializeWorld, World } from '@ruda/core';
 import { onBeforeUnmount, onMounted, ref, shallowRef } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ConfirmDialog from './components/ConfirmDialog.vue';
+import StartScreen from './components/StartScreen.vue';
 import WorldScreen from './components/WorldScreen.vue';
 import WorldList from './components/WorldList.vue';
 import type { Mode } from './game/mode';
 import type { OpenWorld } from './game/openWorld';
 import type { LibraryHost } from './library/host';
 import LibraryView from './library/LibraryView.vue';
+import { readPreferences, writePreference } from './preferences';
 import { fileErrorKey } from './storage/fileErrors';
 import { WorldStore, type Recovery, type StoredWorld } from './storage/worldStore';
 
@@ -18,7 +20,9 @@ const storageUnavailable = ref(false);
 const opened = shallowRef<OpenWorld>();
 const restoring = shallowRef<{ stored: StoredWorld; recovery: Recovery }>();
 const listError = ref<string>();
-const mode = ref<Mode>('game');
+const mode = ref<Mode>(readPreferences().mode ?? 'game');
+/** What shows while no world is open; 'loading' until the first decision is made. */
+const screen = ref<'loading' | 'start' | 'home'>('loading');
 
 type Tab = 'worlds' | 'library';
 const ADMIN_HASH = '#admin';
@@ -42,8 +46,41 @@ onMounted(async () => {
     store.value = await WorldStore.open();
   } catch {
     storageUnavailable.value = true;
+    return;
   }
+  await resume();
 });
+
+/**
+ * The first visit shows the start screen. Later visits go straight back to the last world
+ * in the last mode, except when the address links to a tab such as the library.
+ */
+async function resume(): Promise<void> {
+  const { mode: lastMode, lastWorld } = readPreferences();
+  if (location.hash || !lastMode) {
+    screen.value = location.hash ? 'home' : 'start';
+    return;
+  }
+  screen.value = 'home';
+  if (lastWorld) await openWorld(lastWorld);
+}
+
+function setMode(next: Mode): void {
+  mode.value = next;
+  writePreference('mode', next);
+}
+
+/** From the start screen: continue the last world, or start a fresh one. */
+async function play(next: Mode): Promise<void> {
+  setMode(next);
+  if (!store.value) return;
+  screen.value = 'home';
+  const { lastWorld } = readPreferences();
+  if (lastWorld && (await openWorld(lastWorld))) return;
+  const name = t('worlds.defaultName');
+  const created = await store.value.create(name, serializeWorld(new World(), name));
+  await openWorld(created.id);
+}
 
 onBeforeUnmount(() => window.removeEventListener('hashchange', readHash));
 
@@ -64,17 +101,19 @@ const libraryHost: LibraryHost = {
   },
 };
 
-async function openWorld(id: string): Promise<void> {
-  if (!store.value) return;
+/** Opens a stored world (asking first if it has newer unsaved changes); false if it is gone. */
+async function openWorld(id: string): Promise<boolean> {
+  if (!store.value) return false;
   const stored = await store.value.load(id);
-  if (!stored) return;
+  if (!stored) return false;
   const recovery = await store.value.loadRecovery(id);
   if (recovery && recovery.savedAt > stored.updatedAt) {
     restoring.value = { stored, recovery };
-    return;
+    return true;
   }
   if (recovery) await store.value.discardRecovery(id);
   show(stored, stored.data, false);
+  return true;
 }
 
 async function onRestoreChoice(choice: 'restore' | 'discard' | 'cancel'): Promise<void> {
@@ -93,6 +132,7 @@ function show(stored: StoredWorld, data: string, restored: boolean): void {
   try {
     const { world } = parseWorld(data);
     opened.value = { id: stored.id, name: stored.name, world, restored };
+    writePreference('lastWorld', stored.id);
     listError.value = undefined;
   } catch (error) {
     listError.value = fileErrorKey(error);
@@ -108,12 +148,19 @@ function show(stored: StoredWorld, data: string, restored: boolean): void {
       :store="store"
       :world="opened"
       :mode="mode"
-      @switch-mode="(next) => (mode = next)"
+      @switch-mode="setMode"
       @close="opened = undefined"
-      @start-screen="opened = undefined"
+      @start-screen="
+        opened = undefined;
+        screen = 'start';
+      "
     />
-    <main v-else class="home">
-      <h1>{{ t('app.title') }}</h1>
+    <StartScreen v-else-if="screen === 'start'" @choose="play" />
+    <main v-else-if="screen === 'home'" class="home">
+      <header class="masthead">
+        <h1>{{ t('app.title') }}</h1>
+        <button type="button" @click="screen = 'start'">{{ t('app.startScreen') }}</button>
+      </header>
       <nav class="tabs" :aria-label="t('app.sections')">
         <button
           v-for="name in ['worlds', 'library'] as const"
@@ -165,8 +212,15 @@ function show(stored: StoredWorld, data: string, restored: boolean): void {
   overflow-y: auto;
 }
 
+.masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
 h1 {
-  margin: 0 0 16px;
+  margin: 0;
   color: #ff3b2f;
   letter-spacing: 0.05em;
 }

@@ -5,7 +5,8 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['**/dist/**', '**/node_modules/**'] },
+  // tmp_gui_props/ holds throwaway GUI sketches, not app code.
+  { ignores: ['**/dist/**', '**/node_modules/**', 'tmp_gui_props/**'] },
   js.configs.recommended,
   ...tseslint.configs.strict,
   ...vue.configs['flat/recommended'],

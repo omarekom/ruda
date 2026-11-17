@@ -229,6 +229,9 @@ importers:
       '@ruda/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@ruda/creations':
+        specifier: workspace:*
+        version: link:../../packages/creations
       idb:
         specifier: ^8.0.4
         version: 8.0.4
