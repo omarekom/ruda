@@ -167,3 +167,6 @@ Ideas, not committed:
 - Richer game-like visuals.
 - Simulation in a Web Worker.
 - Running worlds headless from a file (CLI / library use).
+- A 3D flat world, multiplayer included, controlled like Minecraft (first-person movement and building).
+- Cross-browser rendering checks: test the display in both Chrome and Firefox.
+- Zoomed-out rendering: when zoomed far out, blend blocks smoothly into a plain color (anti-aliased) so no grid or moiré pattern appears; possibly dedicated low-detail textures for far zoom levels.
