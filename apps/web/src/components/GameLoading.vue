@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { dirtTexture } from '../renderer/skins/blockTextures';
 
 /** How long the bar takes to fill; App keeps the screen up at least this long. */
 const props = defineProps<{ durationMs: number }>();
@@ -12,7 +11,6 @@ const STEPS = ['terrain', 'dust', 'lamps', 'pistons', 'torches', 'levers'] as co
 const STEPS_SHOWN = 3;
 
 const step = ref(Math.floor(Math.random() * STEPS.length));
-const backdrop = `url(${dirtTexture().toDataURL()})`;
 let timer: ReturnType<typeof setInterval> | undefined;
 
 onMounted(() => {
@@ -25,7 +23,7 @@ onBeforeUnmount(() => clearInterval(timer));
 </script>
 
 <template>
-  <div class="loading" role="status" :style="{ backgroundImage: backdrop }">
+  <div class="loading" role="status">
     <h1>{{ t('game.loading.title') }}</h1>
     <p class="step">{{ t(`game.loading.steps.${STEPS[step]}`) }}</p>
     <div class="bar" :style="{ animationDuration: `${durationMs}ms` }" />
@@ -42,10 +40,9 @@ onBeforeUnmount(() => clearInterval(timer));
   align-items: center;
   justify-content: center;
   gap: 18px;
-  background-size: 64px 64px;
+  background: #16171b;
   color: #fff;
   font: 28px var(--font-retro);
-  image-rendering: pixelated;
 }
 
 h1 {

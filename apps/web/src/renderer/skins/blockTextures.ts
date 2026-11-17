@@ -309,13 +309,3 @@ export const deepslateFloor = lazyTexture(() =>
     N * FLOOR_CELLS,
   ),
 );
-
-/** Background used for game mode's loading screen: dark, like a menu backdrop of dirt. */
-export const dirtTexture = lazyTexture(() =>
-  paintTexture(139, (p) => {
-    p.noise(0, 0, N, N, ['#3b2a1d', '#33251a', '#45311f', '#2c2016']);
-    for (let i = 0; i < 10; i++) {
-      p.pixel(Math.floor(p.random() * N), Math.floor(p.random() * N), '#57412c');
-    }
-  }),
-);
