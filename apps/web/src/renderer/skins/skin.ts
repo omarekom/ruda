@@ -37,8 +37,16 @@ export interface Skin {
   readonly hover: string;
   /** A neutral foreground colour, e.g. for inert blocks on the minimap. */
   readonly ink: string;
-  /** Whether the background is dark; light then adds up, on a light background it tints. */
-  readonly dark: boolean;
+  /**
+   * How the light is blended in. It is painted on the floor under the blocks with `strength`,
+   * then once more over them with `overBlocks` (0 for none). Light adds up on dark skins
+   * ('lighter'); light skins tint or overlay.
+   */
+  readonly glow: {
+    readonly mode: GlobalCompositeOperation;
+    readonly strength: number;
+    readonly overBlocks: number;
+  };
   /** Colours of the light cast by lit lamps and by powered parts. */
   readonly light: { readonly lamp: string; readonly power: string };
   drawBlock(

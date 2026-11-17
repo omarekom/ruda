@@ -2,6 +2,7 @@
 import { parseWorld } from '@ruda/core';
 import { onMounted, ref, useTemplateRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { gameSkin } from '../gameLook';
 import { drawWorldPreview } from '../renderer/preview';
 import { fileErrorKey } from '../storage/fileErrors';
 
@@ -13,7 +14,7 @@ const error = ref<string>();
 function draw(): void {
   if (!canvas.value) return;
   try {
-    drawWorldPreview(canvas.value, parseWorld(props.data).world);
+    drawWorldPreview(canvas.value, parseWorld(props.data).world, gameSkin.value);
     error.value = undefined;
   } catch (failure) {
     error.value = fileErrorKey(failure);
@@ -21,7 +22,7 @@ function draw(): void {
 }
 
 onMounted(draw);
-watch(() => props.data, draw);
+watch(() => [props.data, gameSkin.value], draw);
 </script>
 
 <template>

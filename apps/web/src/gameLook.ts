@@ -10,7 +10,7 @@ export const gameSkin = computed(() => GAME_LOOKS[gameLook.value]);
 /** Switches to the next look in the list, wrapping around. */
 export function nextGameLook(): void {
   const index = GAME_LOOK_NAMES.indexOf(gameLook.value);
-  const next = GAME_LOOK_NAMES[(index + 1) % GAME_LOOK_NAMES.length] ?? 'original';
+  const next = GAME_LOOK_NAMES[(index + 1) % GAME_LOOK_NAMES.length] ?? 'classic';
   gameLook.value = next;
   writePreference('gameLook', next);
 }

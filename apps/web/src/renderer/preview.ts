@@ -1,17 +1,12 @@
 import { Simulation, type World } from '@ruda/core';
 import { appearanceOf, cellSeed } from './renderer';
-import { pixelSkin } from './skins/pixel';
 import { paintFloor, type Skin } from './skins/skin';
 
 const MAX_CELL_SIZE = 24;
 const PADDING_CELLS = 1;
 
 /** Draws the whole world scaled to fit the canvas, centred. */
-export function drawWorldPreview(
-  canvas: HTMLCanvasElement,
-  world: World,
-  skin: Skin = pixelSkin,
-): void {
+export function drawWorldPreview(canvas: HTMLCanvasElement, world: World, skin: Skin): void {
   const g = canvas.getContext('2d');
   if (!g) return;
   const ratio = window.devicePixelRatio || 1;

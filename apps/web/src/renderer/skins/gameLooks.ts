@@ -1,16 +1,8 @@
-import { depthSkin } from './depth';
-import { meadowSkin } from './meadow';
-import { pixelSkin } from './pixel';
 import type { Skin } from './skin';
-import { workshopSkin } from './workshop';
+import { WORKSHOP_LOOKS } from './workshop';
 
 /** Game mode's block looks the player can pick from. */
-export const GAME_LOOKS = {
-  original: pixelSkin,
-  meadow: meadowSkin,
-  workshop: workshopSkin,
-  depth: depthSkin,
-} as const satisfies Record<string, Skin>;
+export const GAME_LOOKS: Readonly<Record<keyof typeof WORKSHOP_LOOKS, Skin>> = WORKSHOP_LOOKS;
 
 export type GameLook = keyof typeof GAME_LOOKS;
 

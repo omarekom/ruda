@@ -50,7 +50,7 @@ export function readPreferences(storage = browserStorage()): Preferences {
     mode: mode !== undefined && MODES.includes(mode) ? (mode as Mode) : undefined,
     theme: theme !== undefined && THEMES.includes(theme) ? (theme as Theme) : 'auto',
     lastWorld: read(storage, KEYS.lastWorld),
-    gameLook: GAME_LOOK_NAMES.find((name) => name === gameLook) ?? 'original',
+    gameLook: GAME_LOOK_NAMES.find((name) => name === gameLook) ?? 'classic',
   };
 }
 

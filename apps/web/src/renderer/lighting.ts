@@ -22,7 +22,7 @@ type LightSpec = Omit<Light, 'x' | 'y' | 'color'> & { readonly kind: 'lamp' | 'p
 
 const LAMP: LightSpec = { kind: 'lamp', radius: 4.8, strength: 0.34 };
 const TORCH: LightSpec = { kind: 'power', radius: 2.2, strength: 0.22 };
-const SOURCE: LightSpec = { kind: 'power', radius: 2, strength: 0.18 };
+const SOURCE: LightSpec = { kind: 'power', radius: 2.4, strength: 0.24 };
 const SMALL: LightSpec = { kind: 'power', radius: 1.4, strength: 0.14 };
 const WIRE: LightSpec = { kind: 'power', radius: 1, strength: 0.07 };
 
@@ -82,7 +82,7 @@ export function lightOf(
 
 /**
  * Paints the lights as radial glows. `toScreen` maps a cell corner to screen pixels.
- * On dark skins light adds up ('lighter'); on light skins it tints the paper.
+ * `mode` is the skin's blending, see Skin.glow.
  */
 export function paintLights(
   g: CanvasRenderingContext2D,

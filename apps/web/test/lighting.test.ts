@@ -1,7 +1,7 @@
 import { Axis, createBlock, Direction, type Block } from '@ruda/core';
 import { describe, expect, it } from 'vitest';
 import { lightOf, withAlpha, type PowerState } from '../src/renderer/lighting';
-import { pixelSkin } from '../src/renderer/skins/pixel';
+import { WORKSHOP_LOOKS } from '../src/renderer/skins/workshop';
 
 function power(lit: boolean, powered: boolean): PowerState {
   return {
@@ -10,12 +10,13 @@ function power(lit: boolean, powered: boolean): PowerState {
   };
 }
 
-const light = (block: Block, state: PowerState) => lightOf(3, 4, block, state, pixelSkin);
+const skin = WORKSHOP_LOOKS.classic;
+const light = (block: Block, state: PowerState) => lightOf(3, 4, block, state, skin);
 
 describe('lightOf', () => {
   it('lights a lit lamp in the lamp colour, with the widest glow', () => {
     const lamp = light(createBlock('lamp', Direction.North), power(true, false));
-    expect(lamp).toMatchObject({ x: 3, y: 4, color: pixelSkin.light.lamp });
+    expect(lamp).toMatchObject({ x: 3, y: 4, color: skin.light.lamp });
     const torch = light({ type: 'torch', facing: Direction.North, lit: true }, power(false, false));
     expect(lamp?.radius).toBeGreaterThan(torch?.radius ?? Infinity);
   });
@@ -38,7 +39,7 @@ describe('lightOf', () => {
       { type: 'button', remaining: 3 } as const,
       { type: 'lever', on: true } as const,
     ]) {
-      expect(light(block, power(false, true))?.color).toBe(pixelSkin.light.power);
+      expect(light(block, power(false, true))?.color).toBe(skin.light.power);
     }
   });
 });

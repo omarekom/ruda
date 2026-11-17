@@ -74,7 +74,7 @@ export class Renderer {
 
     const lights = camera.cellSize >= MIN_LIGHT_CELL_SIZE ? this.collectLights(simulation) : [];
     // Light pools on the floor, under the blocks.
-    this.paintLights(lights, this.skin.dark ? 1 : 0.8);
+    this.paintLights(lights, this.skin.glow.strength);
 
     const shown = this.shownBlocks(simulation, tickProgress);
     const { drawUnder } = this.skin;
@@ -84,8 +84,8 @@ export class Renderer {
       }
     }
     for (const cell of shown) this.drawCell(cell.x, cell.y, cell.block, cell.appearance, cell.seed);
-    // On dark skins a faint second pass tints the lit blocks themselves.
-    if (this.skin.dark) this.paintLights(lights, 0.2);
+    // A faint second pass can tint the lit blocks themselves.
+    if (this.skin.glow.overBlocks > 0) this.paintLights(lights, this.skin.glow.overBlocks);
 
     if (overlay.ghost) {
       const { x, y, block } = overlay.ghost;
@@ -115,13 +115,12 @@ export class Renderer {
   }
 
   private paintLights(lights: readonly Light[], strength: number): void {
-    const mode = this.skin.dark ? 'lighter' : 'source-over';
     paintLights(
       this.g,
       lights,
       this.camera.cellSize,
       (x, y) => this.camera.worldToScreen(x, y),
-      mode,
+      this.skin.glow.mode,
       strength,
     );
   }

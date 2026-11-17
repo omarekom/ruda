@@ -29,7 +29,7 @@ describe('preferences', () => {
       mode: undefined,
       theme: 'auto',
       lastWorld: undefined,
-      gameLook: 'original',
+      gameLook: 'classic',
     });
   });
 
@@ -38,12 +38,12 @@ describe('preferences', () => {
     writePreference('mode', 'expert', storage);
     writePreference('theme', 'dark', storage);
     writePreference('lastWorld', 'w1', storage);
-    writePreference('gameLook', 'meadow', storage);
+    writePreference('gameLook', 'crisp', storage);
     expect(readPreferences(storage)).toEqual({
       mode: 'expert',
       theme: 'dark',
       lastWorld: 'w1',
-      gameLook: 'meadow',
+      gameLook: 'crisp',
     });
     writePreference('lastWorld', undefined, storage);
     expect(readPreferences(storage).lastWorld).toBeUndefined();
@@ -57,7 +57,7 @@ describe('preferences', () => {
     expect(readPreferences(storage)).toMatchObject({
       mode: undefined,
       theme: 'auto',
-      gameLook: 'original',
+      gameLook: 'classic',
     });
   });
 

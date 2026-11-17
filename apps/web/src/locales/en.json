@@ -114,10 +114,10 @@
       "showcaseName": "Showcase"
     },
     "looks": {
-      "original": "Original",
-      "meadow": "Meadow",
-      "workshop": "Workshop",
-      "depth": "Deep Cave"
+      "classic": "Workshop",
+      "soft": "Soft Shadows",
+      "crisp": "Crisp Outline",
+      "slabs": "Big Slabs"
     },
     "loading": {
       "steps": {

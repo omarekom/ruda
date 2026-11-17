@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import type { Block } from '@ruda/core';
 import { onMounted, useTemplateRef, watch } from 'vue';
-import { pixelSkin } from '../renderer/skins/pixel';
 import { ISOLATED, type Skin } from '../renderer/skins/skin';
 
-const props = withDefaults(defineProps<{ block: Block; skin?: Skin; size?: number }>(), {
-  skin: () => pixelSkin,
+const props = withDefaults(defineProps<{ block: Block; skin: Skin; size?: number }>(), {
   size: 38,
 });
 const canvas = useTemplateRef<HTMLCanvasElement>('canvas');

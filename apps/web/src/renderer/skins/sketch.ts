@@ -302,7 +302,10 @@ function sketchSkin(palette: SketchPalette, dark: boolean): Skin {
     grid: palette.grid,
     hover: palette.hover,
     ink: palette.ink,
-    dark,
+    // On the blackboard light adds up; on paper it tints.
+    glow: dark
+      ? { mode: 'lighter', strength: 1, overBlocks: 0.2 }
+      : { mode: 'source-over', strength: 0.8, overBlocks: 0 },
     light: { lamp: palette.lampOn, power: palette.powerOn },
     drawBlock: (g, block, size, appearance, seed = 0) =>
       drawFromTable(table, g, block, size, appearance, seed),

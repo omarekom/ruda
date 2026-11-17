@@ -259,51 +259,31 @@ export const pistonHeadTexture = lazyTexture(() =>
   }),
 );
 
-/** Floors: each tile covers 2×2 cells, so the repetition is less obvious. */
-export const FLOOR_CELLS = 2;
+/** Floor tiles cover 2×2 cells, so slabs can span two cells and repetition is less obvious. */
+const FLOOR_CELLS = 2;
 
-export const grassFloor = lazyTexture(() =>
-  paintTexture(
-    113,
-    (p) => {
-      p.noise(0, 0, p.width, p.height, ['#5d9b3a', '#67a83f', '#548d34', '#6aab43', '#5a9638']);
-      for (let i = 0; i < 18; i++) {
-        const x = Math.floor(p.random() * p.width);
-        const y = Math.floor(p.random() * p.height);
-        p.pixel(x, y, p.random() < 0.5 ? '#77bb4d' : '#4a7f2d');
-      }
-    },
-    N * FLOOR_CELLS,
-  ),
-);
+/** A floor of flat slabs, each with a light top-left and a dark bottom-right edge. */
+export interface SlabStyle {
+  readonly fill: readonly string[];
+  readonly light: string;
+  readonly dark: string;
+  /** Cells per slab side: 1 or 2. */
+  readonly slabCells: number;
+}
 
-export const smoothFloor = lazyTexture(() =>
+export const slabFloor = textureCache((style: SlabStyle) =>
   paintTexture(
     127,
     (p) => {
-      for (let y = 0; y < p.height; y += N) {
-        for (let x = 0; x < p.width; x += N) {
-          p.noise(x, y, N, N, ['#c8c8c8', '#c3c3c3', '#cdcdcd']);
-          p.rect(x, y, N, 1, '#d9d9d9');
-          p.rect(x, y, 1, N, '#d9d9d9');
-          p.rect(x, y + LAST, N, 1, '#a9a9a9');
-          p.rect(x + LAST, y, 1, N, '#a9a9a9');
+      const slab = N * style.slabCells;
+      for (let y = 0; y < p.height; y += slab) {
+        for (let x = 0; x < p.width; x += slab) {
+          p.noise(x, y, slab, slab, style.fill);
+          p.rect(x, y, slab, 1, style.light);
+          p.rect(x, y, 1, slab, style.light);
+          p.rect(x, y + slab - 1, slab, 1, style.dark);
+          p.rect(x + slab - 1, y, 1, slab, style.dark);
         }
-      }
-    },
-    N * FLOOR_CELLS,
-  ),
-);
-
-export const deepslateFloor = lazyTexture(() =>
-  paintTexture(
-    131,
-    (p) => {
-      p.noise(0, 0, p.width, p.height, ['#3a3a40', '#36363c', '#404046', '#333338']);
-      // Deepslate tiles: four per cell, with dark seams.
-      for (let at = 0; at < p.width; at += N / 2) {
-        p.rect(at, 0, 1, p.height, '#28282c');
-        p.rect(0, at, p.width, 1, '#28282c');
       }
     },
     N * FLOOR_CELLS,
