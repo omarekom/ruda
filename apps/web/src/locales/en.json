@@ -1,7 +1,12 @@
 {
   "app": {
     "title": "Ruda",
-    "storageUnavailable": "Worlds cannot be stored in this browser (IndexedDB is unavailable)."
+    "storageUnavailable": "Worlds cannot be stored in this browser (IndexedDB is unavailable).",
+    "sections": "Sections",
+    "tabs": {
+      "worlds": "Your worlds",
+      "library": "Library"
+    }
   },
   "worlds": {
     "title": "Your worlds",
@@ -61,5 +66,56 @@
   },
   "help": {
     "controls": "Right click: place / use (lever, button, delayer delay) · Left click: remove · R or right-drag: rotate · WASD, arrows or middle drag: move · Wheel: zoom · Ctrl+S: save"
+  },
+  "library": {
+    "title": "Library",
+    "intro": "Creations to explore and learn from. Copy one into your worlds to play with it.",
+    "share": "Share a creation",
+    "shareTitle": "Share one of your worlds",
+    "shareHint": "Submissions appear in the library after the admin approves them.",
+    "fields": {
+      "world": "World",
+      "title": "Title",
+      "author": "Your name",
+      "description": "Description (optional)"
+    },
+    "send": "Send for approval",
+    "submitted": "Thank you! Your creation will appear in the library once it is approved.",
+    "done": "Done",
+    "noWorldsToShare": "You have no worlds yet. Build something first, then share it here.",
+    "sections": {
+      "builtIn": "From Ruda",
+      "community": "From the community"
+    },
+    "noCommunity": "Nothing here yet. Be the first to share a creation!",
+    "byAuthor": "by {author}",
+    "copy": "Copy to my worlds",
+    "openCopy": "Open my copy",
+    "loadMore": "Load more",
+    "admin": {
+      "title": "Administration",
+      "password": "Admin password",
+      "logIn": "Log in",
+      "logOut": "Log out",
+      "pending": "Waiting for approval ({count})",
+      "nothingPending": "No submissions are waiting.",
+      "approve": "Approve",
+      "reject": "Reject",
+      "published": "Published creations",
+      "takeDown": "Take down",
+      "confirmReject": "Reject “{title}”? It will be deleted.",
+      "confirmTakeDown": "Take “{title}” down from the library? It will be deleted."
+    },
+    "errors": {
+      "network": "The library cannot be reached. Check your connection and try again.",
+      "rate_limited": "Too many attempts. Please wait a while and try again.",
+      "wrong_password": "Wrong password.",
+      "unauthorized": "Your admin login has expired. Please log in again.",
+      "server_error": "The library had a problem. Please try again later.",
+      "invalid_title": "Please enter a title (up to 80 characters).",
+      "invalid_author": "Please enter your name (up to 40 characters).",
+      "invalid_description": "The description can have up to 500 characters.",
+      "invalid_data": "This world cannot be shared (it may be too large or damaged)."
+    }
   }
 }

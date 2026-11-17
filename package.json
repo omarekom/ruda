@@ -9,7 +9,8 @@
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "dev:library": "pnpm --filter @ruda/library-api dev"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

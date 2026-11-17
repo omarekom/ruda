@@ -130,7 +130,8 @@ function easeOut(t: number): number {
   return 1 - (1 - t) * (1 - t);
 }
 
-function appearanceOf(simulation: Simulation, x: number, y: number): CellAppearance {
+/** How the cell looks given the simulation's current power state. */
+export function appearanceOf(simulation: Simulation, x: number, y: number): CellAppearance {
   return {
     attached: DIRECTIONS.map((side) => wireAttaches(simulation.blocks, x, y, side)),
     powered: [

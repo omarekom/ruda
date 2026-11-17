@@ -81,8 +81,7 @@ async function onDeleteChoice(choice: 'delete' | 'cancel'): Promise<void> {
 </script>
 
 <template>
-  <main class="worlds">
-    <h1>{{ t('app.title') }}</h1>
+  <section class="worlds">
     <div class="toolbar">
       <h2>{{ t('worlds.title') }}</h2>
       <button type="button" class="primary" @click="createWorld">{{ t('worlds.new') }}</button>
@@ -128,25 +127,10 @@ async function onDeleteChoice(choice: 'delete' | 'cancel'): Promise<void> {
       cancel="cancel"
       @choose="onDeleteChoice"
     />
-  </main>
+  </section>
 </template>
 
 <style scoped>
-.worlds {
-  box-sizing: border-box;
-  max-width: 720px;
-  height: 100%;
-  margin: 0 auto;
-  padding: 32px 16px;
-  overflow-y: auto;
-}
-
-h1 {
-  margin: 0 0 24px;
-  color: #ff3b2f;
-  letter-spacing: 0.05em;
-}
-
 .toolbar {
   display: flex;
   align-items: center;
