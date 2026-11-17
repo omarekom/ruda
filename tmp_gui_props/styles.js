@@ -71,7 +71,7 @@
         if (T.hatchFill && !o.solid) hatch(build, o.fill);
         else {
           build();
-          g.globalAlpha *= 0.85;
+          if (!T.clean) g.globalAlpha *= 0.85;
           g.fillStyle = o.fill;
           g.fill();
           g.globalAlpha = 1;
@@ -82,8 +82,10 @@
           g.lineWidth = lw(0.03);
           build();
           g.stroke();
-          build();
-          g.stroke();
+          if (!T.clean) {
+            build();
+            g.stroke();
+          }
         }
       } else {
         build();
@@ -171,7 +173,7 @@
         }
         path(pts);
         g.stroke();
-        if (T.sketch) {
+        if (T.sketch && !T.clean) {
           g.lineWidth = lw(width * 0.6);
           path(pts);
           g.stroke();
@@ -786,8 +788,8 @@
     { radius: 0.05, hardShadow: true, shadowColor: 'rgba(70,50,30,0.25)', texture: { color: '#5a4630', amount: 2600 }, c: PAPER_LIGHT },
     { radius: 0.05, hardShadow: true, shadowColor: 'rgba(0,0,0,0.6)', texture: { color: '#ffffff', amount: 1800 }, c: PAPER_DARK });
   family('sketch2', 'Sketch', 'Pencil on notebook paper; in dark mode, chalk on a blackboard.',
-    { sketch: true, jitter: 0.025, ink: '#2d2d2d', wireW: 0.17, texture: { color: '#6b5a40', amount: 1000 }, c: SKETCH_LIGHT },
-    { sketch: true, jitter: 0.025, ink: '#ecebe4', wireW: 0.17, texture: { color: '#ffffff', amount: 1700 }, c: CHALK });
+    { sketch: true, clean: true, jitter: 0.012, ink: '#2d2d2d', wireW: 0.17, c: SKETCH_LIGHT },
+    { sketch: true, clean: true, jitter: 0.012, ink: '#ecebe4', wireW: 0.17, c: CHALK });
   family('crayon', 'Coloured pencil', 'Sketch, but filled with hatched coloured-pencil strokes.',
     { sketch: true, hatchFill: true, jitter: 0.025, ink: '#2d2d2d', wireW: 0.17, texture: { color: '#6b5a40', amount: 1000 }, c: SKETCH_LIGHT },
     { sketch: true, hatchFill: true, jitter: 0.025, ink: '#ecebe4', wireW: 0.17, texture: { color: '#ffffff', amount: 1700 }, c: CHALK });

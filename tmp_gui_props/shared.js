@@ -40,7 +40,7 @@
     };
     const row = (x0, x1, y, sig) => { for (let x = x0; x <= x1; x++) put(x, y, 'wire', { sig }); };
     const col = (x, y0, y1, sig) => { for (let y = y0; y <= y1; y++) put(x, y, 'wire', { sig }); };
-    return { cells, levers: {}, buttonAt: -1e9, put, row, col };
+    return { cells, levers: {}, buttonAt: -1e9, pausedAt: 0, pausedFor: 0, put, row, col };
   }
 
   function demoWorld() {
@@ -96,6 +96,16 @@
     }
     for (let i = 0; i < 10; i++) w.put(Math.floor(rnd() * 24) - 12, Math.floor(rnd() * 14) - 7, 'stone');
     return w;
+  }
+
+  /** Simulation time in ms: real time minus the time the world spent paused. */
+  const simTime = (world) => (world.pausedAt || performance.now()) - world.pausedFor;
+  function setPaused(world, paused) {
+    if (paused && !world.pausedAt) world.pausedAt = performance.now();
+    if (!paused && world.pausedAt) {
+      world.pausedFor += performance.now() - world.pausedAt;
+      world.pausedAt = 0;
+    }
   }
 
   const buttonOn = (world, t) => t >= world.buttonAt && t < world.buttonAt + 1000;
@@ -178,7 +188,7 @@
       this.style = STYLES[name];
     }
     get tick() {
-      return Math.floor((performance.now() - this.start) / 100);
+      return Math.floor((simTime(this.world) - this.start) / 100);
     }
     resize() {
       const dpr = devicePixelRatio || 1;
@@ -188,7 +198,7 @@
       this.canvas.height = this.h * dpr;
       this.dpr = dpr;
       // Resizing clears the canvas; redraw now instead of waiting for the next frame.
-      if (this.w && this.style) this.draw(performance.now());
+      if (this.w && this.style) this.draw(simTime(this.world));
     }
     cellAt(px, py) {
       return { x: Math.floor((px - this.w / 2) / this.zoom + this.cx), y: Math.floor((py - this.h / 2) / this.zoom + this.cy) };
@@ -217,7 +227,7 @@
           this.onEdit('toggle');
           down = null;
         } else if (b && b.type === 'button') {
-          this.world.buttonAt = performance.now();
+          this.world.buttonAt = simTime(this.world);
           down = null;
         } else if (b && b.type === 'delayer') {
           b.delay = (b.delay % 4) + 1;
@@ -291,7 +301,7 @@
       if (!this.interactive) {
         if (t - this.last < 100) return;
         this.last = t;
-        this.draw(t);
+        this.draw(simTime(this.world));
         return;
       }
       const dt = Math.min(0.05, (t - this.last) / 1000);
@@ -303,7 +313,7 @@
       if (k.has('s') || k.has('arrowdown')) this.cy += sp;
       if (k.has('a') || k.has('arrowleft')) this.cx -= sp;
       if (k.has('d') || k.has('arrowright')) this.cx += sp;
-      this.draw(t);
+      this.draw(simTime(this.world));
     }
     sx(x) {
       return (x - this.cx) * this.zoom + this.w / 2;
@@ -526,5 +536,5 @@
   }
   const slotKey = (i) => String((i + 1) % 10);
 
-  window.Ruda = { TYPES, NAMES, HINTS, DIRS, STYLES, WorldView, demoWorld, randomWorld, drawIcon, drawMinimap, bindSlots, slotKey };
+  window.Ruda = { setPaused, TYPES, NAMES, HINTS, DIRS, STYLES, WorldView, demoWorld, randomWorld, drawIcon, drawMinimap, bindSlots, slotKey };
 })();
