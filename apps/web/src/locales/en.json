@@ -59,31 +59,41 @@
       "startScreen": "Start screen"
     },
     "controls": {
-      "place": {
-        "keys": "Right click",
-        "action": "place a block, flip a lever, press a button"
+      "title": "Controls",
+      "done": "Done",
+      "sections": {
+        "movement": "Movement",
+        "building": "Building",
+        "using": "Using blocks",
+        "game": "Game",
+        "hotbar": "Hotbar"
       },
-      "remove": {
-        "keys": "Left click",
-        "action": "break a block"
+      "actions": {
+        "moveUp": "Move up",
+        "moveLeft": "Move left",
+        "moveDown": "Move down",
+        "moveRight": "Move right",
+        "pan": "Drag the view",
+        "edge": "Scroll the view",
+        "zoom": "Zoom",
+        "place": "Place block",
+        "break": "Break block",
+        "turn": "Turn the held block",
+        "aim": "Aim while placing",
+        "lever": "Flip a lever",
+        "button": "Press a button",
+        "delay": "Change a delayer's delay",
+        "menu": "Pause menu",
+        "save": "Save the world"
       },
-      "zoom": {
-        "keys": "Wheel",
-        "action": "zoom"
-      },
-      "move": {
-        "keys": "W A S D / middle drag",
-        "action": "move around"
-      },
-      "rotate": {
-        "keys": "R / right drag",
-        "action": "turn the block"
-      },
-      "menu": {
-        "keys": "Esc",
-        "action": "menu"
-      },
-      "done": "Done"
+      "keys": {
+        "middleDrag": "Middle drag",
+        "screenEdge": "Screen edge",
+        "wheel": "Mouse wheel",
+        "rightClick": "Right click",
+        "leftClick": "Left click",
+        "rightDrag": "Right drag"
+      }
     }
   },
   "expert": {

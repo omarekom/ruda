@@ -3,6 +3,7 @@ import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { selectedType, selectSlot, type HotbarState } from '../game/hotbar';
 import type { SaveResult } from '../game/saving';
+import GameControls from './GameControls.vue';
 import GameHotbar from './GameHotbar.vue';
 
 const NAME_SHOWN_MS = 1400;
@@ -124,22 +125,7 @@ function save(): void {
       </div>
     </div>
 
-    <div v-if="overlay === 'controls'" class="shade">
-      <div class="controls blocky-panel" role="dialog" :aria-label="t('game.menu.controls')">
-        <dl>
-          <template
-            v-for="row in ['place', 'remove', 'zoom', 'move', 'rotate', 'menu'] as const"
-            :key="row"
-          >
-            <dt>{{ t(`game.controls.${row}.keys`) }}</dt>
-            <dd>{{ t(`game.controls.${row}.action`) }}</dd>
-          </template>
-        </dl>
-        <button type="button" class="blocky-button" autofocus @click="open('menu')">
-          {{ t('game.controls.done') }}
-        </button>
-      </div>
-    </div>
+    <GameControls v-if="overlay === 'controls'" @done="open('menu')" />
   </div>
 </template>
 
@@ -234,28 +220,5 @@ function save(): void {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
-}
-
-.controls {
-  padding: 18px 26px;
-  color: #eee;
-  font-size: 22px;
-  text-align: right;
-}
-
-.controls dl {
-  display: grid;
-  grid-template-columns: auto auto;
-  gap: 2px 20px;
-  margin: 0 0 14px;
-  text-align: left;
-}
-
-.controls dt {
-  color: #ffe14d;
-}
-
-.controls dd {
-  margin: 0;
 }
 </style>
