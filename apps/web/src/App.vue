@@ -135,6 +135,8 @@ function show(stored: StoredWorld, data: string, restored: boolean): void {
     const { world } = parseWorld(data);
     opened.value = { id: stored.id, name: stored.name, world, restored };
     writePreference('lastWorld', stored.id);
+    // Only for sorting and showing when it was played, so a failure is not worth reporting.
+    store.value?.markPlayed(stored.id).catch(() => undefined);
     openError.value = undefined;
   } catch (error) {
     openError.value = fileErrorKey(error);

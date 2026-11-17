@@ -76,9 +76,10 @@
     "worlds": {
       "title": "Worlds",
       "empty": "No worlds yet. Create one to start building!",
-      "saved": "Saved {date}",
+      "lastPlayed": "Last played {when}",
+      "justNow": "just now",
       "create": "New world",
-      "search": "Search worlds…  ( / )",
+      "search": "Search worlds…  [/]",
       "import": "Import",
       "export": "Export as .ruda file",
       "delete": "Delete",
@@ -86,7 +87,7 @@
       "renameHint": "Click to rename",
       "nameLabel": "World name",
       "confirmDelete": "Delete “{name}”? It will be lost forever!",
-      "keys": "Arrows move · Enter plays · F2 renames · Del deletes · E exports"
+      "keys": "Space first world · Arrows move · Enter plays · F2 renames · Del deletes · E exports · I imports · Esc back"
     },
     "loading": {
       "steps": {

@@ -13,9 +13,11 @@ import { useI18n } from 'vue-i18n';
 import { nightSlabFloor } from '../renderer/skins/blockTextures';
 import { worldSkin } from '../theme';
 import { fileErrorKey } from '../storage/fileErrors';
+import { isArrowKey, moveFocus } from '../input/focusNavigation';
+import { formatRelativeTime } from '../relativeTime';
 import { downloadRudaFile, RUDA_FILE_ACCEPT } from '../storage/files';
 import { createEmptyWorld, renameWorld } from '../storage/worldActions';
-import type { StoredWorld, WorldStore } from '../storage/worldStore';
+import { lastPlayedAt, type StoredWorld, type WorldStore } from '../storage/worldStore';
 import ConfirmDialog from './ConfirmDialog.vue';
 import PixelIcon from './PixelIcon.vue';
 import WorldThumbnail from './WorldThumbnail.vue';
@@ -23,7 +25,7 @@ import WorldThumbnail from './WorldThumbnail.vue';
 /** The worlds as a grid of cards: click to play, click the name to rename. */
 const props = defineProps<{ store: WorldStore }>();
 const emit = defineEmits<{ open: [id: string]; back: [] }>();
-const { t, d } = useI18n();
+const { t, locale } = useI18n();
 
 const worlds = shallowRef<StoredWorld[]>([]);
 const search = ref('');
@@ -35,6 +37,16 @@ const searchInput = useTemplateRef<HTMLInputElement>('searchInput');
 const fileInput = useTemplateRef<HTMLInputElement>('fileInput');
 const nameInput = useTemplateRef<HTMLInputElement[]>('nameInput');
 const backdrop = `url(${nightSlabFloor().toDataURL()})`;
+
+function lastPlayed(world: StoredWorld): string {
+  const when = formatRelativeTime(
+    lastPlayedAt(world),
+    Date.now(),
+    locale.value,
+    t('game.worlds.justNow'),
+  );
+  return t('game.worlds.lastPlayed', { when });
+}
 
 const shownWorlds = computed(() => {
   const query = search.value.trim().toLocaleLowerCase();
@@ -115,22 +127,12 @@ function cards(): HTMLElement[] {
   return [...(grid.value?.querySelectorAll<HTMLElement>('.card') ?? [])];
 }
 
-/** Moves focus to the card in the given direction, reading the columns from the layout. */
-function moveFocus(from: HTMLElement, key: string): void {
-  const all = cards();
-  const index = all.indexOf(from);
-  const columns = all.filter((card) => card.offsetTop === all[0]?.offsetTop).length || 1;
-  const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -columns, ArrowDown: columns }[key];
-  if (step === undefined) return;
-  all[Math.min(all.length - 1, Math.max(0, index + step))]?.focus();
-}
-
 function onCardKey(event: KeyboardEvent, world: StoredWorld | undefined): void {
   if (renaming.value) return;
-  if (event.key.startsWith('Arrow')) {
+  if (isArrowKey(event.key)) {
     event.preventDefault();
-    moveFocus(event.currentTarget as HTMLElement, event.key);
-  } else if (event.key === 'Enter' || event.key === ' ') {
+    moveFocus(cards(), event.key);
+  } else if (event.key === 'Enter') {
     event.preventDefault();
     if (world) emit('open', world.id);
     else void create();
@@ -150,19 +152,36 @@ function onKeyDown(event: KeyboardEvent): void {
   if (event.key === 'Escape') {
     if (typing && search.value) search.value = '';
     else emit('back');
-  } else if (event.key === '/' && !typing) {
-    event.preventDefault();
-    searchInput.value?.focus();
   } else if (event.key === 'ArrowDown' && typing) {
     cards()[0]?.focus();
+  } else if (!typing && !event.ctrlKey && !event.metaKey && !event.altKey) {
+    onShortcut(event);
   }
+}
+
+/** Keys that work anywhere on the screen except while typing. */
+function onShortcut(event: KeyboardEvent): void {
+  if (event.key === '/') {
+    event.preventDefault();
+    searchInput.value?.focus();
+  } else if (event.key === ' ') {
+    event.preventDefault();
+    focusFirstWorld();
+  } else if (event.code === 'KeyI') {
+    fileInput.value?.click();
+  }
+}
+
+/** The first world's card, or the new world card when there are none. */
+function focusFirstWorld(): void {
+  (cards()[1] ?? cards()[0])?.focus();
 }
 
 onMounted(async () => {
   window.addEventListener('keydown', onKeyDown);
   await refresh();
   await nextTick();
-  (cards()[1] ?? cards()[0])?.focus();
+  focusFirstWorld();
 });
 onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 </script>
@@ -233,18 +252,18 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
           v-else
           type="button"
           class="name"
+          tabindex="-1"
           :data-tip="t('game.worlds.renameHint')"
           @click.stop="startRename(world)"
         >
           {{ world.name }}
         </button>
-        <span class="date">{{
-          t('game.worlds.saved', { date: d(world.updatedAt, 'short') })
-        }}</span>
+        <span class="date">{{ lastPlayed(world) }}</span>
         <div class="tools">
           <button
             type="button"
             class="blocky-button icon-button"
+            tabindex="-1"
             :data-tip="t('game.worlds.export')"
             :aria-label="t('game.worlds.export')"
             @click.stop="downloadRudaFile(world.name, world.data)"
@@ -254,6 +273,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
           <button
             type="button"
             class="blocky-button icon-button"
+            tabindex="-1"
             :data-tip="t('game.worlds.delete')"
             :aria-label="t('game.worlds.delete')"
             @click.stop="deleting = world"
