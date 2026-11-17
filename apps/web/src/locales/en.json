@@ -2,38 +2,16 @@
   "app": {
     "title": "Ruda",
     "storageUnavailable": "Worlds cannot be stored in this browser (IndexedDB is unavailable).",
-    "sections": "Sections",
-    "tabs": {
-      "worlds": "Your worlds",
-      "library": "Library"
-    },
-    "startScreen": "Start screen"
+    "backToGame": "Back to the game"
   },
   "start": {
     "tagline": "Now with pistons!",
     "play": "Play",
-    "playHint": "Build circuits with levers, wires, torches and lamps. No setup, start right away.",
-    "expertPoints": {
-      "time": "pause, step and speed up time",
-      "inspect": "see what's under your cursor",
-      "overview": "world statistics and a minimap",
-      "big": "for building something big"
-    },
-    "openExpert": "open the workbench →"
+    "worlds": "Worlds…",
+    "controls": "Controls…"
   },
   "worlds": {
-    "title": "Your worlds",
-    "empty": "No worlds yet. Create one or import a .ruda file.",
-    "new": "New world",
     "defaultName": "New world",
-    "import": "Import",
-    "open": "Open",
-    "rename": "Rename",
-    "export": "Export",
-    "delete": "Delete",
-    "nameLabel": "World name",
-    "savedAt": "Saved {date}",
-    "confirmDelete": "Delete “{name}”? This cannot be undone.",
     "restorePrompt": "“{name}” has unsaved changes from {date}. Restore them?",
     "restore": "Restore",
     "discardChanges": "Discard"
@@ -41,10 +19,6 @@
   "editor": {
     "leavePrompt": "Save changes to “{name}” before leaving?",
     "discard": "Discard"
-  },
-  "modes": {
-    "game": "Game mode",
-    "expert": "Expert mode"
   },
   "game": {
     "saved": "World saved",
@@ -56,6 +30,8 @@
       "save": "Save",
       "worlds": "Worlds…",
       "controls": "Controls…",
+      "debugOn": "Debug mode",
+      "debugOff": "Hide debug mode",
       "startScreen": "Start screen"
     },
     "controls": {
@@ -85,7 +61,8 @@
         "delay": "Change a delayer's delay",
         "menu": "Pause menu",
         "save": "Save the world",
-        "slot": "Pick a hotbar slot"
+        "slot": "Pick a hotbar slot",
+        "debug": "Debug mode"
       },
       "keys": {
         "middleDrag": "Middle drag",
@@ -97,18 +74,19 @@
       }
     },
     "worlds": {
-      "title": "Select World",
+      "title": "Worlds",
       "empty": "No worlds yet. Create one to start building!",
       "saved": "Saved {date}",
-      "play": "Play Selected World",
-      "create": "Create New World",
-      "rename": "Rename",
+      "create": "New world",
+      "search": "Search worlds…  ( / )",
+      "import": "Import",
+      "export": "Export as .ruda file",
       "delete": "Delete",
       "back": "Back",
-      "renameTitle": "Rename World",
+      "renameHint": "Click to rename",
       "nameLabel": "World name",
-      "saveName": "Done",
-      "confirmDelete": "Delete “{name}”? It will be lost forever!"
+      "confirmDelete": "Delete “{name}”? It will be lost forever!",
+      "keys": "Arrows move · Enter plays · F2 renames · Del deletes · E exports"
     },
     "loading": {
       "steps": {
@@ -122,93 +100,62 @@
       "title": "Loading world"
     }
   },
-  "expert": {
-    "menu": {
-      "world": "World",
-      "view": "View",
-      "save": "Save",
-      "export": "Export .ruda",
-      "worlds": "All worlds…",
-      "startScreen": "Start screen",
-      "zoomIn": "Zoom in",
-      "zoomOut": "Zoom out",
-      "origin": "Back to the centre"
-    },
-    "status": {
-      "saving": "saving…",
-      "saved": "saved ✓",
-      "unsaved": "unsaved changes",
-      "failed": "saving failed!"
-    },
-    "theme": {
-      "label": "Theme",
-      "auto": "Follow the system",
-      "light": "Light (pencil on paper)",
-      "dark": "Dark (chalk on a blackboard)"
-    },
-    "palette": {
-      "label": "Blocks",
-      "groups": {
-        "power": "power",
-        "wiring": "wiring",
-        "logic": "logic",
-        "output": "output",
-        "mechanics": "mechanics",
-        "building": "building"
-      }
-    },
-    "inspector": {
-      "title": "under the cursor",
-      "nothing": "point at something…",
-      "empty": "empty cell {x}, {y}",
-      "block": "block",
-      "at": "at",
-      "facing": "facing",
-      "stateLabel": "state",
-      "directions": {
-        "north": "north",
-        "east": "east",
-        "south": "south",
-        "west": "west"
-      },
-      "state": {
-        "on": "on",
-        "off": "off",
-        "lit": "lit",
-        "unlit": "dark",
-        "pressed": "pressed",
-        "released": "released",
-        "extended": "extended",
-        "retracted": "retracted",
-        "delay": "delays {ticks} tick | delays {ticks} ticks",
-        "powering": "always powering",
-        "powered": "powered",
-        "unpowered": "unpowered"
-      }
+  "debug": {
+    "title": "Ruda debug",
+    "closeHint": "/ to close",
+    "tick": "tick",
+    "paused": "paused",
+    "speed": "speed",
+    "cursor": "cursor",
+    "block": "block",
+    "camera": "camera",
+    "panels": "Debug panels",
+    "panelNames": {
+      "info": "info",
+      "contents": "contents",
+      "map": "map"
     },
     "time": {
-      "title": "time",
-      "run": "run",
-      "pause": "pause",
-      "step": "step",
-      "speed": "Speed: click to change"
+      "label": "Time",
+      "pause": "Pause",
+      "speed": "{speed}× speed",
+      "max": "max",
+      "maxHint": "As fast as the browser can",
+      "custom": "Any speed",
+      "step": "One tick (while paused)"
     },
     "map": {
-      "title": "map",
+      "title": "Map",
       "hint": "Click to look there"
     },
-    "stats": {
-      "title": "this world",
-      "blocks": "blocks"
+    "contents": {
+      "title": "World contents",
+      "total": "total"
     },
-    "statusBar": {
-      "cell": "x {x}, y {y}",
-      "noCell": "x –, y –",
-      "zoom": "zoom {percent}%",
-      "tick": "tick {tick}",
-      "rate": "{rate} ticks/s",
-      "paused": "paused"
+    "directions": {
+      "north": "north",
+      "east": "east",
+      "south": "south",
+      "west": "west"
+    },
+    "state": {
+      "on": "on",
+      "off": "off",
+      "lit": "lit",
+      "unlit": "dark",
+      "pressed": "pressed",
+      "released": "released",
+      "extended": "extended",
+      "retracted": "retracted",
+      "delay": "delays {ticks} tick | delays {ticks} ticks",
+      "powering": "always powering",
+      "powered": "powered",
+      "unpowered": "unpowered"
     }
+  },
+  "theme": {
+    "toLight": "Switch to day",
+    "toDark": "Switch to night"
   },
   "dialog": {
     "cancel": "Cancel",

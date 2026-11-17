@@ -73,15 +73,15 @@ pnpm workspaces, TypeScript 6 (strict), Vite, Vue 3, vue-i18n, idb, Fontsource (
 - Saving: IndexedDB (via `idb`) with two stores: `worlds` (the real saves) and `recovery` (autosaved copies of unsaved changes, keyed by world id). Saving a world deletes its recovery copy in the same transaction. `beforeunload` warns about unsaved changes.
 - Only player commands mark a world as unsaved; torch ticks do not (their state is still saved with the next save).
 - Strings go through i18n keys from the start (English only at first).
-- Two modes share one `WorldScreen`: it owns the simulation, the `Game` (canvas, ticks, input) and saving, and shows either `GameHud` or `ExpertHud` around the canvas. Switching modes keeps the world and the view; only the skin and the panels change.
-- Pausing, single steps and speed live in the app's `TickLoop`, not in the core: game mode pauses while its menu is open, expert mode has its own controls.
-- Small per-browser settings (last mode, last world, expert theme) are kept in `localStorage` (`preferences.ts`); they are conveniences, so blocked storage only means nothing is remembered.
+- `WorldScreen` owns the simulation, the `Game` (canvas, ticks, input) and saving, and shows `GameHud` over the canvas, plus `DebugHud` while debug mode is on.
+- Pausing, single steps and speed live in the app's `TickLoop`, not in the core: the game pauses while its menu is open, and debug mode has its own controls, including a max speed that fills a fixed slice of every frame with ticks.
+- Small per-browser settings (last world, a day/night choice that differs from the system) are kept in `localStorage` (`preferences.ts`); they are conveniences, so blocked storage only means nothing is remembered.
 - Fonts are bundled from Fontsource packages, so the app makes no third-party requests.
 
 ## Rendering
 
-- A _skin_ is a complete visual style: canvas colours plus a look for every block type (`renderer/skins/`). Game mode uses the pixel skin, expert mode the hand-drawn sketch skin in a light or dark variant. The renderer, icons, previews and the start screen all draw through a skin.
-- Hand-drawn looks wobble by a per-cell seed, so a block looks the same in every frame.
+- A _skin_ is a complete visual style: canvas colours plus a look for every block type (`renderer/skins/`). The game uses the Workshop skin by day or at night (`theme.ts` picks one). The renderer, icons, previews and the start screen all draw through a skin.
+- Skins get a per-cell seed, so texture variants stay the same in every frame.
 - Lighting is a pass in the renderer: lit lamps, torches, sources and powered wires paint soft radial glows under the blocks (added on dark skins, tinting on light ones), plus a faint second pass over the blocks on dark skins. Light from blocks just off screen is included so glows do not pop at the edges; at very small zoom lighting is skipped.
 
 ## Mouse placement

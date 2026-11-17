@@ -1,11 +1,11 @@
 import { Axis, type Block, type BlockType, type Direction } from '@ruda/core';
 import type { PowerState } from '../renderer/lighting';
 
-/** What expert mode's inspector says about a block, as i18n keys and values. */
+/** What debug mode says about a block, as i18n keys and values. */
 export interface Inspection {
   readonly type: BlockType;
   readonly facing: Direction | undefined;
-  /** A key under `expert.inspector.state`, with values for its placeholders. */
+  /** A key under `debug.state`, with values for its placeholders. */
   readonly state: { readonly key: string; readonly values?: Record<string, number> } | undefined;
 }
 

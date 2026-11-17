@@ -5,6 +5,8 @@ import { selectedType, selectSlot, type HotbarState } from '../game/hotbar';
 import type { SaveResult } from '../game/saving';
 import GameControls from './GameControls.vue';
 import GameHotbar from './GameHotbar.vue';
+import PixelIcon from './PixelIcon.vue';
+import ThemeToggle from './ThemeToggle.vue';
 
 const NAME_SHOWN_MS = 1400;
 const TOAST_SHOWN_MS = 1400;
@@ -14,12 +16,13 @@ const props = defineProps<{
   lastSave: SaveResult | undefined;
   /** Whether another dialog has the keyboard; Escape then belongs to it. */
   blocked: boolean;
+  debugOn: boolean;
 }>();
 const emit = defineEmits<{
   menu: [open: boolean];
   save: [];
   worlds: [];
-  expert: [];
+  debug: [];
   start: [];
 }>();
 const { t } = useI18n();
@@ -68,6 +71,11 @@ onBeforeUnmount(() => {
   clearTimeout(toastTimer);
 });
 
+function toggleDebug(): void {
+  open(undefined);
+  emit('debug');
+}
+
 function save(): void {
   open(undefined);
   emit('save');
@@ -77,17 +85,15 @@ function save(): void {
 <template>
   <div class="hud">
     <div class="corner">
-      <button type="button" class="blocky-button" @click="emit('expert')">
-        {{ t('modes.expert') }}
-      </button>
+      <ThemeToggle />
       <button
         type="button"
-        class="blocky-button"
-        :title="t('game.menu.open')"
+        class="blocky-button icon-button"
+        :data-tip="t('game.menu.open')"
         :aria-label="t('game.menu.open')"
         @click="open('menu')"
       >
-        ≡
+        <PixelIcon name="menu" />
       </button>
     </div>
 
@@ -115,8 +121,8 @@ function save(): void {
           <button type="button" class="blocky-button" @click="open('controls')">
             {{ t('game.menu.controls') }}
           </button>
-          <button type="button" class="blocky-button" @click="emit('expert')">
-            {{ t('modes.expert') }}
+          <button type="button" class="blocky-button" @click="toggleDebug">
+            {{ t(debugOn ? 'game.menu.debugOff' : 'game.menu.debugOn') }}
           </button>
         </div>
         <button type="button" class="blocky-button" @click="emit('start')">
@@ -147,11 +153,6 @@ function save(): void {
   right: 14px;
   display: flex;
   gap: 8px;
-}
-
-.corner .blocky-button {
-  padding: 4px 14px;
-  font-size: 26px;
 }
 
 .hotbar {

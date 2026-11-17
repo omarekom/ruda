@@ -1,24 +1,19 @@
-import type { Mode } from './game/mode';
-
-export type Theme = 'auto' | 'light' | 'dark';
+export type Theme = 'light' | 'dark';
 
 /** Small per-browser settings, kept in localStorage. */
 export interface Preferences {
-  /** The mode the player used last; unset until they pick one on the start screen. */
-  readonly mode: Mode | undefined;
-  readonly theme: Theme;
+  /** The light or dark world, when the player chose one that differs from the system. */
+  readonly theme: Theme | undefined;
   /** The world the player had open last. */
   readonly lastWorld: string | undefined;
 }
 
 const KEYS: { readonly [K in keyof Preferences]: string } = {
-  mode: 'ruda.mode',
   theme: 'ruda.theme',
   lastWorld: 'ruda.lastWorld',
 };
 
-const MODES: readonly string[] = ['game', 'expert'] satisfies Mode[];
-const THEMES: readonly string[] = ['auto', 'light', 'dark'] satisfies Theme[];
+const THEMES: readonly string[] = ['light', 'dark'] satisfies Theme[];
 
 /** localStorage, or undefined where it is blocked (some private modes throw on access). */
 function browserStorage(): Storage | undefined {
@@ -39,11 +34,9 @@ function read(storage: Storage | undefined, key: string): string | undefined {
 
 /** Reads the preferences; anything missing or unrecognised falls back to the default. */
 export function readPreferences(storage = browserStorage()): Preferences {
-  const mode = read(storage, KEYS.mode);
   const theme = read(storage, KEYS.theme);
   return {
-    mode: mode !== undefined && MODES.includes(mode) ? (mode as Mode) : undefined,
-    theme: theme !== undefined && THEMES.includes(theme) ? (theme as Theme) : 'auto',
+    theme: theme !== undefined && THEMES.includes(theme) ? (theme as Theme) : undefined,
     lastWorld: read(storage, KEYS.lastWorld),
   };
 }
@@ -60,4 +53,9 @@ export function writePreference<K extends keyof Preferences>(
   } catch {
     // Storage full or blocked: the app simply won't remember this.
   }
+}
+
+/** What to remember after switching to `next`: nothing when it matches the system's theme. */
+export function themeToRemember(next: Theme, system: Theme): Theme | undefined {
+  return next === system ? undefined : next;
 }

@@ -43,6 +43,7 @@ const SECTIONS: readonly (readonly [
     [
       ['menu', 'Esc'],
       ['save', 'Ctrl+S'],
+      ['debug', '/'],
     ],
   ],
   ['hotbar', [['slot', '1–9', '0']]],

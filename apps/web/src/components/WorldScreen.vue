@@ -13,25 +13,18 @@ import {
 import { useI18n } from 'vue-i18n';
 import { Game } from '../game/game';
 import { createHotbarState } from '../game/hotbar';
-import type { Mode } from '../game/mode';
 import type { OpenWorld } from '../game/openWorld';
 import type { SaveResult } from '../game/saving';
-import { sketchDarkSkin, sketchLightSkin } from '../renderer/skins/sketch';
-import type { Skin } from '../renderer/skins/skin';
-import { workshopSkin } from '../renderer/skins/workshop';
-import { downloadRudaFile } from '../storage/files';
 import type { WorldStore } from '../storage/worldStore';
-import { isDark } from '../theme';
+import { worldSkin } from '../theme';
 import ConfirmDialog from './ConfirmDialog.vue';
-import ExpertHud, { type SaveStatus } from './ExpertHud.vue';
+import DebugHud from './DebugHud.vue';
 import GameHud from './GameHud.vue';
 
 const AUTOSAVE_INTERVAL_MS = 30_000;
-/** Half of the flip between modes: the old one turns away, then the new one turns in. */
-const FLIP_HALF_MS = 230;
 
-const props = defineProps<{ store: WorldStore; world: OpenWorld; mode: Mode }>();
-const emit = defineEmits<{ close: []; switchMode: [mode: Mode]; startScreen: [] }>();
+const props = defineProps<{ store: WorldStore; world: OpenWorld }>();
+const emit = defineEmits<{ close: []; startScreen: [] }>();
 const { t } = useI18n();
 
 const simulation = new Simulation(props.world.world);
@@ -45,33 +38,19 @@ const saving = ref(false);
 const lastSave = ref<SaveResult>();
 /** Where to go once the player has decided about unsaved changes. */
 const leavingTo = ref<'worlds' | 'start'>();
-const gameMenuOpen = ref(false);
-/** Expert mode's own run/pause switch and speed; game mode always runs at normal speed. */
-const expertPaused = ref(false);
-const expertSpeed = ref(1);
-/** The mode on screen; it lags behind the `mode` prop during the flip animation. */
-const shownMode = ref<Mode>(props.mode);
-const flip = ref<'out' | 'in'>();
+const menuOpen = ref(false);
+const debugOn = ref(false);
+/** Debug mode's own control over time; without it the game runs at normal speed. */
+const debugPaused = ref(false);
+const debugSpeed = ref(1);
 const game = shallowRef<Game>();
 let autosaveTimer: ReturnType<typeof setInterval> | undefined;
-let flipTimer: ReturnType<typeof setTimeout> | undefined;
 
-const skin = computed<Skin>(() => {
-  if (shownMode.value === 'game') return workshopSkin;
-  return isDark.value ? sketchDarkSkin : sketchLightSkin;
-});
-const paused = computed(() =>
-  shownMode.value === 'game' ? gameMenuOpen.value : expertPaused.value,
-);
-const speed = computed(() => (shownMode.value === 'expert' ? expertSpeed.value : 1));
-const saveStatus = computed<SaveStatus>(() => {
-  if (saving.value) return 'saving';
-  if (!dirty.value) return 'saved';
-  return lastSave.value?.ok === false ? 'failed' : 'unsaved';
-});
-const inputEnabled = computed(() => !paused.value && leavingTo.value === undefined);
+const paused = computed(() => menuOpen.value || (debugOn.value && debugPaused.value));
+const speed = computed(() => (debugOn.value ? debugSpeed.value : 1));
+const inputEnabled = computed(() => !menuOpen.value && leavingTo.value === undefined);
 
-watch(skin, (next) => game.value?.setSkin(next));
+watch(worldSkin, (next) => game.value?.setSkin(next));
 watch(paused, (next) => {
   if (game.value) game.value.paused = next;
 });
@@ -80,19 +59,12 @@ watch(speed, (next) => {
 });
 watch(inputEnabled, (next) => game.value?.setInputEnabled(next));
 
-watch(
-  () => props.mode,
-  (next) => {
-    clearTimeout(flipTimer);
-    flip.value = 'out';
-    flipTimer = setTimeout(() => {
-      shownMode.value = next;
-      gameMenuOpen.value = false;
-      flip.value = 'in';
-      flipTimer = setTimeout(() => (flip.value = undefined), FLIP_HALF_MS + 70);
-    }, FLIP_HALF_MS);
-  },
-);
+/** Turning debug mode off returns time to normal. */
+function toggleDebug(): void {
+  debugOn.value = !debugOn.value;
+  debugPaused.value = false;
+  debugSpeed.value = 1;
+}
 
 function serialize(): string {
   return serializeWorld(simulation.blocks, props.world.name);
@@ -154,6 +126,13 @@ function onKeyDown(event: KeyboardEvent): void {
   if ((event.ctrlKey || event.metaKey) && event.code === 'KeyS') {
     event.preventDefault();
     void save();
+  } else if (
+    event.key === '/' &&
+    inputEnabled.value &&
+    !(event.target instanceof HTMLInputElement)
+  ) {
+    event.preventDefault();
+    toggleDebug();
   }
 }
 
@@ -167,7 +146,7 @@ function onVisibilityChange(): void {
 
 onMounted(() => {
   if (!canvas.value) return;
-  game.value = new Game(canvas.value, hotbar, simulation, onEdit, skin.value);
+  game.value = new Game(canvas.value, hotbar, simulation, onEdit, worldSkin.value);
   game.value.paused = paused.value;
   game.value.speed = speed.value;
   game.value.start();
@@ -180,7 +159,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
   game.value?.stop();
   clearInterval(autosaveTimer);
-  clearTimeout(flipTimer);
   window.removeEventListener('keydown', onKeyDown);
   window.removeEventListener('beforeunload', onBeforeUnload);
   document.removeEventListener('visibilitychange', onVisibilityChange);
@@ -188,45 +166,33 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div
-    class="world-screen"
-    :class="[shownMode, flip && `flip-${flip}`, { sketchy: shownMode === 'expert', dark: isDark }]"
-  >
-    <div class="viewport">
-      <canvas ref="canvas" class="world" />
-    </div>
+  <div class="world-screen">
+    <canvas ref="canvas" class="world" />
+    <DebugHud
+      v-if="debugOn && game"
+      :game="game"
+      :skin="worldSkin"
+      :paused="debugPaused"
+      :speed="debugSpeed"
+      :active="inputEnabled"
+      @pause="(next) => (debugPaused = next)"
+      @speed="(next) => (debugSpeed = next)"
+      @step="game.step()"
+    />
     <GameHud
-      v-if="shownMode === 'game'"
       :hotbar="hotbar"
       :last-save="lastSave"
       :blocked="leavingTo !== undefined"
-      @menu="(open) => (gameMenuOpen = open)"
+      :debug-on="debugOn"
+      @menu="(open) => (menuOpen = open)"
       @save="save"
       @worlds="leave('worlds')"
-      @expert="emit('switchMode', 'expert')"
+      @debug="toggleDebug"
       @start="leave('start')"
-    />
-    <ExpertHud
-      v-else-if="game"
-      :game="game"
-      :hotbar="hotbar"
-      :skin="skin"
-      :world-name="world.name"
-      :save-status="saveStatus"
-      :paused="expertPaused"
-      :speed="expertSpeed"
-      @save="save"
-      @export="downloadRudaFile(world.name, serialize())"
-      @worlds="leave('worlds')"
-      @start="leave('start')"
-      @to-game="emit('switchMode', 'game')"
-      @pause="(next) => (expertPaused = next)"
-      @step="game.step()"
-      @speed="(next) => (expertSpeed = next)"
     />
     <ConfirmDialog
       v-if="leavingTo"
-      :blocky="shownMode === 'game'"
+      blocky
       :message="t('editor.leavePrompt', { name: world.name })"
       :actions="[
         { value: 'cancel', label: t('dialog.cancel') },
@@ -242,25 +208,7 @@ onBeforeUnmount(() => {
 <style scoped>
 .world-screen {
   position: relative;
-  display: grid;
-  grid-template: 'view' 1fr / 1fr;
   height: 100%;
-  backface-visibility: hidden;
-}
-
-.world-screen.expert {
-  grid-template:
-    'header header header' 56px
-    'left view right' 1fr
-    'status status status' 32px
-    / 220px 1fr 280px;
-}
-
-.viewport {
-  position: relative;
-  grid-area: view;
-  min-width: 0;
-  min-height: 0;
 }
 
 .world {
@@ -271,34 +219,5 @@ onBeforeUnmount(() => {
   height: 100%;
   cursor: crosshair;
   touch-action: none;
-}
-
-.flip-out {
-  animation: flip-out 0.23s ease-in forwards;
-}
-
-.flip-in {
-  animation: flip-in 0.3s ease-out;
-}
-
-@keyframes flip-out {
-  to {
-    transform: perspective(1600px) rotateY(90deg);
-    filter: brightness(0.6);
-  }
-}
-
-@keyframes flip-in {
-  from {
-    transform: perspective(1600px) rotateY(-90deg);
-    filter: brightness(0.6);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .flip-out,
-  .flip-in {
-    animation: none;
-  }
 }
 </style>
