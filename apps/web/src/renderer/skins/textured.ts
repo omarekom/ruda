@@ -17,14 +17,7 @@ import {
 } from './blockTextures';
 import { faceToward, wireArms } from './shapes';
 import type { Look, LookTable, Skin } from './skin';
-import {
-  averagePixel,
-  deviceScale,
-  drawTexture,
-  patternOf,
-  TEXTURE_SIZE,
-  textureForSize,
-} from './texture';
+import { averagePixel, deviceScale, drawTexture, resample, TEXTURE_SIZE } from './texture';
 
 /**
  * How a skin finishes blocks that stand up from the floor (stone, power blocks, lamps,
@@ -133,41 +126,36 @@ export function tiledFloor(
   tile: () => HTMLCanvasElement,
   background: string,
 ): NonNullable<Skin['drawFloor']> {
+  // The tile at the current zoom, ready to repeat; remade only when the zoom changes.
+  let made: { readonly pixels: number; readonly pattern: CanvasPattern | null } | undefined;
   return (g, cellSize, [ox, oy], width, height) => {
     const texture = tile();
     const scale = deviceScale();
     const tileSize = (cellSize * texture.width) / TEXTURE_SIZE;
-    const { image, next } = textureForSize(texture, tileSize * scale);
-    g.imageSmoothingEnabled = true;
-    fillWithTile(g, image, tileSize, ox, oy, width, height, background);
-    // Blending towards the next mipmap level keeps the floor from popping as levels change.
-    if (next) {
-      g.globalAlpha = next.weight;
-      fillWithTile(g, next.image, tileSize, ox, oy, width, height, background);
-      g.globalAlpha = 1;
+    const pixels = Math.max(1, Math.round(tileSize * scale));
+    if (made?.pixels !== pixels) {
+      const image = resample(texture, pixels, pixels);
+      fadeToAverage(image, texture, cellSize * scale);
+      made = { pixels, pattern: g.createPattern(image, 'repeat') };
     }
-
-    const plain =
-      (FLOOR_DETAIL_FULL_PX - cellSize * scale) / (FLOOR_DETAIL_FULL_PX - FLOOR_DETAIL_GONE_PX);
-    if (plain <= 0) return;
-    g.globalAlpha = Math.min(1, plain);
-    g.drawImage(averagePixel(texture), 0, 0, width, height);
-    g.globalAlpha = 1;
+    const { pattern } = made;
+    pattern?.setTransform(new DOMMatrix().translate(ox, oy).scale(tileSize / pixels));
+    // The tile is already at (almost exactly) its drawn size, so filling is a plain copy.
+    g.imageSmoothingEnabled = false;
+    g.fillStyle = pattern ?? background;
+    g.fillRect(0, 0, width, height);
   };
 }
 
-function fillWithTile(
-  g: CanvasRenderingContext2D,
+/** Far out, blends the tile towards the floor's average colour, so the floor turns plain. */
+function fadeToAverage(
   image: HTMLCanvasElement,
-  tileSize: number,
-  ox: number,
-  oy: number,
-  width: number,
-  height: number,
-  background: string,
+  texture: HTMLCanvasElement,
+  cellPixels: number,
 ): void {
-  const pattern = patternOf(g, image);
-  pattern?.setTransform(new DOMMatrix().translate(ox, oy).scale(tileSize / image.width));
-  g.fillStyle = pattern ?? background;
-  g.fillRect(0, 0, width, height);
+  const plain = (FLOOR_DETAIL_FULL_PX - cellPixels) / (FLOOR_DETAIL_FULL_PX - FLOOR_DETAIL_GONE_PX);
+  const g = image.getContext('2d');
+  if (plain <= 0 || !g) return;
+  g.globalAlpha = Math.min(1, plain);
+  g.drawImage(averagePixel(texture), 0, 0, image.width, image.height);
 }

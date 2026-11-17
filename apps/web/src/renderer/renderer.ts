@@ -39,6 +39,40 @@ export interface Overlay {
   readonly ghost: { readonly x: number; readonly y: number; readonly block: Block } | undefined;
 }
 
+/** A rectangle in whole pixels of the light buffer. */
+interface BufferRect {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+}
+
+/** The part of the light buffer the lights cover, clamped to the buffer. */
+function litRect(
+  lights: readonly Light[],
+  camera: Camera,
+  bufferWidth: number,
+  bufferHeight: number,
+): BufferRect | undefined {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const light of lights) {
+    const [cx, cy] = camera.worldToScreen(light.x + 0.5, light.y + 0.5);
+    const r = light.radius * camera.cellSize;
+    minX = Math.min(minX, cx - r);
+    minY = Math.min(minY, cy - r);
+    maxX = Math.max(maxX, cx + r);
+    maxY = Math.max(maxY, cy + r);
+  }
+  const x = Math.max(0, Math.floor(minX / LIGHT_BUFFER_PX));
+  const y = Math.max(0, Math.floor(minY / LIGHT_BUFFER_PX));
+  const right = Math.min(bufferWidth, Math.ceil(maxX / LIGHT_BUFFER_PX));
+  const bottom = Math.min(bufferHeight, Math.ceil(maxY / LIGHT_BUFFER_PX));
+  return right > x && bottom > y ? { x, y, width: right - x, height: bottom - y } : undefined;
+}
+
 /** Draws the visible part of the world onto a full-window canvas. */
 export class Renderer {
   private readonly g: CanvasRenderingContext2D;
@@ -120,9 +154,9 @@ export class Renderer {
     if (camera.cellSize >= MIN_GRID_CELL_SIZE) this.drawGrid();
 
     const lights = camera.cellSize >= MIN_LIGHT_CELL_SIZE ? this.collectLights(simulation) : [];
-    const lit = lights.length > 0 && this.renderLights(lights);
+    const lit = lights.length > 0 ? this.renderLights(lights) : undefined;
     // Light pools on the floor, under the blocks.
-    if (lit) this.compositeLights(1);
+    if (lit) this.compositeLights(lit, 1);
 
     const shown = this.shownBlocks(simulation, tickProgress);
     const { drawUnder } = this.skin;
@@ -134,7 +168,7 @@ export class Renderer {
     for (const cell of shown) this.drawCell(cell.x, cell.y, cell.block, cell.appearance, cell.seed);
     // A faint second pass can tint the lit blocks themselves.
     const { strength, overBlocks } = this.skin.glow;
-    if (lit && overBlocks > 0) this.compositeLights(overBlocks / strength);
+    if (lit && overBlocks > 0) this.compositeLights(lit, overBlocks / strength);
 
     if (overlay.ghost) {
       const { x, y, block } = overlay.ghost;
@@ -166,9 +200,10 @@ export class Renderer {
   /**
    * Paints all lights, added up, into the small light buffer; false if it cannot. Light is
    * soft, so a low resolution is enough, and the screen is then blended with the buffer only
-   * once instead of once per light.
+   * once instead of once per light. Returns the lit part of the buffer, in buffer pixels, or
+   * undefined if nothing could be painted.
    */
-  private renderLights(lights: readonly Light[]): boolean {
+  private renderLights(lights: readonly Light[]): BufferRect | undefined {
     const { lightBuffer, camera } = this;
     const [width, height] = camera.viewSize;
     const bufferWidth = Math.max(1, Math.ceil(width / LIGHT_BUFFER_PX));
@@ -178,7 +213,7 @@ export class Renderer {
       lightBuffer.height = bufferHeight;
     }
     const g = lightBuffer.getContext('2d');
-    if (!g) return false;
+    if (!g) return undefined;
     g.setTransform(1, 0, 0, 1, 0, 0);
     g.clearRect(0, 0, bufferWidth, bufferHeight);
     g.setTransform(1 / LIGHT_BUFFER_PX, 0, 0, 1 / LIGHT_BUFFER_PX, 0, 0);
@@ -189,23 +224,21 @@ export class Renderer {
       (x, y) => camera.worldToScreen(x, y),
       this.skin.glow.strength,
     );
-    return true;
+    return litRect(lights, camera, bufferWidth, bufferHeight);
   }
 
-  /** Blends the light buffer over the screen in the skin's way, at `opacity`. */
-  private compositeLights(opacity: number): void {
+  /**
+   * Blends the lit part of the light buffer over the screen in the skin's way, at `opacity`.
+   * Only that part: enlarging and blending it is the costliest step of drawing a frame.
+   */
+  private compositeLights({ x, y, width, height }: BufferRect, opacity: number): void {
     const { g, lightBuffer } = this;
     g.save();
     g.globalCompositeOperation = this.skin.glow.mode;
     g.globalAlpha = Math.min(1, opacity);
     g.imageSmoothingEnabled = true;
-    g.drawImage(
-      lightBuffer,
-      0,
-      0,
-      lightBuffer.width * LIGHT_BUFFER_PX,
-      lightBuffer.height * LIGHT_BUFFER_PX,
-    );
+    const px = LIGHT_BUFFER_PX;
+    g.drawImage(lightBuffer, x, y, width, height, x * px, y * px, width * px, height * px);
     g.restore();
   }
 

@@ -184,19 +184,58 @@ export function deviceScale(): number {
   return window.devicePixelRatio || 1;
 }
 
-const patterns = new WeakMap<HTMLCanvasElement, CanvasPattern | null>();
-
-/** A repeating pattern of the image, made once; callers set its transform before each use. */
-export function patternOf(
-  g: CanvasRenderingContext2D,
-  image: HTMLCanvasElement,
-): CanvasPattern | null {
-  let pattern = patterns.get(image);
-  if (pattern === undefined) {
-    pattern = g.createPattern(image, 'repeat');
-    patterns.set(image, pattern);
+/**
+ * The texture redrawn at `width` × `height` device pixels from the best source: sharp
+ * bilinear when enlarged, two blended mipmap levels when shrunk. Drawing that result at its
+ * own size is a plain copy, which is fast even where the browser draws canvases without the
+ * graphics card, unlike scaling with smoothing on every draw.
+ */
+export function resample(
+  texture: HTMLCanvasElement,
+  width: number,
+  height: number,
+  into: HTMLCanvasElement = document.createElement('canvas'),
+): HTMLCanvasElement {
+  into.width = width;
+  into.height = height;
+  const g = into.getContext('2d');
+  if (!g) return into;
+  const { image, next } = textureForSize(texture, width);
+  g.imageSmoothingEnabled = true;
+  g.drawImage(image, 0, 0, width, height);
+  // Blending towards the next mipmap level keeps the texture from popping between levels.
+  if (next) {
+    g.globalAlpha = next.weight;
+    g.drawImage(next.image, 0, 0, width, height);
   }
-  return pattern;
+  return into;
+}
+
+/** How many sizes of each texture are kept; zooming needs a new one every frame. */
+const SIZES_KEPT = 3;
+const sized = new WeakMap<HTMLCanvasElement, Map<number, HTMLCanvasElement>>();
+
+/** The texture at a whole number of device pixels close to `pixels`, made once per size. */
+function textureAtPixels(texture: HTMLCanvasElement, pixels: number): HTMLCanvasElement {
+  const size = Math.max(1, Math.round(pixels));
+  let sizes = sized.get(texture);
+  if (!sizes) {
+    sizes = new Map();
+    sized.set(texture, sizes);
+  }
+  let image = sizes.get(size);
+  if (!image) {
+    // Reuse the canvas of the size used longest ago, so zooming does not pile up canvases.
+    let reused: HTMLCanvasElement | undefined;
+    if (sizes.size >= SIZES_KEPT) {
+      const [oldest, canvas] = sizes.entries().next().value ?? [];
+      if (oldest !== undefined) sizes.delete(oldest);
+      reused = canvas;
+    }
+    image = resample(texture, size, size, reused);
+    sizes.set(size, image);
+  }
+  return image;
 }
 
 /** Draws a texture over the square (0, 0)–(size, size). */
@@ -205,7 +244,7 @@ export function drawTexture(
   texture: HTMLCanvasElement,
   size: number,
 ): void {
-  const { image } = textureForSize(texture, size * deviceScale());
-  g.imageSmoothingEnabled = true;
-  g.drawImage(image, 0, 0, size, size);
+  // Already at (almost exactly) the drawn size, so no smoothing is needed.
+  g.imageSmoothingEnabled = false;
+  g.drawImage(textureAtPixels(texture, size * deviceScale()), 0, 0, size, size);
 }
