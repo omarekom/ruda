@@ -120,14 +120,15 @@ export function tiledFloor(
     const texture = tile();
     const scale = deviceScale(g);
     const tileSize = (cellSize * texture.width) / TEXTURE_SIZE;
-    const { image, smooth } = textureForSize(texture, tileSize * scale);
-    const pattern = g.createPattern(image, 'repeat');
-    if (pattern) {
-      pattern.setTransform(new DOMMatrix().translate(ox, oy).scale(tileSize / image.width));
+    const { image, next } = textureForSize(texture, tileSize * scale);
+    g.imageSmoothingEnabled = true;
+    fillWithTile(g, image, tileSize, ox, oy, width, height, background);
+    // Blending towards the next mipmap level keeps the floor from popping as levels change.
+    if (next) {
+      g.globalAlpha = next.weight;
+      fillWithTile(g, next.image, tileSize, ox, oy, width, height, background);
+      g.globalAlpha = 1;
     }
-    g.imageSmoothingEnabled = smooth;
-    g.fillStyle = pattern ?? background;
-    g.fillRect(0, 0, width, height);
 
     const plain =
       (FLOOR_DETAIL_FULL_PX - cellSize * scale) / (FLOOR_DETAIL_FULL_PX - FLOOR_DETAIL_GONE_PX);
@@ -136,4 +137,20 @@ export function tiledFloor(
     g.drawImage(averagePixel(texture), 0, 0, width, height);
     g.globalAlpha = 1;
   };
+}
+
+function fillWithTile(
+  g: CanvasRenderingContext2D,
+  image: HTMLCanvasElement,
+  tileSize: number,
+  ox: number,
+  oy: number,
+  width: number,
+  height: number,
+  background: string,
+): void {
+  const pattern = g.createPattern(image, 'repeat');
+  pattern?.setTransform(new DOMMatrix().translate(ox, oy).scale(tileSize / image.width));
+  g.fillStyle = pattern ?? background;
+  g.fillRect(0, 0, width, height);
 }

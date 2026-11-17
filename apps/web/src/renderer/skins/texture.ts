@@ -1,7 +1,7 @@
 /**
- * Tiny pixel-art textures painted once in code. Scaled up they stay crisp; scaled down they
- * are drawn from smaller, averaged copies (mipmaps), so a zoomed-out world blends smoothly
- * instead of shimmering. Painting is driven by a seeded random generator, so every texture
+ * Tiny pixel-art textures painted once in code. They are drawn so that changing their size
+ * never shimmers: enlarged with sharp edges that move smoothly, shrunk from smaller, averaged
+ * copies (mipmaps). Painting is driven by a seeded random generator, so every texture
  * looks the same on every run.
  */
 
@@ -115,22 +115,59 @@ function mipChain(texture: HTMLCanvasElement): readonly HTMLCanvasElement[] {
   return chain;
 }
 
+/** Enlarging beyond this many pixels per texel looks the same, so it is not worth the memory. */
+const MAX_UPSCALE = 8;
+const upscaled = new WeakMap<HTMLCanvasElement, Map<number, HTMLCanvasElement>>();
+
+/** The texture enlarged by a whole factor, each texel becoming a crisp square of pixels. */
+function upscale(texture: HTMLCanvasElement, factor: number): HTMLCanvasElement {
+  let sizes = upscaled.get(texture);
+  if (!sizes) {
+    sizes = new Map();
+    upscaled.set(texture, sizes);
+  }
+  let image = sizes.get(factor);
+  if (!image) {
+    image = document.createElement('canvas');
+    image.width = texture.width * factor;
+    image.height = texture.height * factor;
+    const g = image.getContext('2d');
+    if (g) {
+      g.imageSmoothingEnabled = false;
+      g.drawImage(texture, 0, 0, image.width, image.height);
+    }
+    sizes.set(factor, image);
+  }
+  return image;
+}
+
 /**
- * The texture to draw `pixels` device pixels wide: the original when it is enlarged (drawn
- * crisp), else the smallest averaged copy still at least that wide (drawn smoothed).
+ * What to draw, with smoothing on, for a texture `pixels` device pixels wide; `next` is a
+ * smaller level to blend over with `weight`, for when levels must not pop while zooming.
+ *
+ * - Enlarged, it is first scaled up by the next whole factor without smoothing, then smoothed
+ *   down the rest of the way ("sharp bilinear"): texels stay crisp squares, but their edges
+ *   fall between pixels softly instead of jumping a whole pixel as the size changes.
+ * - Shrunk, it comes from mipmaps: the smallest level at least that wide, plus the next one.
  */
 export function textureForSize(
   texture: HTMLCanvasElement,
   pixels: number,
-): { readonly image: HTMLCanvasElement; readonly smooth: boolean } {
-  if (pixels >= texture.width) return { image: texture, smooth: false };
-  const chain = mipChain(texture);
-  let image = texture;
-  for (const level of chain) {
-    if (level.width < pixels) break;
-    image = level;
+): {
+  readonly image: HTMLCanvasElement;
+  readonly next?: { readonly image: HTMLCanvasElement; readonly weight: number };
+} {
+  const ratio = pixels / texture.width;
+  if (ratio >= 1) {
+    const factor = Math.min(MAX_UPSCALE, Math.ceil(ratio - 0.001));
+    return { image: factor === 1 ? texture : upscale(texture, factor) };
   }
-  return { image, smooth: true };
+  const chain = mipChain(texture);
+  const level = Math.log2(1 / ratio);
+  const index = Math.min(chain.length - 1, Math.floor(level));
+  const image = chain[index] ?? texture;
+  const next = chain[index + 1];
+  return next ? { image, next: { image: next, weight: level - index } } : { image };
 }
 
 /** A single pixel holding the texture's average colour. */
@@ -150,7 +187,7 @@ export function drawTexture(
   texture: HTMLCanvasElement,
   size: number,
 ): void {
-  const { image, smooth } = textureForSize(texture, size * deviceScale(g));
-  g.imageSmoothingEnabled = smooth;
+  const { image } = textureForSize(texture, size * deviceScale(g));
+  g.imageSmoothingEnabled = true;
   g.drawImage(image, 0, 0, size, size);
 }
