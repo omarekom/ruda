@@ -109,7 +109,9 @@
       "renameTitle": "Rename World",
       "nameLabel": "World name",
       "saveName": "Done",
-      "confirmDelete": "Delete “{name}”? It will be lost forever!"
+      "confirmDelete": "Delete “{name}”? It will be lost forever!",
+      "showcase": "Showcase World",
+      "showcaseName": "Showcase"
     },
     "looks": {
       "original": "Original",
@@ -118,7 +120,6 @@
       "depth": "Deep Cave"
     },
     "loading": {
-      "title": "Loading world",
       "steps": {
         "terrain": "Building terrain",
         "dust": "Sprinkling redstone dust",
@@ -126,7 +127,8 @@
         "pistons": "Oiling pistons",
         "torches": "Lighting torches",
         "levers": "Flipping levers back"
-      }
+      },
+      "title": "Loading world"
     }
   },
   "expert": {

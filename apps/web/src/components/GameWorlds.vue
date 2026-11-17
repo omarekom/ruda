@@ -3,7 +3,7 @@ import { computed, nextTick, onMounted, ref, shallowRef, useTemplateRef } from '
 import { useI18n } from 'vue-i18n';
 import { gameSkin } from '../gameLook';
 import { fileErrorKey } from '../storage/fileErrors';
-import { createEmptyWorld, renameWorld } from '../storage/worldActions';
+import { createEmptyWorld, createShowcaseWorld, renameWorld } from '../storage/worldActions';
 import type { StoredWorld, WorldStore } from '../storage/worldStore';
 import ConfirmDialog from './ConfirmDialog.vue';
 import WorldThumbnail from './WorldThumbnail.vue';
@@ -33,6 +33,11 @@ onMounted(refresh);
 
 async function create(): Promise<void> {
   const created = await createEmptyWorld(props.store, t('worlds.defaultName'));
+  emit('open', created.id);
+}
+
+async function createShowcase(): Promise<void> {
+  const created = await createShowcaseWorld(props.store, t('game.worlds.showcaseName'));
   emit('open', created.id);
 }
 
@@ -114,6 +119,9 @@ async function onDeleteChoice(choice: 'delete' | 'cancel'): Promise<void> {
           {{ t('game.worlds.delete') }}
         </button>
       </div>
+      <button type="button" class="blocky-button" @click="createShowcase">
+        {{ t('game.worlds.showcase') }}
+      </button>
       <button type="button" class="blocky-button" @click="emit('back')">
         {{ t('game.worlds.back') }}
       </button>
