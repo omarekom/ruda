@@ -3,7 +3,7 @@ import { KeyboardInput } from '../input/keyboard';
 import { PointerInput } from '../input/pointer';
 import { Camera } from '../renderer/camera';
 import { Renderer } from '../renderer/renderer';
-import { pixelSkin } from '../renderer/skins/pixel';
+import type { Skin } from '../renderer/skins/skin';
 import type { HotbarState } from './hotbar';
 import { TickLoop } from './tickLoop';
 
@@ -11,12 +11,13 @@ const PAN_SPEED_PX_PER_S = 700;
 
 /** Wires the simulation to the canvas: real-time ticks, rendering and input. */
 export class Game {
-  private readonly camera = new Camera();
+  readonly camera = new Camera();
   private readonly renderer: Renderer;
   private readonly keyboard: KeyboardInput;
   private readonly pointer: PointerInput;
   private readonly loop: TickLoop;
   private readonly resizeObserver: ResizeObserver;
+  private inputAttached = false;
 
   /** `onEdit` runs after every command that changed the world. */
   constructor(
@@ -24,8 +25,9 @@ export class Game {
     hotbar: HotbarState,
     private readonly simulation: Simulation,
     private readonly onEdit: () => void,
+    skin: Skin,
   ) {
-    this.renderer = new Renderer(canvas, this.camera, pixelSkin);
+    this.renderer = new Renderer(canvas, this.camera, skin);
     this.keyboard = new KeyboardInput(hotbar);
     this.pointer = new PointerInput(
       canvas,
@@ -47,20 +49,66 @@ export class Game {
 
   start(): void {
     this.renderer.resize();
-    this.keyboard.attach();
-    this.pointer.attach();
+    this.setInputEnabled(true);
     this.loop.start();
   }
 
   stop(): void {
     this.loop.stop();
-    this.pointer.detach();
-    this.keyboard.detach();
+    this.setInputEnabled(false);
     this.resizeObserver.disconnect();
+  }
+
+  /** Turns keyboard and mouse control of the world on or off, e.g. while a menu is open. */
+  setInputEnabled(enabled: boolean): void {
+    if (enabled === this.inputAttached) return;
+    this.inputAttached = enabled;
+    if (enabled) {
+      this.keyboard.attach();
+      this.pointer.attach();
+    } else {
+      this.pointer.detach();
+      this.keyboard.detach();
+    }
+  }
+
+  setSkin(skin: Skin): void {
+    this.renderer.skin = skin;
   }
 
   get blocks(): ReadonlyWorld {
     return this.simulation.blocks;
+  }
+
+  get tickCount(): number {
+    return this.simulation.tickCount;
+  }
+
+  get paused(): boolean {
+    return this.loop.paused;
+  }
+
+  set paused(paused: boolean) {
+    this.loop.paused = paused;
+  }
+
+  /** Ticks per second as a multiple of the normal rate. */
+  get speed(): number {
+    return this.loop.speed;
+  }
+
+  set speed(speed: number) {
+    this.loop.speed = speed;
+  }
+
+  /** Runs a single tick; meant for stepping through a paused simulation. */
+  step(): void {
+    this.simulation.step();
+  }
+
+  /** The cell under the mouse cursor, if it is over the world. */
+  hoveredCell(): readonly [number, number] | undefined {
+    return this.pointer.overlay().hover;
   }
 
   private execute(command: Command): boolean {

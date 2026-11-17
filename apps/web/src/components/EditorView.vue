@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 import type { OpenWorld } from '../game/openWorld';
 import { Game } from '../game/game';
 import { createHotbarState, selectSlot } from '../game/hotbar';
+import { pixelSkin } from '../renderer/skins/pixel';
 import { downloadRudaFile } from '../storage/files';
 import type { WorldStore } from '../storage/worldStore';
 import ConfirmDialog from './ConfirmDialog.vue';
@@ -95,7 +96,7 @@ function onVisibilityChange(): void {
 
 onMounted(() => {
   if (!canvas.value) return;
-  game = new Game(canvas.value, hotbar, simulation, onEdit);
+  game = new Game(canvas.value, hotbar, simulation, onEdit, pixelSkin);
   game.start();
   autosaveTimer = setInterval(() => void autosave(), AUTOSAVE_INTERVAL_MS);
   window.addEventListener('keydown', onKeyDown);

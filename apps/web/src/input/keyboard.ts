@@ -27,6 +27,7 @@ export class KeyboardInput {
     window.removeEventListener('keydown', this.onKeyDown);
     window.removeEventListener('keyup', this.onKeyUp);
     window.removeEventListener('blur', this.onBlur);
+    this.pressed.clear();
   }
 
   /** Sum of held pan directions, each component in [-1, 1]. */

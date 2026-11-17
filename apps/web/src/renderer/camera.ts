@@ -24,6 +24,16 @@ export class Camera {
     return this.size;
   }
 
+  /** World point shown at the centre of the screen, in cells. */
+  get center(): readonly [number, number] {
+    return [this.centerX, this.centerY];
+  }
+
+  centerOn(x: number, y: number): void {
+    this.centerX = clamp(x, WORLD_MIN, WORLD_MAX);
+    this.centerY = clamp(y, WORLD_MIN, WORLD_MAX);
+  }
+
   resize(width: number, height: number): void {
     this.width = width;
     this.height = height;
