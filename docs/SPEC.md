@@ -78,7 +78,8 @@ Two modes over the same world. Sketches of the options considered live in `tmp_g
 
 Start screen
 
-- Shown on the first visit, split in two over running built-in creations: the bigger left part (about 2/3) starts **game mode**, the right third opens **expert mode**.
+- Shown on the first visit, split in two: the bigger left part (about 2/3) starts **game mode**, the right third opens **expert mode**.
+- Calm on purpose. Behind the game side a slow ring of delayers runs at reduced speed, so one lamp at a time lights up and hands over to the next. The expert side shows a still, tidy drawing of a few small circuits.
 - Choosing a side continues the last opened world, or creates a new one if there is none.
 - Later visits skip it and reopen the last world in the last mode. A link to a tab (`#library`, `#admin`) opens the home page instead.
 - Reachable again from both modes' menus and from the home page.
@@ -88,12 +89,15 @@ Game mode
 - Real time, simple and playful, with a deliberately blocky, game-like look: pixel fonts, bevelled grey buttons, a framed hotbar.
 - On screen only: the hotbar (no number hints; the keys still work), the name of the held block popping up briefly when it changes, and in the top right corner an **Expert mode** button and a menu button.
 - The menu (button or Esc) pauses the simulation. It offers: back to game, save, worlds, controls, expert mode, start screen. Saving shows a short confirmation.
+- **Controls** lists every key and mouse action by section (movement, building, using blocks, game, hotbar slots), each shown as a key cap.
+- **Worlds…** opens game mode's own **Select World** screen: worlds with thumbnails, play, create, rename and delete, and back to the start screen. Game mode never sends the player through expert mode's world list. Worlds are shared between the modes.
+- Dialogs (unsaved changes, delete) use the blocky look too.
 - Always dark; no theme switch.
 
 Expert mode
 
 - A clean hand-drawn look: pencil on paper in the light theme, chalk on a blackboard in the dark theme. The theme follows the system unless the player picks one with the switch in the top right corner; the choice is remembered.
-- Menu bar (World: save, export, all worlds, start screen; View: zoom in, zoom out, back to the centre), world name, save status, Save button, theme switch and a **Game mode** button.
+- Menu bar (World: save, export, all worlds (for now the shared world list and library), start screen; View: zoom in, zoom out, back to the centre), world name, save status, Save button, theme switch and a **Game mode** button.
 - Block palette grouped by role (power, wiring, logic, output, mechanics, building) with the number keys shown.
 - Inspector for the block under the cursor: type, position, facing, and its state (on/off, lit, powered, delay, extended…).
 - Time: run, pause, single step (while paused) and speed (1×, 2×, 4×).
@@ -111,8 +115,7 @@ Naming
 
 Still to design:
 
-- World list as a grid of cards with a thumbnail of each world.
-- Onboarding: a coach-mark tour that points at parts of the screen step by step.
+- Expert mode's own world list (a grid of cards with a thumbnail of each world) and the library within it.
 - UI icons, and further tuning of expert mode details and block visuals.
 
 ## 0.6 – Debug mode
@@ -141,6 +144,7 @@ A shared library of creations in its own tab next to **Your worlds**. It is a se
 
 Ideas, not committed:
 
+- Guidance when starting: a short tour (coach marks pointing at parts of the screen) so new players get to know each mode's interface.
 - Czech localization (strings kept in locale files from the start).
 - Undo / redo.
 - Selection, copy and paste, saved blueprints.
