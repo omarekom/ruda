@@ -262,21 +262,37 @@ export const pistonHeadTexture = lazyTexture(() =>
 /** The floor tile covers 2×2 cells, so the noise repeats less obviously. */
 const FLOOR_CELLS = 2;
 
-/** A floor of warm smooth stone slabs, each with a light top-left and a dark bottom-right edge. */
-export const slabFloor = lazyTexture(() =>
-  paintTexture(
-    127,
+/** Colours of one slab floor: the noise, then the lit and the shaded edge. */
+interface SlabColors {
+  readonly fill: readonly string[];
+  readonly light: string;
+  readonly shade: string;
+}
+
+function slabTexture(seed: number, colors: SlabColors): HTMLCanvasElement {
+  return paintTexture(
+    seed,
     (p) => {
       for (let y = 0; y < p.height; y += N) {
         for (let x = 0; x < p.width; x += N) {
-          p.noise(x, y, N, N, ['#d2ccc0', '#cdc7bb', '#d7d1c5']);
-          p.rect(x, y, N, 1, '#e3ded4');
-          p.rect(x, y, 1, N, '#e3ded4');
-          p.rect(x, y + LAST, N, 1, '#afa899');
-          p.rect(x + LAST, y, 1, N, '#afa899');
+          p.noise(x, y, N, N, colors.fill);
+          p.rect(x, y, N, 1, colors.light);
+          p.rect(x, y, 1, N, colors.light);
+          p.rect(x, y + LAST, N, 1, colors.shade);
+          p.rect(x + LAST, y, 1, N, colors.shade);
         }
       }
     },
     N * FLOOR_CELLS,
-  ),
+  );
+}
+
+/** A floor of warm smooth stone slabs, each with a light top-left and a dark bottom-right edge. */
+export const slabFloor = lazyTexture(() =>
+  slabTexture(127, { fill: ['#d2ccc0', '#cdc7bb', '#d7d1c5'], light: '#e3ded4', shade: '#afa899' }),
+);
+
+/** The same slabs at night: dark and cool, so light pools stand out. */
+export const nightSlabFloor = lazyTexture(() =>
+  slabTexture(127, { fill: ['#2a2c31', '#282a2f', '#2d2f34'], light: '#35383e', shade: '#1c1d21' }),
 );
