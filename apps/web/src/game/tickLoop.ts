@@ -2,6 +2,10 @@ export const TICKS_PER_SECOND = 10;
 const TICK_MS = 1000 / TICKS_PER_SECOND;
 /** Limits catch-up after a slow frame (per unit of speed) so the page never stalls. */
 const MAX_TICKS_PER_FRAME = 3;
+/** The `speed` that runs as many ticks as fit in each frame. */
+export const MAX_SPEED = Infinity;
+/** At MAX_SPEED, the share of each frame spent on ticks; the rest keeps the page responsive. */
+const MAX_SPEED_BUDGET_MS = 10;
 
 /**
  * Drives fixed-rate ticks and per-frame rendering from requestAnimationFrame.
@@ -20,11 +24,12 @@ export class TickLoop {
     private readonly onTick: () => void,
     /** `tickProgress` is the fraction of the current tick that has elapsed, in [0, 1]. */
     private readonly onFrame: (dtMs: number, tickProgress: number) => void,
+    private readonly now: () => number = () => performance.now(),
   ) {}
 
   start(): void {
     document.addEventListener('visibilitychange', this.onVisibilityChange);
-    this.last = performance.now();
+    this.last = this.now();
     this.frame = requestAnimationFrame(this.loop);
   }
 
@@ -39,6 +44,13 @@ export class TickLoop {
     if (this.paused) {
       this.accumulated = 0;
       // Show the last tick as finished, e.g. pushed blocks at their destination.
+      return 1;
+    }
+    if (this.speed === MAX_SPEED) {
+      this.accumulated = 0;
+      const end = this.now() + MAX_SPEED_BUDGET_MS;
+      do this.onTick();
+      while (this.now() < end);
       return 1;
     }
     const limit = TICK_MS * MAX_TICKS_PER_FRAME * this.speed;
@@ -58,7 +70,7 @@ export class TickLoop {
   };
 
   private readonly onVisibilityChange = (): void => {
-    this.last = performance.now();
+    this.last = this.now();
     this.accumulated = 0;
   };
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { TickLoop } from '../src/game/tickLoop';
+import { MAX_SPEED, TickLoop } from '../src/game/tickLoop';
 
 function loop(): { loop: TickLoop; ticks: () => number } {
   let count = 0;
@@ -46,5 +46,21 @@ describe('TickLoop.advance', () => {
     const { loop: l, ticks } = loop();
     l.advance(5000);
     expect(ticks()).toBe(3);
+  });
+
+  it('at max speed runs ticks for a slice of each frame', () => {
+    let clock = 0;
+    let count = 0;
+    const l = new TickLoop(
+      () => {
+        count++;
+        clock += 1;
+      },
+      () => {},
+      () => clock,
+    );
+    l.speed = MAX_SPEED;
+    expect(l.advance(16)).toBe(1);
+    expect(count).toBe(10);
   });
 });
