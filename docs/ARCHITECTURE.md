@@ -82,7 +82,7 @@ pnpm workspaces, TypeScript 6 (strict), Vite, Vue 3, vue-i18n, idb, Fontsource (
 
 - A _skin_ is a complete visual style: canvas colours plus a look for every block type (`renderer/skins/`). The game uses the Workshop skin by day or at night (`theme.ts` picks one). The renderer, icons, previews and the start screen all draw through a skin.
 - Skins get a per-cell seed, so texture variants stay the same in every frame.
-- Textures are drawn crisp when enlarged and from mipmaps (copies halved down to one pixel, each averaging 2×2 pixels) when shrunk, so a zoomed-out world does not alias. The level is chosen by device pixels, so high-DPI screens keep the detail.
+- Textures never shimmer as their size changes. Enlarged, they are scaled up by the next whole factor without smoothing and then smoothed down the rest of the way ("sharp bilinear"), so texel edges move smoothly between pixels. Shrunk, they come from mipmaps (copies halved down to one pixel, each averaging 2×2 pixels); the floor also blends the two nearest levels, so it does not pop while zooming. Sizes are measured in device pixels, so high-DPI screens keep the detail.
 - Switching skins (day and night) cross-fades: a still copy of the canvas is laid over it and faded out (`renderer/crossfade.ts`).
 - Lighting is a pass in the renderer: lit lamps, torches, sources and powered wires paint soft radial glows under the blocks (added on dark skins, tinting on light ones), plus a faint second pass over the blocks on dark skins. Light from blocks just off screen is included so glows do not pop at the edges; at very small zoom lighting is skipped.
 
