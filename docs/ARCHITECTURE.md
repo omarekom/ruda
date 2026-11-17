@@ -65,7 +65,7 @@ Minified JSON. Blocks are grouped by type and state, with coordinates as a flat 
 
 ## Tooling
 
-pnpm workspaces, TypeScript 6 (strict), Vite, Vue 3, vue-i18n, idb, Vitest, ESLint, Prettier, tsx (scripts). Library backend: PHP 8.1+ with PDO SQLite, no PHP dependencies. The renderer lives in `apps/web/src/renderer` until there is a reason to split it out.
+pnpm workspaces, TypeScript 6 (strict), Vite, Vue 3, vue-i18n, idb, Fontsource (self-hosted fonts), Vitest, ESLint, Prettier, tsx (scripts). Library backend: PHP 8.1+ with PDO SQLite, no PHP dependencies. The renderer lives in `apps/web/src/renderer` until there is a reason to split it out.
 
 ## Frontend
 
@@ -73,6 +73,16 @@ pnpm workspaces, TypeScript 6 (strict), Vite, Vue 3, vue-i18n, idb, Vitest, ESLi
 - Saving: IndexedDB (via `idb`) with two stores: `worlds` (the real saves) and `recovery` (autosaved copies of unsaved changes, keyed by world id). Saving a world deletes its recovery copy in the same transaction. `beforeunload` warns about unsaved changes.
 - Only player commands mark a world as unsaved; torch ticks do not (their state is still saved with the next save).
 - Strings go through i18n keys from the start (English only at first).
+- Two modes share one `WorldScreen`: it owns the simulation, the `Game` (canvas, ticks, input) and saving, and shows either `GameHud` or `ExpertHud` around the canvas. Switching modes keeps the world and the view; only the skin and the panels change.
+- Pausing, single steps and speed live in the app's `TickLoop`, not in the core: game mode pauses while its menu is open, expert mode has its own controls.
+- Small per-browser settings (last mode, last world, expert theme) are kept in `localStorage` (`preferences.ts`); they are conveniences, so blocked storage only means nothing is remembered.
+- Fonts are bundled from Fontsource packages, so the app makes no third-party requests.
+
+## Rendering
+
+- A _skin_ is a complete visual style: canvas colours plus a look for every block type (`renderer/skins/`). Game mode uses the pixel skin, expert mode the hand-drawn sketch skin in a light or dark variant. The renderer, icons, previews and the start screen all draw through a skin.
+- Hand-drawn looks wobble by a per-cell seed, so a block looks the same in every frame.
+- Lighting is a pass in the renderer: lit lamps, torches, sources and powered wires paint soft radial glows under the blocks (added on dark skins, tinting on light ones), plus a faint second pass over the blocks on dark skins. Light from blocks just off screen is included so glows do not pop at the edges; at very small zoom lighting is skipped.
 
 ## Mouse placement
 

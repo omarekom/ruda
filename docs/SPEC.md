@@ -74,24 +74,42 @@ Other
 
 ## 0.5 – Graphical interface
 
-Scope still being designed; sketches live in `tmp_gui_props/`.
+Two modes over the same world. Sketches of the options considered live in `tmp_gui_props/`.
 
-Direction so far:
+Start screen
 
-- Start screen on the first visit, split into two parts: the bigger left part (about 2/3) starts **game mode** right away, the right third opens **expert mode**. Later visits skip it and open the mode the player used last.
-- Both modes show the same world; switching between them is a quick flip animation.
-- **Game mode**: real time, simple and playful, with a deliberately blocky, game-like look (pixel font, bevelled buttons, hotbar, pause menu). As few on-screen controls as possible: the hotbar (no number hints) and, in the top right corner, an **Expert mode** button and a menu. Always dark, no theme switch. Opening the menu (button or Esc) pauses the simulation.
-- **Expert mode**: a clean hand-drawn look, with no paper texture (pencil on paper in the light theme, chalk on a blackboard in the dark theme) and a tool layout. It has light and dark themes, following the system setting by default, with a switch in the top right corner next to a **Game mode** button.
-- Lamps and powered parts softly light their surroundings.
-- Expert mode layout: a menu bar, a block palette grouped by role (power, wiring, logic, output, mechanics, building), an inspector for the block under the cursor, world statistics, a status bar, and a zoomable minimap.
-- World list: a grid of cards with a thumbnail of each world.
+- Shown on the first visit, split in two over running built-in creations: the bigger left part (about 2/3) starts **game mode**, the right third opens **expert mode**.
+- Choosing a side continues the last opened world, or creates a new one if there is none.
+- Later visits skip it and reopen the last world in the last mode. A link to a tab (`#library`, `#admin`) opens the home page instead.
+- Reachable again from both modes' menus and from the home page.
+
+Game mode
+
+- Real time, simple and playful, with a deliberately blocky, game-like look: pixel fonts, bevelled grey buttons, a framed hotbar.
+- On screen only: the hotbar (no number hints; the keys still work), the name of the held block popping up briefly when it changes, and in the top right corner an **Expert mode** button and a menu button.
+- The menu (button or Esc) pauses the simulation. It offers: back to game, save, worlds, controls, expert mode, start screen. Saving shows a short confirmation.
+- Always dark; no theme switch.
+
+Expert mode
+
+- A clean hand-drawn look: pencil on paper in the light theme, chalk on a blackboard in the dark theme. The theme follows the system unless the player picks one with the switch in the top right corner; the choice is remembered.
+- Menu bar (World: save, export, all worlds, start screen; View: zoom in, zoom out, back to the centre), world name, save status, Save button, theme switch and a **Game mode** button.
+- Block palette grouped by role (power, wiring, logic, output, mechanics, building) with the number keys shown.
+- Inspector for the block under the cursor: type, position, facing, and its state (on/off, lit, powered, delay, extended…).
+- Time: run, pause, single step (while paused) and speed (1×, 2×, 4×).
+- A minimap around the view; clicking it moves the view there.
+- World statistics (block counts per type) and a status bar (cursor cell, zoom, tick, ticks per second).
+
+Both modes
+
+- Switching between the modes flips the screen; the world, view and held block stay.
+- Lamps, torches, sources and powered wires softly light their surroundings.
+
+Still to design:
+
+- World list as a grid of cards with a thumbnail of each world.
 - Onboarding: a coach-mark tour that points at parts of the screen step by step.
-
-Questions to settle:
-
-- Which controls get on-screen buttons or menus instead of only shortcuts.
-- Block visuals (style, colors, power indication).
-- UI icons.
+- UI icons, and further tuning of expert mode details and block visuals.
 
 ## 0.6 – Debug mode
 
@@ -120,7 +138,6 @@ A shared library of creations in its own tab next to **Your worlds**. It is a se
 Ideas, not committed:
 
 - Czech localization (strings kept in locale files from the start).
-- Advanced / simulation mode: editing and time control (pause, step, speed), alongside the real-time game mode with a discreet switch for advanced users.
 - Undo / redo.
 - Selection, copy and paste, saved blueprints.
 - Sticky pistons.
