@@ -78,15 +78,17 @@ Scope still being designed; sketches live in `tmp_gui_props/`.
 
 Direction so far:
 
-- Light and dark theme, following the system setting by default, with a switch in the top right corner.
-- Two modes. **Game mode** is the default: real time, simple, playful. **Expert mode** turns Ruda into a tool for players who want more.
+- Start screen on the first visit, split into two parts: the bigger left part (about 2/3) starts **game mode** right away, the right third opens **expert mode**. Later visits skip it and open the mode the player used last.
+- Both modes show the same world; switching between them is a quick flip animation.
+- **Game mode**: real time, simple and playful, with a deliberately blocky, game-like look (pixel font, bevelled buttons, hotbar, pause menu). As few on-screen controls as possible: the hotbar (no number hints) and, in the top right corner, an **Expert mode** button and a menu.
+- **Expert mode**: a hand-drawn look (pencil on paper in the light theme, chalk on a blackboard in the dark theme) and a tool layout. It has light and dark themes, following the system setting by default, with a switch in the top right corner next to a **Game mode** button.
+- Lamps and powered parts softly light their surroundings.
 - Expert mode layout: a menu bar, a block palette grouped by role (power, wiring, logic, output, mechanics, building), an inspector for the block under the cursor, world statistics, a status bar, and a zoomable minimap.
 - World list: a grid of cards with a thumbnail of each world.
 - Onboarding: a coach-mark tour that points at parts of the screen step by step.
 
 Questions to settle:
 
-- Game mode look and layout (game-like buttons and hotbar are welcome, but it must not look like Minecraft).
 - Which controls get on-screen buttons or menus instead of only shortcuts.
 - Block visuals (style, colors, power indication).
 - UI icons.
@@ -128,6 +130,5 @@ Ideas, not committed:
 - Fully playable with only a keyboard or only a mouse (the default is both together).
 - Mobile / touch support.
 - Textures, sounds and richer game-like visuals.
-- A joke "blocky game" skin: Minecraft-style pixel font, bevelled buttons, hotbar and pause menu.
 - Simulation in a Web Worker.
 - Running worlds headless from a file (CLI / library use).
