@@ -206,7 +206,7 @@ describe('Piston switches', () => {
   const extended = (bench: Bench, name: string) =>
     bench.simulation.blocks.get(...bench.point(name));
 
-  it('toggles a redstone block between two pistons', () => {
+  it('toggles a power block between two pistons', () => {
     const bench = new Bench(pistons);
     expect(bench.lit('toggle.lamp')).toBe(false);
     bench.setLever('toggle.left', true);

@@ -27,9 +27,9 @@ describe('.ruda files', () => {
     world.set(2, 2, { type: 'lever', on: false });
     world.set(1, 0, { type: 'wire' });
     world.set(0, 0, { type: 'wire' });
-    world.set(-3, 5, { type: 'redstone_block' });
+    world.set(-3, 5, { type: 'power_block' });
     expect(serializeWorld(world, 'Test')).toBe(
-      `{"format":${CURRENT_FORMAT},"name":"Test","blocks":{"lever:off":[2,2],"redstone_block":[-3,5],"torch:east:lit":[4,4],"wire":[0,0,1,0]}}`,
+      `{"format":${CURRENT_FORMAT},"name":"Test","blocks":{"lever:off":[2,2],"power_block":[-3,5],"torch:east:lit":[4,4],"wire":[0,0,1,0]}}`,
     );
   });
 
@@ -70,6 +70,21 @@ describe('.ruda files', () => {
   it('loads format 1 files', () => {
     const { world } = parseWorld('{"format":1,"name":"Old","blocks":{"torch:north:lit":[1,1]}}');
     expect(world.get(1, 1)).toEqual({ type: 'torch', facing: Direction.North, lit: true });
+  });
+
+  it('renames the old constant power source when loading format 3 and older', () => {
+    const { world } = parseWorld(
+      '{"format":3,"name":"Old","blocks":{"redstone_block":[0,0,4,1],"wire":[1,0]}}',
+    );
+    expect(world.get(0, 0)).toEqual({ type: 'power_block' });
+    expect(world.get(4, 1)).toEqual({ type: 'power_block' });
+    expect(world.get(1, 0)).toEqual({ type: 'wire' });
+  });
+
+  it('does not accept the old block name in current files', () => {
+    expect(
+      errorCode(`{"format":${CURRENT_FORMAT},"name":"x","blocks":{"redstone_block":[0,0]}}`),
+    ).toBe('invalid_content');
   });
 
   it.each([

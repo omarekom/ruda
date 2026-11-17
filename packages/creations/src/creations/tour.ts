@@ -6,9 +6,9 @@ export const tour: Creation = {
   slug: 'block-tour',
   title: 'Block tour',
   description:
-    'Every block in a tiny working example, top to bottom: lever, redstone block and button ' +
+    'Every block in a tiny working example, top to bottom: lever, power block and button ' +
     'lighting a lamp; a torch inverting a lever; a crossing carrying two separate signals; a ' +
-    'delayer holding a signal back; a piston pushing a redstone block next to a lamp; a stone wall.',
+    'delayer holding a signal back; a piston pushing a power block next to a lamp; a stone wall.',
   build() {
     const sketch = new Sketch()
       .draw(0, 0, 'L-o')

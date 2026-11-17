@@ -1,9 +1,9 @@
 // Throwaway prototype helper: a fake world and a renderer. Styles live in styles.js.
 // Not real simulation: signals are faked so the mockups look alive.
 (() => {
-  const TYPES = ['redstone_block', 'lever', 'wire', 'crossing', 'lamp', 'torch', 'stone', 'delayer', 'button', 'piston'];
+  const TYPES = ['power_block', 'lever', 'wire', 'crossing', 'lamp', 'torch', 'stone', 'delayer', 'button', 'piston'];
   const NAMES = {
-    redstone_block: 'Redstone block',
+    power_block: 'Power block',
     lever: 'Lever',
     wire: 'Wire',
     crossing: 'Crossing',
@@ -16,7 +16,7 @@
     piston_head: 'Piston head',
   };
   const HINTS = {
-    redstone_block: 'Always-on power source',
+    power_block: 'Always-on power source',
     lever: 'Toggle with right click',
     wire: 'Carries signal',
     crossing: 'Two wires pass without touching',
@@ -48,8 +48,8 @@
     const { put, row, col } = w;
     // lever -> lamp
     put(-6, -4, 'lever', { sig: 'L1' }); row(-5, -1, -4, 'L1'); put(0, -4, 'lamp', { sig: 'L1' });
-    // redstone block -> torch (NOT) -> crossing -> lamp
-    put(-6, 0, 'redstone_block', { sig: 'ON' }); row(-5, -4, 0, 'ON');
+    // power block -> torch (NOT) -> crossing -> lamp
+    put(-6, 0, 'power_block', { sig: 'ON' }); row(-5, -4, 0, 'ON');
     put(-3, 0, 'torch', { sig: 'T1' }); row(-2, -2, 0, 'T1');
     put(-1, 0, 'crossing', { sig: 'T1', sig2: 'CLK' }); row(0, 1, 0, 'T1'); put(2, 0, 'lamp', { sig: 'T1' });
     // torch clock feeding a vertical line through the crossing
@@ -84,7 +84,7 @@
     for (let i = 0; i < n; i++) {
       let x = Math.floor(rnd() * 20) - 10, y = Math.floor(rnd() * 12) - 6;
       const sig = rnd() < 0.6 ? 'ON' : 'OFF';
-      w.put(x, y, rnd() < 0.5 ? 'lever' : 'redstone_block', { sig });
+      w.put(x, y, rnd() < 0.5 ? 'lever' : 'power_block', { sig });
       let dx = 1, dy = 0;
       const len = 4 + Math.floor(rnd() * 10);
       for (let j = 0; j < len; j++) {
@@ -445,7 +445,7 @@
   const LIGHTS = {
     lamp: { radius: 4.8, alpha: 0.34, color: 'lamp' },
     torch: { radius: 2.2, alpha: 0.22, color: 'power' },
-    redstone_block: { radius: 2, alpha: 0.18, color: 'power' },
+    power_block: { radius: 2, alpha: 0.18, color: 'power' },
     button: { radius: 1.6, alpha: 0.18, color: 'power' },
     wire: { radius: 1, alpha: 0.07, color: 'power' },
     crossing: { radius: 1, alpha: 0.07, color: 'power' },
@@ -454,7 +454,7 @@
     const out = [];
     for (const [c, x, y, k] of drawn) {
       const spec = LIGHTS[c.type];
-      const lit = c.type === 'redstone_block' || k.on || (c.type === 'crossing' && k.on2);
+      const lit = c.type === 'power_block' || k.on || (c.type === 'crossing' && k.on2);
       if (!spec || !lit) continue;
       const color = spec.color === 'lamp' ? style.lightColor.lamp : style.lightColor.power;
       out.push({ x, y, radius: spec.radius, alpha: spec.alpha, color });

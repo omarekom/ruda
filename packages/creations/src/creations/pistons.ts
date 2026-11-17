@@ -8,7 +8,7 @@ export const pistons: Creation = {
   slug: 'piston-switches',
   title: 'Piston switches',
   description:
-    'Top: two pistons push a redstone block back and forth; flip the left lever, then back, then ' +
+    'Top: two pistons push a power block back and forth; flip the left lever, then back, then ' +
     'the right lever. The lamp shows where the block is. Middle: a piston cannot push a wire, so ' +
     'it stays put. Bottom: a piston pushes 12 stones, but not 13.',
   build() {

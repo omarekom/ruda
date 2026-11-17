@@ -5,8 +5,8 @@ import { drawFromTable, type Look, type LookTable, type Skin } from './skin';
 const COLORS = {
   wireOff: '#5c1410',
   wireOn: '#ff3b2f',
-  redstone: '#b3261e',
-  redstoneDark: '#7d1712',
+  power: '#b3261e',
+  powerDark: '#7d1712',
   stone: '#7a7a7a',
   stoneDark: '#666666',
   lampOff: '#4a3a22',
@@ -53,10 +53,10 @@ const drawCrossing: Look<'crossing'> = (g, _block, s, { powered }) => {
   g.fillRect(c - w / 2, 0, w, s);
 };
 
-const drawRedstoneBlock: Look<'redstone_block'> = (g, _block, s) => {
-  g.fillStyle = COLORS.redstone;
+const drawPowerBlock: Look<'power_block'> = (g, _block, s) => {
+  g.fillStyle = COLORS.power;
   g.fillRect(0, 0, s, s);
-  g.fillStyle = COLORS.redstoneDark;
+  g.fillStyle = COLORS.powerDark;
   const d = s * 0.18;
   for (const [x, y] of [
     [0.2, 0.2],
@@ -196,7 +196,7 @@ const drawPistonHead: Look<'piston_head'> = (g, block, s) => {
 };
 
 const LOOKS: LookTable = {
-  redstone_block: drawRedstoneBlock,
+  power_block: drawPowerBlock,
   lever: drawLever,
   wire: drawWire,
   crossing: drawCrossing,

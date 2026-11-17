@@ -8,7 +8,7 @@ import {
 } from '@ruda/core';
 
 export const HOTBAR_SLOTS: readonly BlockType[] = [
-  'redstone_block',
+  'power_block',
   'lever',
   'wire',
   'crossing',

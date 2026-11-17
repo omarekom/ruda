@@ -11,7 +11,21 @@ export const MIGRATIONS: readonly Migration[] = [
   (file) => file,
   // 2 → 3: adds the piston and piston head blocks; existing content is unchanged.
   (file) => file,
+  // 3 → 4: the constant power source was renamed from its old name to `power_block`.
+  renameBlock('redstone_block', 'power_block'),
 ];
+
+/** Renames a stateless block type in the `blocks` table; anything else is left for validation. */
+function renameBlock(from: string, to: string): Migration {
+  return (file) => {
+    const { blocks } = file;
+    if (typeof blocks !== 'object' || blocks === null || Array.isArray(blocks)) return file;
+    const table = blocks as JsonObject;
+    if (!(from in table)) return file;
+    const { [from]: cells, ...rest } = table;
+    return { ...file, blocks: { ...rest, [to]: cells } };
+  };
+}
 
 export const CURRENT_FORMAT = MIGRATIONS.length + 1;
 

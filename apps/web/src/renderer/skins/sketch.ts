@@ -159,7 +159,7 @@ function looks(p: SketchPalette): LookTable {
     );
   };
 
-  const redstoneBlock: Look<'redstone_block'> = (g, _block, s, _a, seed) => {
+  const powerBlock: Look<'power_block'> = (g, _block, s, _a, seed) => {
     const pen = pencil(g, s, seed);
     pen.rect(0.08, 0.08, 0.84, 0.84, p.source);
     pen.shape(
@@ -281,7 +281,7 @@ function looks(p: SketchPalette): LookTable {
   };
 
   return {
-    redstone_block: redstoneBlock,
+    power_block: powerBlock,
     lever,
     wire,
     crossing,

@@ -28,7 +28,7 @@ function stateOf(x: number, y: number, block: Block, power: PowerState): Inspect
       return { key: block.extended ? 'extended' : 'retracted' };
     case 'delayer':
       return { key: 'delay', values: { ticks: block.line.length } };
-    case 'redstone_block':
+    case 'power_block':
       return { key: 'powering' };
     case 'wire':
     case 'crossing': {

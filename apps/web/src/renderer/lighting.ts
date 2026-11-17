@@ -47,7 +47,7 @@ function specOf(x: number, y: number, block: Block, power: PowerState): LightSpe
       return power.isLampLit(x, y) ? LAMP : undefined;
     case 'torch':
       return block.lit ? TORCH : undefined;
-    case 'redstone_block':
+    case 'power_block':
       return SOURCE;
     case 'lever':
       return block.on ? SMALL : undefined;

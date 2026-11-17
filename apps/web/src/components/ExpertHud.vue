@@ -22,7 +22,7 @@ const SPEEDS = [1, 2, 4] as const;
 const ZOOM_STEP = 1.25;
 
 const PALETTE: readonly (readonly [group: string, types: readonly BlockType[]])[] = [
-  ['power', ['redstone_block', 'lever', 'button']],
+  ['power', ['power_block', 'lever', 'button']],
   ['wiring', ['wire', 'crossing']],
   ['logic', ['torch', 'delayer']],
   ['output', ['lamp']],

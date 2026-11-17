@@ -34,7 +34,7 @@ describe('lightOf', () => {
     for (const block of [
       createBlock('wire', Direction.North),
       createBlock('crossing', Direction.North),
-      createBlock('redstone_block', Direction.North),
+      createBlock('power_block', Direction.North),
       { type: 'button', remaining: 3 } as const,
       { type: 'lever', on: true } as const,
     ]) {

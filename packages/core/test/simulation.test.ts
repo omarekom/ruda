@@ -3,7 +3,7 @@ import { Axis, createBlock, Direction, Simulation, World, type Command } from '.
 import { simulationFrom } from './helpers';
 
 describe('Simulation: wires and sources', () => {
-  it('lights a lamp through a wire from a redstone block', () => {
+  it('lights a lamp through a wire from a power block', () => {
     const sim = simulationFrom('#---o');
     expect(sim.isLampLit(4, 0)).toBe(true);
     expect(sim.isChannelPowered(2, 0, Axis.Horizontal)).toBe(true);
@@ -137,7 +137,7 @@ o>o
   it('turns off when its input is placed after it', () => {
     const sim = simulationFrom('..>o');
     sim.step();
-    sim.execute({ kind: 'place', x: 1, y: 0, block: { type: 'redstone_block' } });
+    sim.execute({ kind: 'place', x: 1, y: 0, block: { type: 'power_block' } });
     sim.step();
     expect(sim.isLampLit(3, 0)).toBe(false);
     sim.execute({ kind: 'remove', x: 1, y: 0 });
@@ -187,7 +187,7 @@ describe('Simulation: determinism and loading', () => {
 
   it('derives power for a world built outside the simulation', () => {
     const world = new World();
-    world.set(0, 0, { type: 'redstone_block' });
+    world.set(0, 0, { type: 'power_block' });
     world.set(1, 0, { type: 'wire' });
     world.set(2, 0, { type: 'torch', facing: Direction.East, lit: true });
     world.set(3, 0, { type: 'lamp' });

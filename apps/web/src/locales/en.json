@@ -190,7 +190,7 @@
     "label": "Hotbar"
   },
   "blocks": {
-    "redstone_block": "Redstone block",
+    "power_block": "Power block",
     "lever": "Lever",
     "wire": "Wire",
     "crossing": "Crossing",

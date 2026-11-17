@@ -25,7 +25,7 @@ The core knows nothing about the UI, storage or real time. Persistence and tick 
 ## Simulation model
 
 - Binary signal; a connected group of wires is a single node (a _network_). A crossing has two independent channels, horizontal and vertical; each joins the network on its axis.
-- Sources (redstone block, lit lever, lit torch front) power adjacent cells. Only wire networks carry power further; other blocks never conduct.
+- Sources (power block, lit lever, lit torch front) power adjacent cells. Only wire networks carry power further; other blocks never conduct.
 - A torch's (and delayer's) input is its back neighbour; it outputs only to its front neighbour.
 - Blocks with a delay (torch, delayer, button) define a `tick` in the registry: their next state from the power entering each side. Each also declares which sides it reads. A block is evaluated only when a side it reads changes, or while ticking it again with unchanged inputs would still change it (a delay line still shifting, a button counting down).
 - Edits are commands applied between ticks. Zero-delay parts (wires, crossings, lamps) settle immediately after a command or a torch change.
@@ -41,10 +41,10 @@ Minified JSON. Blocks are grouped by type and state, with coordinates as a flat 
 
 ```json
 {
-  "format": 3,
+  "format": 4,
   "name": "My world",
   "blocks": {
-    "redstone_block": [0, 0, 5, 3],
+    "power_block": [0, 0, 5, 3],
     "lever:off": [2, 2],
     "torch:east:lit": [4, 4],
     "delayer:north:3:010": [6, 1],
@@ -102,7 +102,7 @@ One client hosts and is authoritative; others send edit commands and receive sta
 
 ## Pistons
 
-- A piston ignores power coming from its front (head) side. This lets a piston push a redstone block without being re-powered by it, and costs the simulation only one excluded input side.
+- A piston ignores power coming from its front (head) side. This lets a piston push a power block without being re-powered by it, and costs the simulation only one excluded input side.
 - The extended head is its own block (`piston_head`) so every cell query stays a plain world lookup. It is never placed by the player; loading rejects a piston without its head or a head without its piston.
 - The piston's registry `tick` only returns the wanted position. The simulation turns it into a _plan_: the cells the move touches (the piston, every destination cell). After all blocks have read the previous tick, plans that share a cell are dropped, so conflicts are order-independent; the rest are applied as ordinary cell edits.
 - Each block type declares in the registry whether it is `pushable` (solid) or not (flat components). Pushed blocks keep their state; a block whose state changed this tick moves with the new state.

@@ -207,7 +207,7 @@
         p.rect(0.5 - w * 1.1, 0.5 - w * 1.1, w * 2.2, w * 2.2, { fill: C.bg, solid: true, r: 0 });
         p.line([[0.5, 0], [0.5, 1]], pw(k.on2), w, { glow: k.on2, cap: 'butt' });
       },
-      redstone_block(g, c, s) {
+      power_block(g, c, s) {
         const p = P(g, s, c);
         p.rect(0.08, 0.08, 0.84, 0.84, { fill: C.source, body: true, glow: true });
         if (T.detail) {
@@ -310,7 +310,7 @@
       pixelate: T.pixelate,
       post: T.post,
       mini: {
-        wire: C.on, crossing: C.plate, lamp: C.light, stone: C.stone, redstone_block: C.source, lever: C.plate,
+        wire: C.on, crossing: C.plate, lamp: C.light, stone: C.stone, power_block: C.source, lever: C.plate,
         torch: C.on, delayer: C.plate, button: C.knob, piston: C.face, piston_head: C.face,
       },
       blocks: { ...(T.kit === false ? {} : kit(T)), ...overrides },
@@ -433,7 +433,7 @@
       g.fillStyle = PX.crossing; g.fillRect(m - w, m - w, w * 2, w * 2);
       g.fillStyle = pxWire(k.on2); g.fillRect(m - w / 2, 0, w, s);
     },
-    redstone_block(g, c, s) {
+    power_block(g, c, s) {
       g.fillStyle = PX.redstone; g.fillRect(0, 0, s, s);
       g.fillStyle = PX.redstoneDark;
       for (const [x, y] of [[0.2, 0.2], [0.6, 0.3], [0.3, 0.65], [0.68, 0.7]]) g.fillRect(x * s, y * s, s * 0.18, s * 0.18);
@@ -536,7 +536,7 @@
         g.lineTo(s / 2, s);
         g.stroke();
       },
-      redstone_block(g, c, s) {
+      power_block(g, c, s) {
         L(g, s, true);
         g.strokeRect(s * 0.15, s * 0.15, s * 0.7, s * 0.7);
         seg(g, s, [[0.5, 0.3], [0.5, 0.7]]);
@@ -679,7 +679,7 @@
         g.beginPath(); g.arc(s / 2, s * (0.3 + i * 0.13), s * 0.045, 0, 7); g.fill();
       });
     },
-    redstone_block(g, c, s) {
+    power_block(g, c, s) {
       g.fillStyle = '#2b2b2b'; g.beginPath(); g.roundRect(s * 0.14, s * 0.22, s * 0.72, s * 0.56, s * 0.1); g.fill();
       g.fillStyle = '#d4a017'; g.fillRect(s * 0.14, s * 0.22, s * 0.18, s * 0.56);
       g.fillStyle = PCB.silk; g.font = `700 ${s * 0.32}px ui-monospace, monospace`; g.textAlign = 'center'; g.textBaseline = 'middle';
@@ -732,7 +732,7 @@
       termLine(g, s, [[0.68, 0.5], [1, 0.5]], k.on);
       termLine(g, s, [[0.5, 0], [0.5, 1]], k.on2);
     },
-    redstone_block(g, c, s) { glyph(g, s, '█', TERM.on, 0.95, true); },
+    power_block(g, c, s) { glyph(g, s, '█', TERM.on, 0.95, true); },
     stone(g, c, s) { glyph(g, s, '▒', TERM.dim, 1.05); },
     lamp(g, c, s, k) { glyph(g, s, k.on ? '◉' : '○', tc(k.on), 0.85, k.on); },
     lever(g, c, s, k) { glyph(g, s, k.on ? '[1]' : '[0]', tc(k.on) === TERM.off ? TERM.dim : TERM.on, 0.42, k.on); },

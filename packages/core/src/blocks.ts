@@ -9,7 +9,7 @@ import {
 } from './coords';
 
 export type Block =
-  | { readonly type: 'redstone_block' }
+  | { readonly type: 'power_block' }
   | { readonly type: 'lever'; readonly on: boolean }
   | { readonly type: 'wire' }
   | { readonly type: 'crossing' }
@@ -97,15 +97,15 @@ function onOff(value: string | undefined, on: string, off: string): boolean | un
 }
 
 const REGISTRY: { readonly [T in BlockType]: BlockDefinition<T> } = {
-  redstone_block: {
+  power_block: {
     rotatable: false,
     pushable: true,
-    create: () => ({ type: 'redstone_block' }),
+    create: () => ({ type: 'power_block' }),
     emitsPower: always,
     channel: noChannel,
     attachesWire: always,
     stateOf: noState,
-    fromState: stateless({ type: 'redstone_block' }),
+    fromState: stateless({ type: 'power_block' }),
     inputs: noInputs,
   },
   lever: {

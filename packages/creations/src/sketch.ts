@@ -16,12 +16,12 @@ export function piston(facing: Direction): Block {
 }
 
 /**
- * Characters every map understands: `#` redstone block, `L` / `l` lever off / on, `B` button,
+ * Characters every map understands: `#` power block, `L` / `l` lever off / on, `B` button,
  * `-` wire, `+` crossing, `o` lamp, `S` stone, `^ > v <` unlit torch facing that way,
  * `.` and space empty. Maps add their own characters for anything else.
  */
 const BASE_LEGEND: Legend = {
-  '#': { type: 'redstone_block' },
+  '#': { type: 'power_block' },
   L: { type: 'lever', on: false },
   l: { type: 'lever', on: true },
   B: { type: 'button', remaining: 0 },

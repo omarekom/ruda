@@ -2,7 +2,7 @@ import { createBlock, Direction, Simulation, type BlockType } from '../src';
 
 /**
  * Builds a simulation from an ASCII map. Each character is one cell, the top-left
- * character is (0, 0). Legend: `#` redstone block, `L` lever off, `l` lever on,
+ * character is (0, 0). Legend: `#` power block, `L` lever off, `l` lever on,
  * `-` wire, `+` crossing, `o` lamp, `S` stone, `B` button, `>` `<` `^` `v` torch facing that
  * way, `)` delayer facing east (delay 1), `p` / `q` piston facing east / west, `.` or space
  * empty.
@@ -23,7 +23,7 @@ export function simulationFrom(map: string): Simulation {
 }
 
 const SIMPLE: Readonly<Record<string, BlockType>> = {
-  '#': 'redstone_block',
+  '#': 'power_block',
   L: 'lever',
   '-': 'wire',
   '+': 'crossing',

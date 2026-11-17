@@ -71,7 +71,7 @@ describe('Piston', () => {
     sim.execute({ kind: 'place', x, y: 0, block: createBlock('piston', Direction.East) });
     sim.execute({ kind: 'place', x: x + 1, y: 0, block: createBlock('stone') });
     sim.execute({ kind: 'place', x: x + 2, y: 0, block: createBlock('stone') });
-    sim.execute({ kind: 'place', x: x - 1, y: 0, block: createBlock('redstone_block') });
+    sim.execute({ kind: 'place', x: x - 1, y: 0, block: createBlock('power_block') });
     sim.step();
     expect(sim.blocks.get(x, 0)).toMatchObject({ extended: false });
   });
@@ -85,7 +85,7 @@ describe('Piston', () => {
       'lever',
       'piston',
       'piston_head',
-      'redstone_block',
+      'power_block',
       'lamp',
       'lamp',
     ]);
@@ -147,7 +147,7 @@ describe('Piston', () => {
     const sim = simulationFrom('#p');
     sim.step();
     expect(sim.execute({ kind: 'remove', x: 2, y: 0 })).toBe(true);
-    expect(types(sim, 0, 3)).toEqual(['redstone_block', '.', '.']);
+    expect(types(sim, 0, 3)).toEqual(['power_block', '.', '.']);
     const head = { type: 'piston_head', facing: Direction.East } as const;
     expect(sim.execute({ kind: 'place', x: 5, y: 5, block: head })).toBe(false);
     const extended = { type: 'piston', facing: Direction.East, extended: true } as const;

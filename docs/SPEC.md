@@ -23,9 +23,9 @@ Editing
 
 Blocks (hotbar slots 1–7)
 
-- Redstone block – constant power source; powers its 4 neighbours.
+- Power block – constant power source; powers its 4 neighbours.
 - Lever – toggleable power source; powers its 4 neighbours when on.
-- Wire – conducts power. Connects to wires, crossings, redstone blocks, levers, lamps and the front and back of torches.
+- Wire – conducts power. Connects to wires, crossings, power blocks, levers, lamps and the front and back of torches.
 - Crossing – lets a horizontal and a vertical wire pass through each other without connecting.
 - Lamp – lit when powered; does not pass power on.
 - Torch – directional inverter with 1-tick delay. Its input is the cell behind it; it powers only the cell in front of it. Drawn as a half-cell block plus a torch, to show the connection.
@@ -65,7 +65,7 @@ Other
 - Piston (hotbar slot 10, key `0`) – push only, no sticky variant, rotatable. Powered from its back and both sides, never from its front (head) side.
 - Extends 1 tick after it gets power; when power stops it retracts 1 tick later. Retracting only pulls the head back; pushed blocks stay where they are.
 - The extended head occupies the cell in front: nothing can be placed there and it does not conduct power (like stone). Removing either the piston or its head removes both.
-- Only solid blocks are pushed: stone, redstone block, lamp and retracted pistons. They keep their state.
+- Only solid blocks are pushed: stone, power block, lamp and retracted pistons. They keep their state.
 - Flat components (wire, crossing, lever, button, torch, delayer), extended pistons and piston heads cannot be pushed; one anywhere in the chain blocks the push.
 - Pushes a chain of up to 12 blocks; if the chain is longer, would leave the world, or contains a block that cannot be pushed, nothing moves. A blocked piston tries again every tick while it is powered.
 - Push animation.
@@ -104,6 +104,10 @@ Both modes
 
 - Switching between the modes flips the screen; the world, view and held block stay.
 - Lamps, torches, sources and powered wires softly light their surroundings.
+
+Naming
+
+- Ruda uses its own names, not Minecraft's: the constant power source is the **power block** (`power_block`). File format 4 renames it; files in older formats still load, with the old name (`redstone_block`) converted.
 
 Still to design:
 
