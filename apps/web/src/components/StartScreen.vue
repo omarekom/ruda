@@ -1,30 +1,31 @@
 <script setup lang="ts">
-import { CREATIONS } from '@ruda/creations';
 import { useI18n } from 'vue-i18n';
 import type { Mode } from '../game/mode';
 import { pixelSkin } from '../renderer/skins/pixel';
 import { sketchDarkSkin, sketchLightSkin } from '../renderer/skins/sketch';
+import { lightRing } from '../start/lightRing';
+import { sampleCircuits } from '../start/samples';
 import { isDark } from '../theme';
 import LiveWorld from './LiveWorld.vue';
 
 const emit = defineEmits<{ choose: [mode: Mode] }>();
 const { t } = useI18n();
 
-function creationWorld(slug: string) {
-  const creation = CREATIONS.find((candidate) => candidate.slug === slug) ?? CREATIONS[0];
-  if (!creation) throw new Error('No built-in creations');
-  return creation.build().world;
-}
-
-const gameWorld = creationWorld('light-chaser');
-const expertWorld = creationWorld('clocks');
+const gameWorld = lightRing();
+const expertWorld = sampleCircuits();
 const EXPERT_POINTS = ['time', 'inspect', 'overview', 'big'] as const;
 </script>
 
 <template>
   <main class="start">
     <section class="half play" @click="emit('choose', 'game')">
-      <LiveWorld class="backdrop" :world="gameWorld" :skin="pixelSkin" :cell-size="44" />
+      <LiveWorld
+        class="backdrop"
+        :world="gameWorld"
+        :skin="pixelSkin"
+        :cell-size="36"
+        :speed="0.4"
+      />
       <div class="content">
         <h1 class="logo">{{ t('app.title') }}</h1>
         <span class="tagline">{{ t('start.tagline') }}</span>
@@ -37,16 +38,9 @@ const EXPERT_POINTS = ['time', 'inspect', 'overview', 'big'] as const;
         </button>
         <p class="hint">{{ t('start.playHint') }}</p>
       </div>
-      <p class="remember">{{ t('start.remember') }}</p>
     </section>
 
     <section class="half tools sketchy" :class="{ dark: isDark }" @click="emit('choose', 'expert')">
-      <LiveWorld
-        class="backdrop"
-        :world="expertWorld"
-        :skin="isDark ? sketchDarkSkin : sketchLightSkin"
-        :cell-size="30"
-      />
       <div class="content">
         <h2>{{ t('modes.expert') }}</h2>
         <ul>
@@ -61,6 +55,13 @@ const EXPERT_POINTS = ['time', 'inspect', 'overview', 'big'] as const;
         >
           {{ t('start.openExpert') }}
         </button>
+        <LiveWorld
+          class="illustration sketch-box"
+          :world="expertWorld"
+          :skin="isDark ? sketchDarkSkin : sketchLightSkin"
+          :cell-size="28"
+          still
+        />
       </div>
     </section>
   </main>
@@ -158,17 +159,6 @@ const EXPERT_POINTS = ['time', 'inspect', 'overview', 'big'] as const;
   text-shadow: 2px 2px #000;
 }
 
-.remember {
-  position: absolute;
-  right: 0;
-  bottom: 12px;
-  left: 0;
-  margin: 0;
-  color: #888;
-  font: 18px var(--font-retro);
-  text-align: center;
-}
-
 .tools {
   flex-grow: 1;
   border-left: 4px solid #000;
@@ -179,16 +169,11 @@ const EXPERT_POINTS = ['time', 'inspect', 'overview', 'big'] as const;
   flex-grow: 1.2;
 }
 
-.tools .backdrop {
-  opacity: 0.45;
-}
-
-.tools .content {
-  background: radial-gradient(
-    ellipse 60% 38% at center,
-    color-mix(in srgb, var(--paper) 95%, transparent) 40%,
-    transparent
-  );
+.illustration {
+  box-sizing: border-box;
+  width: min(100%, 420px);
+  height: 150px;
+  margin-top: 12px;
 }
 
 .tools h2 {
