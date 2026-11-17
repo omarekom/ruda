@@ -78,6 +78,7 @@ Scope still being designed; sketches live in `tmp_gui_props/`.
 
 Direction so far:
 
+- Light and dark theme, following the system setting by default, with a switch in the top right corner.
 - Two modes. **Game mode** is the default: real time, simple, playful. **Expert mode** turns Ruda into a tool for players who want more.
 - Expert mode layout: a menu bar, a block palette grouped by role (power, wiring, logic, output, mechanics, building), an inspector for the block under the cursor, world statistics, a status bar, and a zoomable minimap.
 - World list: a grid of cards with a thumbnail of each world.
