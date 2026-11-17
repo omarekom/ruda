@@ -1,0 +1,15 @@
+{
+  "name": "@ruda/library-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "RUDA_LIBRARY_CONFIG=config.dev.php php bin/seed.php && RUDA_LIBRARY_CONFIG=config.dev.php php -S 127.0.0.1:8090 -t .",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "vitest": "^5.1.0"
+  }
+}

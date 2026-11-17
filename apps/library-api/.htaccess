@@ -1,0 +1,5 @@
+# Only api.php is public; everything else in this folder is code, data or configuration.
+<FilesMatch "^(?!api\.php$)">
+    Require all denied
+</FilesMatch>
+Options -Indexes
