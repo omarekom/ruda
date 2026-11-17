@@ -77,15 +77,30 @@ async function startRename(world: StoredWorld): Promise<void> {
 async function commitRename(): Promise<void> {
   const target = renaming.value;
   renaming.value = undefined;
-  const name = target?.name.trim();
-  if (!target || !name) return;
-  try {
-    await renameWorld(props.store, target.id, name);
-    error.value = undefined;
-  } catch (failure) {
-    error.value = fileErrorKey(failure);
+  if (!target) return;
+  const name = target.name.trim();
+  if (name) {
+    try {
+      await renameWorld(props.store, target.id, name);
+      error.value = undefined;
+    } catch (failure) {
+      error.value = fileErrorKey(failure);
+    }
+    await refresh();
   }
-  await refresh();
+  await focusCard(target.id);
+}
+
+/** Gives the keyboard back to a world's card, e.g. after renaming it. */
+async function focusCard(id: string): Promise<void> {
+  await nextTick();
+  grid.value?.querySelector<HTMLElement>(`.card[data-id="${CSS.escape(id)}"]`)?.focus();
+}
+
+function cancelRename(): void {
+  const target = renaming.value;
+  renaming.value = undefined;
+  if (target) void focusCard(target.id);
 }
 
 async function onDeleteChoice(choice: 'delete' | 'cancel'): Promise<void> {
@@ -193,6 +208,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
         class="card blocky-panel"
         role="listitem"
         tabindex="0"
+        :data-id="world.id"
         :aria-label="world.name"
         @click="emit('open', world.id)"
         @keydown.self="onCardKey($event, world)"
@@ -209,7 +225,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
             v-model="renaming.name"
             :aria-label="t('game.worlds.nameLabel')"
             maxlength="100"
-            @keydown.esc.stop="renaming = undefined"
+            @keydown.esc.stop="cancelRename"
             @blur="commitRename"
           />
         </form>
