@@ -20,6 +20,11 @@ export class PointerInput {
   private cursor: [number, number] | undefined;
   private placing: { readonly x: number; readonly y: number } | undefined;
   private panning = false;
+  /**
+   * The span (left, right in canvas pixels) of the bottom edge that does not scroll, because
+   * the hotbar is there and the cursor often slips past it.
+   */
+  bottomEdgeGap: readonly [number, number] | undefined;
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -62,9 +67,8 @@ export class PointerInput {
    */
   edgeScrollDirection(): [number, number] {
     if (!this.cursor || this.panning) return [0, 0];
-    const [x, y] = this.cursor;
     const { clientWidth, clientHeight } = this.canvas;
-    return [edge(x, clientWidth), edge(y, clientHeight)];
+    return edgeScroll(this.cursor, clientWidth, clientHeight, this.bottomEdgeGap);
   }
 
   private readonly onPointerDown = (event: PointerEvent): void => {
@@ -129,6 +133,21 @@ function edge(position: number, length: number): number {
   if (position < EDGE_MARGIN_PX) return -1;
   if (position > length - EDGE_MARGIN_PX) return 1;
   return 0;
+}
+
+/**
+ * Pan direction for a cursor at `cursor` on a canvas of the given size: towards each screen
+ * edge it touches, except along `bottomGap` of the bottom edge.
+ */
+export function edgeScroll(
+  [x, y]: readonly [number, number],
+  width: number,
+  height: number,
+  bottomGap: readonly [number, number] | undefined,
+): [number, number] {
+  const vertical = edge(y, height);
+  const inGap = bottomGap !== undefined && x >= bottomGap[0] && x <= bottomGap[1];
+  return [edge(x, width), vertical === 1 && inGap ? 0 : vertical];
 }
 
 function preventDefault(event: Event): void {

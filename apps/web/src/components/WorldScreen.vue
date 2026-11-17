@@ -22,6 +22,8 @@ import DebugHud from './DebugHud.vue';
 import GameHud from './GameHud.vue';
 
 const AUTOSAVE_INTERVAL_MS = 30_000;
+/** How far beside the hotbar the bottom edge still does not scroll. */
+const HOTBAR_EDGE_MARGIN_PX = 64;
 
 const props = defineProps<{ store: WorldStore; world: OpenWorld }>();
 const emit = defineEmits<{ close: []; startScreen: [] }>();
@@ -58,6 +60,14 @@ watch(speed, (next) => {
   if (game.value) game.value.speed = next;
 });
 watch(inputEnabled, (next) => game.value?.setInputEnabled(next));
+
+/** Kept here too, since the hotbar can report before the game exists. */
+let bottomEdgeGap: readonly [number, number] | undefined;
+
+function onHotbarSpan([left, right]: readonly [number, number]): void {
+  bottomEdgeGap = [left - HOTBAR_EDGE_MARGIN_PX, right + HOTBAR_EDGE_MARGIN_PX];
+  if (game.value) game.value.bottomEdgeGap = bottomEdgeGap;
+}
 
 /** Turning debug mode off returns time to normal. */
 function toggleDebug(): void {
@@ -149,6 +159,7 @@ onMounted(() => {
   game.value = new Game(canvas.value, hotbar, simulation, onEdit, worldSkin.value);
   game.value.paused = paused.value;
   game.value.speed = speed.value;
+  game.value.bottomEdgeGap = bottomEdgeGap;
   game.value.start();
   autosaveTimer = setInterval(() => void autosave(), AUTOSAVE_INTERVAL_MS);
   window.addEventListener('keydown', onKeyDown);
@@ -189,6 +200,7 @@ onBeforeUnmount(() => {
       @worlds="leave('worlds')"
       @debug="toggleDebug"
       @start="leave('start')"
+      @hotbar-span="onHotbarSpan"
     />
     <ConfirmDialog
       v-if="leavingTo"

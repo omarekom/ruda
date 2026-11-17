@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { isArrowKey, moveFocus } from '../input/focusNavigation';
 import { lightRing } from '../start/lightRing';
 import { worldSkin } from '../theme';
 import GameControls from './GameControls.vue';
@@ -12,6 +13,16 @@ const { t } = useI18n();
 
 const backdrop = lightRing();
 const showControls = ref(false);
+const buttons = useTemplateRef<HTMLElement>('buttons');
+
+function onKeyDown(event: KeyboardEvent): void {
+  if (showControls.value || !isArrowKey(event.key)) return;
+  event.preventDefault();
+  moveFocus([...(buttons.value?.querySelectorAll('button') ?? [])], event.key);
+}
+
+onMounted(() => window.addEventListener('keydown', onKeyDown));
+onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 </script>
 
 <template>
@@ -21,7 +32,7 @@ const showControls = ref(false);
     <div class="content">
       <h1 class="logo">{{ t('app.title') }}</h1>
       <span class="tagline">{{ t('start.tagline') }}</span>
-      <div class="buttons">
+      <div ref="buttons" class="buttons">
         <button type="button" class="blocky-button play" autofocus @click="emit('play')">
           {{ t('start.play') }}
         </button>

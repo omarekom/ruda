@@ -107,6 +107,11 @@ export class Game {
     this.loop.speed = speed;
   }
 
+  /** The part of the bottom edge (left, right in canvas pixels) where edge scrolling is off. */
+  set bottomEdgeGap(gap: readonly [number, number] | undefined) {
+    this.pointer.bottomEdgeGap = gap;
+  }
+
   /** Runs a single tick; meant for stepping through a paused simulation. */
   step(): void {
     this.simulation.step();

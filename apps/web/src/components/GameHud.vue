@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { selectedType, selectSlot, type HotbarState } from '../game/hotbar';
 import type { SaveResult } from '../game/saving';
+import { isArrowKey, moveFocus } from '../input/focusNavigation';
 import GameControls from './GameControls.vue';
 import GameHotbar from './GameHotbar.vue';
 import PixelIcon from './PixelIcon.vue';
@@ -24,6 +25,8 @@ const emit = defineEmits<{
   worlds: [];
   debug: [];
   start: [];
+  /** Where the hotbar spans horizontally (left, right in pixels), whenever it changes. */
+  hotbarSpan: [span: readonly [number, number]];
 }>();
 const { t } = useI18n();
 
@@ -33,6 +36,28 @@ const showName = ref(false);
 const toast = ref<string>();
 let nameTimer: ReturnType<typeof setTimeout> | undefined;
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
+const menu = useTemplateRef<HTMLElement>('menu');
+const hotbarPanel = useTemplateRef<InstanceType<typeof GameHotbar>>('hotbarPanel');
+let hotbarObserver: ResizeObserver | undefined;
+
+function reportHotbarSpan(): void {
+  const element = hotbarPanel.value?.$el;
+  if (!(element instanceof HTMLElement)) return;
+  const { left, right } = element.getBoundingClientRect();
+  const origin = element.offsetParent?.getBoundingClientRect().left ?? 0;
+  emit('hotbarSpan', [left - origin, right - origin]);
+}
+
+function menuButtons(): HTMLElement[] {
+  return [...(menu.value?.querySelectorAll<HTMLElement>('button') ?? [])];
+}
+
+// The menu takes the keyboard as soon as it opens.
+watch(overlay, async (next) => {
+  if (next !== 'menu') return;
+  await nextTick();
+  menuButtons()[0]?.focus();
+});
 
 function open(next: Overlay | undefined): void {
   overlay.value = next;
@@ -60,13 +85,25 @@ watch(
 );
 
 function onKeyDown(event: KeyboardEvent): void {
-  if (event.key !== 'Escape' || props.blocked) return;
-  open(overlay.value === undefined ? 'menu' : undefined);
+  if (props.blocked) return;
+  if (event.key === 'Escape') {
+    open(overlay.value === undefined ? 'menu' : undefined);
+  } else if (overlay.value === 'menu' && isArrowKey(event.key)) {
+    event.preventDefault();
+    moveFocus(menuButtons(), event.key);
+  }
 }
 
-onMounted(() => window.addEventListener('keydown', onKeyDown));
+onMounted(() => {
+  window.addEventListener('keydown', onKeyDown);
+  hotbarObserver = new ResizeObserver(reportHotbarSpan);
+  if (hotbarPanel.value?.$el instanceof HTMLElement) hotbarObserver.observe(hotbarPanel.value.$el);
+  window.addEventListener('resize', reportHotbarSpan);
+});
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKeyDown);
+  window.removeEventListener('resize', reportHotbarSpan);
+  hotbarObserver?.disconnect();
   clearTimeout(nameTimer);
   clearTimeout(toastTimer);
 });
@@ -101,12 +138,17 @@ function save(): void {
     <p class="block-name" :class="{ shown: showName }">
       {{ t(`blocks.${selectedType(hotbar)}`) }}
     </p>
-    <GameHotbar class="hotbar" :state="hotbar" @select="(index) => selectSlot(hotbar, index)" />
+    <GameHotbar
+      ref="hotbarPanel"
+      class="hotbar"
+      :state="hotbar"
+      @select="(index) => selectSlot(hotbar, index)"
+    />
 
     <div v-if="overlay === 'menu'" class="shade">
-      <div class="menu" role="dialog" :aria-label="t('game.menu.title')">
+      <div ref="menu" class="menu" role="dialog" :aria-label="t('game.menu.title')">
         <h1>{{ t('game.menu.title') }}</h1>
-        <button type="button" class="blocky-button" autofocus @click="open(undefined)">
+        <button type="button" class="blocky-button" @click="open(undefined)">
           {{ t('game.menu.resume') }}
         </button>
         <div class="row">
