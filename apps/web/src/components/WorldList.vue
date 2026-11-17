@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { parseWorld, serializeWorld, World } from '@ruda/core';
+import { parseWorld, serializeWorld } from '@ruda/core';
 import { nextTick, onMounted, ref, shallowRef, useTemplateRef } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { fileErrorKey } from '../storage/fileErrors';
 import { downloadRudaFile, RUDA_FILE_ACCEPT } from '../storage/files';
+import { createEmptyWorld, renameWorld } from '../storage/worldActions';
 import type { WorldStore, WorldSummary } from '../storage/worldStore';
 import ConfirmDialog from './ConfirmDialog.vue';
 
@@ -24,8 +25,7 @@ async function refresh(): Promise<void> {
 onMounted(refresh);
 
 async function createWorld(): Promise<void> {
-  const name = t('worlds.defaultName');
-  const created = await props.store.create(name, serializeWorld(new World(), name));
+  const created = await createEmptyWorld(props.store, t('worlds.defaultName'));
   emit('open', created.id);
 }
 
@@ -55,11 +55,8 @@ async function commitRename(): Promise<void> {
   renaming.value = undefined;
   const name = target?.name.trim();
   if (!target || !name) return;
-  const stored = await props.store.load(target.id);
-  if (!stored || stored.name === name) return;
   try {
-    const { world } = parseWorld(stored.data);
-    await props.store.rename(target.id, name, serializeWorld(world, name));
+    await renameWorld(props.store, target.id, name);
   } catch (error) {
     emit('error', fileErrorKey(error));
   }

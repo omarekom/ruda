@@ -12,6 +12,8 @@ const props = defineProps<{
   actions: readonly DialogAction<T>[];
   /** Chosen when the dialog is dismissed with Escape. */
   cancel: T;
+  /** Game mode's blocky look instead of the plain one. */
+  blocky?: boolean;
 }>();
 const emit = defineEmits<{ choose: [value: T] }>();
 const dialog = useTemplateRef<HTMLDialogElement>('dialog');
@@ -25,14 +27,14 @@ function onCancel(event: Event): void {
 </script>
 
 <template>
-  <dialog ref="dialog" class="dialog" @cancel="onCancel">
+  <dialog ref="dialog" class="dialog" :class="{ blocky }" @cancel="onCancel">
     <p>{{ message }}</p>
     <div class="actions">
       <button
         v-for="action in actions"
         :key="action.value"
         type="button"
-        :class="{ primary: action.primary }"
+        :class="blocky ? 'blocky-button' : { primary: action.primary }"
         :autofocus="action.primary"
         @click="emit('choose', action.value)"
       >
@@ -65,5 +67,18 @@ function onCancel(event: Event): void {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+}
+.dialog.blocky {
+  border: 3px solid #000;
+  border-radius: 0;
+  background: rgba(20, 20, 24, 0.96);
+  box-shadow: inset 0 0 0 2px #555;
+  color: #fff;
+  font: 22px var(--font-retro);
+  text-align: center;
+}
+
+.dialog.blocky .actions {
+  justify-content: center;
 }
 </style>

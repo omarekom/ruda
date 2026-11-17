@@ -226,6 +226,7 @@ onBeforeUnmount(() => {
     />
     <ConfirmDialog
       v-if="leavingTo"
+      :blocky="shownMode === 'game'"
       :message="t('editor.leavePrompt', { name: world.name })"
       :actions="[
         { value: 'cancel', label: t('dialog.cancel') },

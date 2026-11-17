@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { parseWorld, serializeWorld, World } from '@ruda/core';
+import { parseWorld, serializeWorld } from '@ruda/core';
 import { onBeforeUnmount, onMounted, ref, shallowRef } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ConfirmDialog from './components/ConfirmDialog.vue';
+import GameWorlds from './components/GameWorlds.vue';
 import StartScreen from './components/StartScreen.vue';
 import WorldScreen from './components/WorldScreen.vue';
 import WorldList from './components/WorldList.vue';
@@ -11,6 +12,7 @@ import type { OpenWorld } from './game/openWorld';
 import type { LibraryHost } from './library/host';
 import LibraryView from './library/LibraryView.vue';
 import { readPreferences, writePreference } from './preferences';
+import { createEmptyWorld } from './storage/worldActions';
 import { fileErrorKey } from './storage/fileErrors';
 import { WorldStore, type Recovery, type StoredWorld } from './storage/worldStore';
 
@@ -21,8 +23,14 @@ const opened = shallowRef<OpenWorld>();
 const restoring = shallowRef<{ stored: StoredWorld; recovery: Recovery }>();
 const listError = ref<string>();
 const mode = ref<Mode>(readPreferences().mode ?? 'game');
-/** What shows while no world is open; 'loading' until the first decision is made. */
-const screen = ref<'loading' | 'start' | 'home'>('loading');
+/**
+ * What shows while no world is open; 'loading' until the first decision is made. Game mode
+ * has its own world selection ('gameWorlds'); 'home' is the shared world list and library.
+ */
+const screen = ref<'loading' | 'start' | 'home' | 'gameWorlds'>('loading');
+
+/** The world list that belongs to the current mode. */
+const worldsScreen = (): 'home' | 'gameWorlds' => (mode.value === 'game' ? 'gameWorlds' : 'home');
 
 type Tab = 'worlds' | 'library';
 const ADMIN_HASH = '#admin';
@@ -61,7 +69,7 @@ async function resume(): Promise<void> {
     screen.value = location.hash ? 'home' : 'start';
     return;
   }
-  screen.value = 'home';
+  screen.value = worldsScreen();
   if (lastWorld) await openWorld(lastWorld);
 }
 
@@ -74,11 +82,10 @@ function setMode(next: Mode): void {
 async function play(next: Mode): Promise<void> {
   setMode(next);
   if (!store.value) return;
-  screen.value = 'home';
+  screen.value = worldsScreen();
   const { lastWorld } = readPreferences();
   if (lastWorld && (await openWorld(lastWorld))) return;
-  const name = t('worlds.defaultName');
-  const created = await store.value.create(name, serializeWorld(new World(), name));
+  const created = await createEmptyWorld(store.value, t('worlds.defaultName'));
   await openWorld(created.id);
 }
 
@@ -149,13 +156,22 @@ function show(stored: StoredWorld, data: string, restored: boolean): void {
       :world="opened"
       :mode="mode"
       @switch-mode="setMode"
-      @close="opened = undefined"
+      @close="
+        opened = undefined;
+        screen = worldsScreen();
+      "
       @start-screen="
         opened = undefined;
         screen = 'start';
       "
     />
     <StartScreen v-else-if="screen === 'start'" @choose="play" />
+    <GameWorlds
+      v-else-if="screen === 'gameWorlds'"
+      :store="store"
+      @open="openWorld"
+      @back="screen = 'start'"
+    />
     <main v-else-if="screen === 'home'" class="home">
       <header class="masthead">
         <h1>{{ t('app.title') }}</h1>
@@ -186,6 +202,7 @@ function show(stored: StoredWorld, data: string, restored: boolean): void {
   </template>
   <ConfirmDialog
     v-if="restoring"
+    :blocky="mode === 'game'"
     :message="
       t('worlds.restorePrompt', {
         name: restoring.stored.name,

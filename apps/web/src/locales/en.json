@@ -94,6 +94,20 @@
         "leftClick": "Left click",
         "rightDrag": "Right drag"
       }
+    },
+    "worlds": {
+      "title": "Select World",
+      "empty": "No worlds yet. Create one to start building!",
+      "saved": "Saved {date}",
+      "play": "Play Selected World",
+      "create": "Create New World",
+      "rename": "Rename",
+      "delete": "Delete",
+      "back": "Back",
+      "renameTitle": "Rename World",
+      "nameLabel": "World name",
+      "saveName": "Done",
+      "confirmDelete": "Delete “{name}”? It will be lost forever!"
     }
   },
   "expert": {
