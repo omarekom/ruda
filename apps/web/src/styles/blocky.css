@@ -9,7 +9,7 @@
     inset -3px -3px 0 #444,
     inset 3px 3px 0 #a0a0a0;
   color: #eee;
-  font: 22px var(--font-retro);
+  font: 28px var(--font-retro);
   text-shadow: 2px 2px #333;
   white-space: nowrap;
   cursor: pointer;

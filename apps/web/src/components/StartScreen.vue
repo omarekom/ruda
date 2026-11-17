@@ -148,14 +148,14 @@ const EXPERT_POINTS = ['time', 'inspect', 'overview', 'big'] as const;
 
 .play-button {
   padding: 10px 60px;
-  font-size: 34px;
+  font-size: 38px;
 }
 
 .hint {
   max-width: 420px;
   margin: 0;
   color: #ccc;
-  font: 24px var(--font-retro);
+  font: 28px var(--font-retro);
   text-shadow: 2px 2px #000;
 }
 

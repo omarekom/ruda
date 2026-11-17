@@ -150,8 +150,8 @@ function save(): void {
 }
 
 .corner .blocky-button {
-  padding: 4px 12px;
-  font-size: 20px;
+  padding: 4px 14px;
+  font-size: 26px;
 }
 
 .hotbar {
@@ -175,14 +175,14 @@ function save(): void {
 .block-name {
   bottom: 86px;
   color: #fff;
-  font: 26px var(--font-pixel);
+  font: 30px var(--font-pixel);
   text-shadow: 3px 3px #000;
 }
 
 .toast {
   top: 70px;
   color: #8f8;
-  font-size: 24px;
+  font-size: 30px;
   text-shadow: 2px 2px #000;
 }
 
@@ -201,14 +201,14 @@ function save(): void {
 .menu {
   display: grid;
   gap: 10px;
-  width: min(400px, 90vw);
+  width: min(480px, 90vw);
   text-align: center;
 }
 
 .menu h1 {
   margin: 0 0 12px;
   color: #fff;
-  font: 34px var(--font-pixel);
+  font: 40px var(--font-pixel);
   text-shadow: 3px 3px #000;
 }
 

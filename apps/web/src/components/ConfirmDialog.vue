@@ -74,8 +74,12 @@ function onCancel(event: Event): void {
   background: rgba(20, 20, 24, 0.96);
   box-shadow: inset 0 0 0 2px #555;
   color: #fff;
-  font: 22px var(--font-retro);
+  font: 28px var(--font-retro);
   text-align: center;
+}
+
+.dialog.blocky {
+  max-width: 520px;
 }
 
 .dialog.blocky .actions {

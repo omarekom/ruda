@@ -162,12 +162,12 @@ async function onDeleteChoice(choice: 'delete' | 'cancel'): Promise<void> {
   padding: 18px 0 16px;
   background: #1d1f24;
   color: #fff;
-  font: 22px var(--font-retro);
+  font: 28px var(--font-retro);
 }
 
 h1 {
   margin: 0 0 14px;
-  font: 26px var(--font-pixel);
+  font: 34px var(--font-pixel);
   text-shadow: 3px 3px #000;
 }
 
@@ -197,7 +197,7 @@ h1 {
   display: flex;
   gap: 12px;
   align-items: center;
-  width: min(560px, 90vw);
+  width: min(700px, 92vw);
   padding: 4px;
   border: 2px solid transparent;
   border-radius: 0;
@@ -237,7 +237,7 @@ h1 {
 
 .date {
   color: #9a9a9a;
-  font-size: 19px;
+  font-size: 24px;
 }
 
 .error {
@@ -249,7 +249,7 @@ h1 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  width: min(620px, 90vw);
+  width: min(760px, 92vw);
   margin-top: 14px;
 }
 
@@ -276,13 +276,13 @@ h1 {
 .rename {
   display: grid;
   gap: 12px;
-  width: min(440px, 90vw);
+  width: min(520px, 90vw);
   padding: 18px 22px;
 }
 
 .rename h2 {
   margin: 0;
-  font: 22px var(--font-pixel);
+  font: 28px var(--font-pixel);
   text-align: center;
 }
 
@@ -292,7 +292,7 @@ h1 {
   border-radius: 0;
   background: #000;
   color: #fff;
-  font: 22px var(--font-retro);
+  font: 28px var(--font-retro);
 }
 
 .rename .row {

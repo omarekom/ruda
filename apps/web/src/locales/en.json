@@ -84,7 +84,8 @@
         "button": "Press a button",
         "delay": "Change a delayer's delay",
         "menu": "Pause menu",
-        "save": "Save the world"
+        "save": "Save the world",
+        "slot": "Pick a hotbar slot"
       },
       "keys": {
         "middleDrag": "Middle drag",

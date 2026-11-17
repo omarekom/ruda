@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
-import { HOTBAR_SLOTS, slotKey } from '../game/hotbar';
 
 const emit = defineEmits<{ done: [] }>();
 const { t } = useI18n();
@@ -46,6 +45,7 @@ const SECTIONS: readonly (readonly [
       ['save', 'Ctrl+S'],
     ],
   ],
+  ['hotbar', [['slot', '1–9', '0']]],
 ];
 
 /** Keys written as words (mouse buttons) are translated; letters and symbols are shown as is. */
@@ -67,15 +67,6 @@ function keyLabel(key: string): string {
           </span>
         </div>
       </section>
-      <section>
-        <h2>{{ t('game.controls.sections.hotbar') }}</h2>
-        <div v-for="(type, index) in HOTBAR_SLOTS" :key="type" class="row">
-          <span class="action">{{ t(`blocks.${type}`) }}</span>
-          <span class="keys">
-            <kbd>{{ slotKey(index) }}</kbd>
-          </span>
-        </div>
-      </section>
     </div>
     <button type="button" class="blocky-button done" autofocus @click="emit('done')">
       {{ t('game.controls.done') }}
@@ -93,12 +84,12 @@ function keyLabel(key: string): string {
   padding: 18px 0 20px;
   background: rgba(0, 0, 0, 0.72);
   color: #fff;
-  font: 22px var(--font-retro);
+  font: 28px var(--font-retro);
 }
 
 h1 {
   margin: 0 0 14px;
-  font: 26px var(--font-pixel);
+  font: 34px var(--font-pixel);
   text-shadow: 3px 3px #000;
 }
 
@@ -115,7 +106,7 @@ h1 {
 }
 
 section {
-  width: min(560px, 90vw);
+  width: min(700px, 92vw);
   margin: 0 auto;
   padding: 6px 0 10px;
 }
@@ -123,7 +114,7 @@ section {
 h2 {
   margin: 8px 0 6px;
   color: #fff;
-  font: 22px var(--font-retro);
+  font: 28px var(--font-retro);
   text-align: center;
   text-shadow: 2px 2px #3f3f3f;
 }
@@ -147,7 +138,7 @@ h2 {
 }
 
 kbd {
-  min-width: 120px;
+  min-width: 150px;
   padding: 2px 10px;
   border: 3px solid #000;
   background: #6f6f6f;
@@ -155,17 +146,17 @@ kbd {
     inset -3px -3px 0 #444,
     inset 3px 3px 0 #a0a0a0;
   color: #fff;
-  font: 20px/22px var(--font-retro);
+  font: 26px/28px var(--font-retro);
   text-align: center;
   text-shadow: 2px 2px #333;
 }
 
 .keys kbd + kbd {
-  min-width: 46px;
+  min-width: 56px;
 }
 
 .done {
-  width: min(400px, 80vw);
+  width: min(480px, 80vw);
   margin-top: 16px;
   padding: 8px;
 }
