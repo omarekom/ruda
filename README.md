@@ -6,7 +6,7 @@ Not a 1:1 Minecraft clone: signals are on/off, the world is flat, and crossings 
 
 ## Status
 
-Versions 0.1–0.4 (playable core, saving, timing and inputs, pistons) are implemented. See [docs/SPEC.md](docs/SPEC.md) for the feature list per version and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the design.
+Versions 0.1–0.4 (playable core, saving, timing and inputs, pistons) and 0.7 (library) are implemented; 0.5 (graphical interface) is being designed. See [docs/SPEC.md](docs/SPEC.md) for the feature list per version and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the design.
 
 ## Development
 
@@ -14,8 +14,9 @@ Requires Node.js and pnpm (`corepack enable`).
 
 ```sh
 pnpm install
-pnpm dev        # start the web app
-pnpm test       # run tests
+pnpm dev           # start the web app
+pnpm dev:library   # start the library API (needs PHP 8.1+ with pdo_sqlite)
+pnpm test          # run tests (the library API tests need PHP)
 pnpm typecheck
 pnpm lint
 ```

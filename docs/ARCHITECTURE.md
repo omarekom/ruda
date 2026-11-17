@@ -7,9 +7,10 @@ ruda/
   docs/
   packages/
     core/       pure TypeScript, no DOM: world, blocks, simulation, (de)serialization, migrations
-    renderer/   Canvas 2D rendering, camera (may start inside apps/web)
+    creations/  built-in library creations drawn from ASCII maps, with behaviour tests
   apps/
-    web/        Vue 3 + Vite: hotbar, menus, saving, import/export, i18n
+    web/          Vue 3 + Vite: game, hotbar, menus, saving, import/export, library tab, i18n
+    library-api/  PHP + SQLite backend of the library (seed file generated from creations/)
 ```
 
 The core knows nothing about the UI, storage or real time. Persistence and tick pacing (10 ticks/s) are the app's job. The core can step the simulation instantly.
@@ -64,7 +65,7 @@ Minified JSON. Blocks are grouped by type and state, with coordinates as a flat 
 
 ## Tooling
 
-pnpm workspaces, TypeScript 6 (strict), Vite, Vue 3, vue-i18n, idb, Vitest, ESLint, Prettier. The renderer lives in `apps/web/src/renderer` until there is a reason to split it out.
+pnpm workspaces, TypeScript 6 (strict), Vite, Vue 3, vue-i18n, idb, Vitest, ESLint, Prettier, tsx (scripts). Library backend: PHP 8.1+ with PDO SQLite, no PHP dependencies. The renderer lives in `apps/web/src/renderer` until there is a reason to split it out.
 
 ## Frontend
 
@@ -76,6 +77,14 @@ pnpm workspaces, TypeScript 6 (strict), Vite, Vue 3, vue-i18n, idb, Vitest, ESLi
 ## Mouse placement
 
 One click places one block (no painting). Pressing the right button shows a ghost block, dragging sets its rotation, releasing places it.
+
+## Library
+
+- The library UI (`apps/web/src/library/`) is independent of the game. It talks to the rest of the app only through a `LibraryHost` interface (list worlds, load a world's `.ruda` text, add a world, open a world) and to the server through `LibraryApi`.
+- The server stores each creation's `.ruda` text unchanged. It only checks the file's shape; the app fully validates a world when previewing or copying it, and the admin cannot approve one that does not load.
+- Every request except `GET` carries the header `X-Ruda-Library: 1`. Another site cannot send it without a CORS preflight, which the server never allows, so this guards against cross-site requests; the admin session cookie is also `SameSite=Strict` and `HttpOnly`.
+- Client addresses are stored only as keyed hashes, for rate limiting, and deleted after a day.
+- Built-in creations are code (`packages/creations`). `pnpm --filter @ruda/creations export-seed` writes `apps/library-api/seed/creations.json`; a test fails if it is stale. `php bin/seed.php` adds new ones to a server without touching existing entries.
 
 ## Multiplayer (future)
 

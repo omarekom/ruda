@@ -102,6 +102,17 @@ Contents still to be decided. Candidates:
 - World statistics: block, chunk and wire-network counts.
 - Overlays: chunk borders, wire networks highlighted, torches pending evaluation.
 
+## 0.7 – Library
+
+A shared library of creations in its own tab next to **Your worlds**. It is a separate module: it exchanges only `.ruda` text with the game.
+
+- Browse published creations as cards with a live preview, title, author, date and description. Built-in creations ("From Ruda") come first, community creations newest first.
+- **Copy to my worlds** adds a creation to the player's worlds; the copy can then be opened from the card.
+- **Share a creation**: pick one of your worlds, give it a title, your name and an optional description. No accounts. Submissions wait in a queue and appear only after the admin approves them. At most 5 submissions per client and hour; a hidden field traps bots.
+- Admin view at `#admin` in the Library tab: password login, preview and approve or reject waiting submissions, take down published creations.
+- Built-in creations, built and tested in code: block tour, logic gates (NOT, OR, NOR, AND, NAND, XOR), clocks, light chaser, pulse tools (edge detectors, delay line), memory cell (latch), adders (half, full, 2-bit), piston switches, lamp sign.
+- Backend: PHP 8.1+ with SQLite on ordinary PHP hosting (see `apps/library-api/README.md`).
+
 ## Future
 
 Ideas, not committed:
@@ -120,4 +131,3 @@ Ideas, not committed:
 - A joke "blocky game" skin: Minecraft-style pixel font, bevelled buttons, hotbar and pause menu.
 - Simulation in a Web Worker.
 - Running worlds headless from a file (CLI / library use).
-- Sharing worlds and prebuilt circuits.
