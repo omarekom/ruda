@@ -12,7 +12,7 @@ World and camera
 - Canvas 2D rendering, only visible chunks are drawn.
 - Zoom with the mouse wheel; pan with WASD / arrow keys or the middle mouse button.
 - Crosshair cursor.
-- Edge scrolling: moving the cursor to the edge of the screen pans the view.
+- Edge scrolling: moving the cursor to the edge of the screen pans the view. Not along the bottom edge under the hotbar and a little to its sides, where the cursor often slips while picking a block.
 
 Editing
 
@@ -86,7 +86,7 @@ The game
 
 - Real time, simple and playful, with a deliberately blocky look: pixel fonts, bevelled grey buttons, a framed hotbar.
 - On screen only: the hotbar (no number hints; the keys still work), the name of the held block popping up briefly when it changes, and in the top right corner the light/dark switch and a menu button.
-- The menu (button or Esc) pauses the simulation. It offers: back to game, save, worlds, controls, debug mode, start screen. Saving shows a short confirmation.
+- The menu (button or Esc) pauses the simulation. It offers: back to game, save, worlds, controls, debug mode, start screen. Saving shows a short confirmation. It takes the keyboard when it opens: arrows move between the buttons as they are laid out, Enter chooses. The start screen's buttons work the same way.
 - **Controls** lists every key and mouse action by section (movement, building, using blocks, game, hotbar), each shown as a key cap. The hotbar is one row with its number keys.
 - Opening a world shows a loading screen: a plain dark backdrop, "Loading world", playful status lines and a filling bar. It stays up for at least 1.2 s on purpose, as part of the game feel, so no menu flashes by on the way in.
 - **Block look (Workshop)**: 16×16 Minecraft-like textures seen from straight above. Solid blocks (stone, power blocks, lamps, pistons) have a dark pixel outline, a bevel and a shadow. Light glows on the floor: yellow around lit lamps, red around power blocks and other powered parts. The same look is used by the hotbar, world thumbnails, library previews and the start screen.
@@ -95,10 +95,10 @@ The game
 
 Worlds
 
-- **Worlds…** (from the start screen or the menu) shows the worlds as a grid of cards on a calm dark backdrop: a thumbnail, the name and when it was saved.
+- **Worlds…** (from the start screen or the menu) shows the worlds as a grid of cards on a calm dark backdrop: a thumbnail, the name and when it was last played, said the friendly way ("just now", "yesterday", "last week"). The most recently played come first.
 - Clicking a card plays the world. Clicking the name renames it in place (Enter keeps, Esc cancels). A small delete button on the card asks before deleting. Each card can also export its world as a `.ruda` file.
 - The first card creates a new world; **Import** next to the search field adds a `.ruda` file as a new world and opens it. A search field filters the worlds by name.
-- Fully usable with the keyboard: arrows move between cards, Enter plays, F2 renames, Delete deletes, E exports, `/` focuses the search, Esc goes back.
+- Fully usable with the keyboard: Space marks the first world, arrows move between cards, Enter plays, F2 renames, Delete deletes, E exports, I imports, `/` focuses the search, Esc goes back. Tab moves only between the cards and the bar; the rename, export and delete buttons on a card have their keys instead. Keys are listed once, in a line under the cards, and written in square brackets where shown elsewhere (`[/]`).
 
 Naming
 
@@ -118,7 +118,7 @@ Extra information and control over time, for understanding and testing circuits.
 - At the top in the middle, time control: pause, ▶ normal speed, ▶▶ 3×, ▶▶▶ 10×, **max** (as many ticks as the browser manages), a field for any speed, and a single step (while paused). Turning debug mode off returns to normal speed.
 - Bottom left, switches for panels that are hidden by default, each with its key: **I** the information text, **C** the world's contents (block counts per type), **M** a minimap (clicking it moves the view there). They work with the mouse as well.
 
-Still to decide: overlays such as chunk borders and highlighted wire networks; better keys if the letters clash with the game later.
+Still to decide: tuning debug mode and its map; overlays such as chunk borders and highlighted wire networks; better keys if the letters clash with the game later.
 
 ## 0.7 – Library
 
@@ -143,6 +143,7 @@ Game mode gets sounds, tuned to its playful feel. To design:
 
 Ideas, not committed:
 
+- Keyboard shortcuts across the game, to tune: consistent keys on every screen (Import and Back in Worlds have keys but no labels on their buttons) and how to show them without writing them everywhere, e.g. `?` on any screen overlays the keys that work there.
 - Guidance when starting: a short tour (coach marks pointing at parts of the screen) so new players get to know each mode's interface.
 - Czech localization (strings kept in locale files from the start).
 - Undo / redo.
