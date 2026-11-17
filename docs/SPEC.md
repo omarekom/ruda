@@ -118,6 +118,7 @@ Naming
 Still to design:
 
 - Expert mode's own world list (a grid of cards with a thumbnail of each world) and the library within it.
+- Open: where the library of ready-made worlds (built-in and community creations) and sharing a creation live once each mode has its own world selection. Both stay; their place in game mode and expert mode is not decided yet.
 - UI icons, and further tuning of expert mode details and block visuals.
 
 ## 0.6 – Debug mode
