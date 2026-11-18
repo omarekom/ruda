@@ -6,7 +6,7 @@ Not a 1:1 Minecraft clone: signals are on/off, the world is flat, and crossings 
 
 ## Status
 
-Versions 0.1–0.4 (playable core, saving, timing and inputs, pistons), 0.5 (graphical interface: start screen, the game, world selection) and 0.7 (library) are implemented; 0.6 (debug mode) is designed. See [docs/SPEC.md](docs/SPEC.md) for the feature list per version and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the design.
+Version 1.0 is ready for release. Implemented: the playable core, saving, timing and inputs, pistons, the graphical interface (start screen, the game, world selection), debug mode and the library. Sounds (0.8) are not done yet. The library (a shared collection of creations with a PHP backend) is built and tested but switched off in the web app for now (`LIBRARY_ENABLED` in [App.vue](apps/web/src/App.vue)). See [docs/SPEC.md](docs/SPEC.md) for the feature list per version and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the design.
 
 ## Development
 
@@ -26,6 +26,8 @@ Versioning and the release checklist: [docs/UPDATE_GUIDE.md](docs/UPDATE_GUIDE.m
 ## Stack
 
 - `packages/core` – TypeScript simulation library (no UI)
+- `packages/creations` – built-in creations drawn from ASCII maps, with behaviour tests
 - `apps/web` – Vue 3 + Vite + Canvas 2D
+- `apps/library-api` – PHP + SQLite backend of the library
 
 Worlds are saved locally and can be exported to `.ruda` files (minified JSON).
