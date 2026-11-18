@@ -1,0 +1,262 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Ruda – lever look proposals</title>
+<link rel="stylesheet" href="shared.css" />
+<style>
+  html, body { height: auto; overflow: auto; background: #1d1f24; }
+  main { max-width: 1200px; margin: 0 auto; padding: 40px 24px; display: flex; flex-direction: column; gap: 24px; }
+  h1 { font: 40px 'Silkscreen', monospace; margin: 0; text-shadow: 3px 3px #000; }
+  .lead { margin: 0; color: #b8bac2; font-size: 22px; max-width: 900px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
+  .card { padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+  .card h2 { margin: 0; font: 22px 'Silkscreen', monospace; }
+  .card h2 span { color: #9a9ca5; font-size: 14px; margin-right: 8px; }
+  .card p { margin: 0; color: #c4c6cc; font-size: 20px; line-height: 1.1; min-height: 66px; }
+  .row { display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap; }
+  .shot { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #9a9ca5; font-size: 18px; }
+  .floor { padding: 8px; background: #d2ccc0; }
+  .floor.night { background: #2a2c31; }
+  canvas { display: block; image-rendering: pixelated; }
+  .big { width: 96px; height: 96px; }
+  .hotbar { display: flex; gap: 3px; padding: 4px; }
+  .slot { width: 50px; height: 50px; display: grid; place-items: center; background: #26272c; }
+  .slot canvas { width: 34px; height: 34px; filter: brightness(1.2) contrast(1.1); }
+</style>
+
+<main>
+  <h1>Lever looks</h1>
+  <p class="lead">
+    Five proposals for the Workshop lever, as 16×16 textures seen from straight above: off and on
+    on the day floor, on at night, and at hotbar size (on a dark slot, as the game shows it). The
+    current lever comes first, for comparison.
+  </p>
+  <div class="grid" id="cards"></div>
+</main>
+
+<script>
+  const C = {
+    cobble: ['#7a7a7a', '#878787', '#6c6c6c', '#929292'],
+    mortar: '#4a4a4a',
+    smooth: ['#a9a9a9', '#a4a4a4', '#aeaeae'],
+    smoothEdge: '#8a8a8a',
+    smoothLight: '#c4c4c4',
+    outline: '#2a2a2a',
+    wood: '#6b4f2e',
+    woodDark: '#4f3a20',
+    woodLight: '#8a6a3e',
+    on: ['#ff2a1a', '#e8190c', '#ff5a40', '#f2200f'],
+    off: ['#5c0e08', '#4a0a05', '#6b120b', '#530c07'],
+    hot: '#ffd0b0',
+    metal: '#c9c9c9',
+    metalDark: '#8e8e8e',
+    slot: '#2a2a2a',
+    rockerUp: '#d2d2d2',
+    rockerDown: '#8a8a8a',
+  };
+
+  /** A 16×16 painter with the same seeded randomness on every draw, like the game's textures. */
+  function painter(seed) {
+    const grid = new Array(256).fill(null);
+    let s = seed;
+    const random = () => ((s = (s * 1103515245 + 12345) % 2147483648) / 2147483648);
+    const pick = (list) => list[Math.floor(random() * list.length)];
+    const p = {
+      grid,
+      pick,
+      px(x, y, c) { if (x >= 0 && x < 16 && y >= 0 && y < 16) grid[y * 16 + x] = c; },
+      rect(x, y, w, h, c) { for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) p.px(i, j, c); },
+      noise(x, y, w, h, list) { for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) p.px(i, j, pick(list)); },
+      line(x0, y0, x1, y1, colorAt) {
+        const steps = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
+        for (let k = 0; k <= steps; k++) {
+          const t = steps ? k / steps : 0;
+          p.px(Math.round(x0 + (x1 - x0) * t), Math.round(y0 + (y1 - y0) * t), colorAt(k));
+        }
+      },
+      cobble(x0, y0, w, h) {
+        const seeds = Array.from({ length: 7 }, () => ({ x: x0 + random() * w, y: y0 + random() * h, c: pick(C.cobble) }));
+        for (let y = y0; y < y0 + h; y++) for (let x = x0; x < x0 + w; x++) {
+          const [a, b] = seeds.map((q) => ({ q, d: Math.hypot(q.x - x - 0.5, q.y - y - 0.5) })).sort((m, n) => m.d - n.d);
+          p.px(x, y, b.d - a.d < 1.1 ? C.mortar : a.q.c);
+        }
+      },
+      smooth(x, y, w, h) {
+        p.noise(x, y, w, h, C.smooth);
+        p.rect(x, y + h - 1, w, 1, C.smoothEdge);
+        p.rect(x + w - 1, y, 1, h, C.smoothEdge);
+        p.rect(x, y, w, 1, C.smoothLight);
+        p.rect(x, y, 1, h, C.smoothLight);
+      },
+      frame(x, y, w, h) {
+        p.rect(x, y, w, 1, C.outline); p.rect(x, y + h - 1, w, 1, C.outline);
+        p.rect(x, y, 1, h, C.outline); p.rect(x + w - 1, y, 1, h, C.outline);
+      },
+    };
+    return p;
+  }
+
+  const woodStripe = (k) => (k % 2 ? C.wood : C.woodDark);
+
+  const DESIGNS = [
+    {
+      name: 'Current',
+      description: 'Today’s lever: a cobblestone base and a wooden handle leaning to the side it is flipped to, with a red knob.',
+      paint(p, on) {
+        p.cobble(4, 5, 8, 10);
+        p.line(7.5, 10, on ? 12 : 3, 3, woodStripe);
+        p.rect(on ? 12 : 2, 1, 3, 3, on ? C.on[0] : C.off[0]);
+      },
+    },
+    {
+      name: 'Slide switch',
+      description: 'A smooth stone plate with a slot. The wooden slider sits at the bottom when off and at the top when on; the open slot glows red.',
+      paint(p, on) {
+        p.smooth(2, 1, 12, 14);
+        p.frame(2, 1, 12, 14);
+        p.rect(6, 3, 4, 10, C.slot);
+        if (on) { p.noise(7, 3, 2, 10, C.on); p.rect(7, 7, 1, 5, C.hot); }
+        const y = on ? 3 : 9;
+        p.rect(5, y, 6, 4, C.outline);
+        p.rect(6, y + 1, 4, 1, C.woodLight);
+        p.rect(6, y + 2, 4, 1, C.woodDark);
+      },
+    },
+    {
+      name: 'Rocker',
+      description: 'A wall-switch rocker on cobblestone. Off presses the left half; on presses the right half, which lights up red. Reads well at hotbar size.',
+      paint(p, on) {
+        p.cobble(1, 1, 14, 14);
+        p.rect(3, 3, 10, 10, C.outline);
+        p.rect(4, 4, 4, 8, on ? C.rockerUp : C.rockerDown);
+        p.rect(4, 4, 4, 1, on ? '#eeeeee' : '#777777');
+        if (on) {
+          p.noise(8, 4, 4, 8, C.on);
+          p.rect(9, 6, 2, 4, C.hot);
+        } else {
+          p.rect(8, 4, 4, 8, C.rockerUp);
+          p.rect(8, 4, 4, 1, '#eeeeee');
+          p.rect(9, 6, 2, 4, C.off[0]);
+        }
+        p.rect(7, 4, 1, 8, '#555555');
+      },
+    },
+    {
+      name: 'Dial',
+      description: 'A round wooden knob with a metal pointer. Off points left; on points right, and the red marks around the right of the dial light up.',
+      paint(p, on) {
+        p.cobble(0, 0, 16, 16);
+        for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
+          const d = Math.hypot(x - 7.5, y - 7.5);
+          if (d < 5) p.px(x, y, (x + y) % 3 ? C.wood : C.woodDark);
+          else if (d < 6) p.px(x, y, C.outline);
+        }
+        for (const [x, y] of [[14, 7], [14, 8], [13, 4], [13, 11], [11, 2], [11, 13]]) {
+          p.px(x, y, on ? p.pick(C.on) : C.off[0]);
+        }
+        p.px(1, 7, C.outline); p.px(1, 8, C.outline);
+        const x = on ? 8 : 4;
+        p.rect(x, 7, 4, 2, C.metal);
+        p.rect(x, 8, 4, 1, C.metalDark);
+        p.rect(on ? 11 : 4, 7, 1, 2, on ? C.on[0] : C.off[0]);
+        p.rect(7, 7, 2, 2, C.woodLight);
+      },
+    },
+    {
+      name: 'Studded',
+      description: 'The current lever, sharpened: an outlined handle and an outlined base with four redstone studs that glow with the knob when on.',
+      paint(p, on) {
+        p.cobble(3, 5, 10, 10);
+        p.frame(3, 5, 10, 10);
+        for (const [x, y] of [[4, 6], [11, 6], [4, 13], [11, 13]]) p.px(x, y, on ? C.on[2] : C.off[0]);
+        const tipX = on ? 12 : 3;
+        p.line(8.5, 11, tipX + 0.5, 3, () => C.outline);
+        p.line(7.5, 11, tipX, 3, woodStripe);
+        p.rect(on ? 11 : 2, 1, 3, 3, C.outline);
+        p.rect(on ? 12 : 3, 1, 2, 2, on ? C.on[0] : C.off[0]);
+        if (on) p.px(12, 1, C.hot);
+      },
+    },
+    {
+      name: 'Knife switch',
+      description: 'A metal blade on a hinge. Off, it rests to the left; on, it stands up in the clip at the top, which glows red with the hinge.',
+      paint(p, on) {
+        p.smooth(1, 1, 14, 14);
+        p.frame(1, 1, 14, 14);
+        p.rect(5, 2, 6, 3, C.outline);
+        p.noise(6, 3, 4, 1, on ? C.on : C.off);
+        if (on) {
+          p.px(7, 3, C.hot);
+          p.rect(7, 4, 2, 8, C.metal);
+          p.rect(8, 4, 1, 8, C.metalDark);
+          p.rect(6, 4, 4, 1, C.woodDark);
+          p.rect(7, 4, 2, 1, C.wood);
+        } else {
+          p.line(7, 11, 3, 5, () => C.metal);
+          p.line(8, 11, 4, 5, () => C.metalDark);
+          p.rect(2, 4, 3, 2, C.wood);
+        }
+        p.rect(6, 11, 4, 3, C.outline);
+        p.noise(7, 12, 2, 1, on ? C.on : C.off);
+      },
+    },
+  ];
+
+  function texture(design, index, on, className) {
+    const p = painter(79 + index * 13);
+    design.paint(p, on);
+    const canvas = document.createElement('canvas');
+    canvas.width = 16;
+    canvas.height = 16;
+    canvas.className = className;
+    const g = canvas.getContext('2d');
+    p.grid.forEach((color, i) => {
+      if (!color) return;
+      g.fillStyle = color;
+      g.fillRect(i % 16, Math.floor(i / 16), 1, 1);
+    });
+    return canvas;
+  }
+
+  function shot(canvas, label, floorClass) {
+    const wrap = document.createElement('div');
+    wrap.className = 'shot';
+    const floor = document.createElement('div');
+    floor.className = floorClass;
+    floor.append(canvas);
+    wrap.append(floor, label);
+    return wrap;
+  }
+
+  const cards = document.getElementById('cards');
+  DESIGNS.forEach((design, index) => {
+    const card = document.createElement('section');
+    card.className = 'card panel';
+    const title = document.createElement('h2');
+    title.innerHTML = `<span>${index === 0 ? 'now' : '#' + index}</span>`;
+    title.append(design.name);
+    const text = document.createElement('p');
+    text.textContent = design.description;
+
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.append(
+      shot(texture(design, index, false, 'big'), 'off', 'floor'),
+      shot(texture(design, index, true, 'big'), 'on', 'floor'),
+      shot(texture(design, index, true, 'big'), 'night', 'floor night'),
+    );
+    const hotbar = document.createElement('div');
+    hotbar.className = 'hotbar panel';
+    for (const on of [false, true]) {
+      const slot = document.createElement('div');
+      slot.className = 'slot';
+      slot.append(texture(design, index, on, ''));
+      hotbar.append(slot);
+    }
+    const hotbarShot = document.createElement('div');
+    hotbarShot.className = 'shot';
+    hotbarShot.append(hotbar, 'hotbar');
+
+    card.append(title, text, row, hotbarShot);
+    cards.append(card);
+  });
+</script>
