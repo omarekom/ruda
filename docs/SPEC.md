@@ -149,6 +149,7 @@ Ideas, not committed:
 - Czech localization (strings kept in locale files from the start).
 - Undo / redo.
 - Selection, copy and paste, saved blueprints.
+- Modules: reusable building blocks (the exact concept is open). The hard part will be their UX, which needs a lot of exploration to get right.
 - Sticky pistons.
 - Delayer locking: a delayer powered from its side by another delayer holds its output.
 - Observer, comparator and other components.
