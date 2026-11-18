@@ -42,7 +42,10 @@ export const PALETTE = {
   lampOnLine: '#c9822e',
   wood: '#6b4f2e',
   woodDark: '#4f3a20',
-  rod: '#9b8160',
+  pistonBody: ['#7d7d7d', '#808080', '#7a7a7a'],
+  pistonRecess: '#5a5a5a',
+  rod: '#c9c9c9',
+  rodShade: '#8e8e8e',
   torchOn: ['#ff2a1a', '#ff6a40', '#ffd0b0'],
   torchOff: ['#5e1a10', '#4a120a'],
   buttonFace: '#b0b0b0',
@@ -83,13 +86,19 @@ function paintCobble(p: Painter, x0 = 0, y0 = 0, w = N, h = N): void {
   }
 }
 
-/** Wooden planks: four boards of four pixels with seams and one butt joint each. */
-function paintPlanks(p: Painter, rows = N): void {
-  for (let y = 0; y < rows; y += 4) {
-    p.noise(0, y, N, Math.min(3, rows - y), PALETTE.planks);
-    if (y + 3 < rows) p.rect(0, y + 3, N, 1, PALETTE.plankSeam);
-    p.rect(Math.floor(p.random() * N), y, 1, Math.min(3, rows - y), PALETTE.plankSeam);
-  }
+/** Rows of the piston's wooden face plate at the front (north) edge. */
+const PLATE_ROWS = 4;
+
+/** The piston's wooden face plate: one plain board with a dark seam behind it. */
+function paintPlate(p: Painter): void {
+  p.noise(0, 0, N, PLATE_ROWS - 1, PALETTE.planks);
+  p.rect(0, PLATE_ROWS - 1, N, 1, PALETTE.plankSeam);
+}
+
+/** The piston's metal rod, four pixels wide and shaded on its right. */
+function paintRod(p: Painter, y: number, length: number): void {
+  p.rect(6, y, 4, length, PALETTE.rod);
+  p.rect(9, y, 1, length, PALETTE.rodShade);
 }
 
 /** A smooth stone slab: flat grey with a light top-left and dark bottom-right edge. */
@@ -236,22 +245,30 @@ export const buttonTexture = textureCache((pressed: boolean) =>
   }),
 );
 
-/** A piston seen from above: wooden face at the front, cobblestone body with the rod inside. */
+/**
+ * A piston seen from above: a plain grey body with a recess the rod slides in. Retracted, the
+ * wooden face plate sits at the front and the rod is tucked in; extended, the rod runs out
+ * through the front edge to the head in the next cell.
+ */
 export const pistonTexture = textureCache((extended: boolean) =>
   paintTexture(103, (p) => {
-    paintCobble(p, 0, 4, N, N - 4);
-    p.rect(6, 5, 4, N - 6, PALETTE.mortar);
-    p.rect(7, 5, 2, N - 6, PALETTE.slotUnused);
-    if (extended) p.rect(6, 0, 4, 5, PALETTE.rod);
-    else paintPlanks(p, 4);
+    p.noise(0, 0, N, N, PALETTE.pistonBody);
+    if (extended) {
+      p.rect(5, 0, 6, N - 3, PALETTE.pistonRecess);
+      paintRod(p, 0, N - 3);
+    } else {
+      p.rect(5, PLATE_ROWS + 1, 6, N - PLATE_ROWS - 4, PALETTE.pistonRecess);
+      paintRod(p, PLATE_ROWS + 2, N - PLATE_ROWS - 6);
+      paintPlate(p);
+    }
   }),
 );
 
+/** The pushed-out face plate, with the rod reaching back to the piston. */
 export const pistonHeadTexture = lazyTexture(() =>
   paintTexture(107, (p) => {
-    paintPlanks(p, 4);
-    p.rect(6, 4, 4, N - 4, PALETTE.rod);
-    p.rect(9, 4, 1, N - 4, PALETTE.wood);
+    paintPlate(p);
+    paintRod(p, PLATE_ROWS, N - PLATE_ROWS);
   }),
 );
 
