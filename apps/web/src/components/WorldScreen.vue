@@ -15,6 +15,7 @@ import { Game } from '../game/game';
 import { createHotbarState } from '../game/hotbar';
 import type { OpenWorld } from '../game/openWorld';
 import type { SaveResult } from '../game/saving';
+import { NEW_WORLD_CELL_SIZE } from '../renderer/camera';
 import type { WorldStore } from '../storage/worldStore';
 import { worldSkin } from '../theme';
 import ConfirmDialog from './ConfirmDialog.vue';
@@ -157,6 +158,7 @@ function onVisibilityChange(): void {
 onMounted(() => {
   if (!canvas.value) return;
   game.value = new Game(canvas.value, hotbar, simulation, onEdit, worldSkin.value);
+  if (simulation.blocks.blockCount === 0) game.value.camera.setCellSize(NEW_WORLD_CELL_SIZE);
   game.value.paused = paused.value;
   game.value.speed = speed.value;
   game.value.bottomEdgeGap = bottomEdgeGap;

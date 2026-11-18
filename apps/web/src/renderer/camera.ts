@@ -3,6 +3,8 @@ import { WORLD_MAX, WORLD_MIN } from '@ruda/core';
 export const MIN_CELL_SIZE = 4;
 export const MAX_CELL_SIZE = 96;
 export const DEFAULT_CELL_SIZE = 32;
+/** A world with nothing built yet opens zoomed in to 300%, close enough to place the first blocks. */
+export const NEW_WORLD_CELL_SIZE = DEFAULT_CELL_SIZE * 3;
 
 export interface CellRect {
   readonly minX: number;

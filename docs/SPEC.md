@@ -10,6 +10,7 @@ World and camera
 
 - Seemingly infinite 2D canvas (sparse, chunked world; hard limit 64 000 × 64 000 cells).
 - Canvas 2D rendering, only visible chunks are drawn.
+- A world with no blocks (every new world) opens at 300% zoom; others open at 100%.
 - Zoom with the mouse wheel or the + and − keys (towards the middle of the screen; digit keys stay hotbar slots); pan with WASD / arrow keys or the middle mouse button.
 - Crosshair cursor.
 - Edge scrolling: moving the cursor to the edge of the screen pans the view. Not along the bottom edge under the hotbar and a little to its sides, where the cursor often slips while picking a block.
