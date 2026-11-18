@@ -3,11 +3,11 @@ import { cellKey, isInWorld } from '../coords';
 import { findBrokenPiston } from '../pistons';
 import { World, type ReadonlyWorld } from '../world';
 import { RudaFileError } from './errors';
-import { CURRENT_FORMAT, migrate, type JsonObject } from './migrations';
+import { CURRENT_VERSION, migrate, type JsonObject } from './migrations';
 
-/** The current `.ruda` format: blocks grouped by `type[:state…]`, each with flat `x, y` pairs. */
+/** The `.ruda` file: blocks grouped by `type[:state…]`, each with flat `x, y` pairs. */
 export interface RudaFile {
-  readonly format: number;
+  readonly rudaversion: number;
   readonly name: string;
   readonly blocks: Readonly<Record<string, readonly number[]>>;
 }
@@ -34,11 +34,11 @@ export function serializeWorld(world: ReadonlyWorld, name: string): string {
     cells.sort(([ax, ay], [bx, by]) => ax - bx || ay - by);
     blocks[key] = cells.flat();
   }
-  const file: RudaFile = { format: CURRENT_FORMAT, name, blocks };
+  const file: RudaFile = { rudaversion: CURRENT_VERSION, name, blocks };
   return JSON.stringify(file);
 }
 
-/** Parses a `.ruda` file of any supported format. Throws `RudaFileError` on bad input. */
+/** Parses a `.ruda` file of any supported version. Throws `RudaFileError` on bad input. */
 export function parseWorld(text: string): LoadedWorld {
   let json: unknown;
   try {

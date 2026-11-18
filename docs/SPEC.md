@@ -58,7 +58,6 @@ Other
 
 - Delayer (hotbar slot 8) – a pure delay line, rotatable. Its output equals its input from `delay` ticks earlier, so every pulse comes out unchanged, just later. Delay is 1–4 ticks (new delayers start at 1); right-clicking a placed delayer cycles 1 → 2 → 3 → 4 → 1, and the change keeps the current output. Like a torch, it reads only its back and powers only its front. It shows the signals travelling through it.
 - Button (hotbar slot 9) – momentary power source. Right-clicking powers its 4 neighbours for 10 ticks (1 s); presses while it is on are ignored.
-- File format 2 (adds the new blocks); format 1 files still load.
 
 ## 0.4 – Pistons
 
@@ -70,7 +69,6 @@ Other
 - Pushes a chain of up to 12 blocks; if the chain is longer, would leave the world, or contains a block that cannot be pushed, nothing moves. A blocked piston tries again every tick while it is powered.
 - Push animation.
 - If two pistons would touch the same cell in one tick (pushing into the same cell, or one pushing the other), neither moves.
-- File format 3 (adds the piston); older files still load.
 
 ## 0.5 – Graphical interface
 
@@ -104,7 +102,7 @@ Worlds
 
 Naming
 
-- Ruda uses its own names, not Minecraft's: the constant power source is the **power block** (`power_block`). File format 4 renames it; files in older formats still load, with the old name (`redstone_block`) converted.
+- Ruda uses its own names, not Minecraft's: the constant power source is the **power block** (`power_block`).
 
 Still to design:
 

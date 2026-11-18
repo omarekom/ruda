@@ -163,7 +163,8 @@ describe('Piston', () => {
   });
 
   it('rejects files with half a piston', () => {
-    const load = (blocks: string) => () => parseWorld(`{"format":3,"name":"x","blocks":${blocks}}`);
+    const load = (blocks: string) => () =>
+      parseWorld(`{"rudaversion":1,"name":"x","blocks":${blocks}}`);
     expect(load('{"piston:east:extended":[0,0]}')).toThrow(RudaFileError);
     expect(load('{"piston_head:east":[0,0]}')).toThrow(RudaFileError);
     expect(load('{"piston:east:extended":[0,0],"piston_head:west":[1,0]}')).toThrow(RudaFileError);

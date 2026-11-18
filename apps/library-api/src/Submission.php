@@ -64,7 +64,7 @@ final class Submission
     private static function looksLikeWorld(string $data): bool
     {
         $file = json_decode($data, true, 4);
-        if (!is_array($file) || !is_int($file['format'] ?? null) || $file['format'] < 1) {
+        if (!is_array($file) || !is_int($file['rudaversion'] ?? null) || $file['rudaversion'] < 1) {
             return false;
         }
         if (!is_string($file['name'] ?? null) || !is_array($file['blocks'] ?? null)) {

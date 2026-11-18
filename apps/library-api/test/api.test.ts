@@ -14,7 +14,8 @@ const seedFile = JSON.parse(
   readFileSync(new URL('../seed/creations.json', import.meta.url), 'utf8'),
 ) as { slug: string; title: string }[];
 
-const world = '{"format":3,"name":"Mine","blocks":{"lever:off":[0,0],"wire":[1,0],"lamp":[2,0]}}';
+const world =
+  '{"rudaversion":1,"name":"Mine","blocks":{"lever:off":[0,0],"wire":[1,0],"lamp":[2,0]}}';
 const submission = {
   title: 'My lamp',
   description: 'A lever and a lamp.',
@@ -121,9 +122,9 @@ describe('library API', () => {
     ['author', { author: '   ' }],
     ['description', { description: 'x'.repeat(501) }],
     ['data', { data: 'not json' }],
-    ['data', { data: '{"format":1,"name":"x","blocks":{"wire":[0]}}' }],
-    ['data', { data: '{"format":1,"name":"x","blocks":{"Wire!":[0,0]}}' }],
-    ['data', { data: '{"format":"1","name":"x","blocks":{}}' }],
+    ['data', { data: '{"rudaversion":1,"name":"x","blocks":{"wire":[0]}}' }],
+    ['data', { data: '{"rudaversion":1,"name":"x","blocks":{"Wire!":[0,0]}}' }],
+    ['data', { data: '{"rudaversion":"1","name":"x","blocks":{}}' }],
   ])('rejects an invalid %s', async (field, change) => {
     const response = await new Client(server.baseUrl).request('POST', '/submissions', {
       ...submission,

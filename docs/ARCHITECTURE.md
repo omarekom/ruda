@@ -41,7 +41,7 @@ Minified JSON. Blocks are grouped by type and state, with coordinates as a flat 
 
 ```json
 {
-  "format": 4,
+  "rudaversion": 1,
   "name": "My world",
   "blocks": {
     "power_block": [0, 0, 5, 3],
@@ -55,10 +55,9 @@ Minified JSON. Blocks are grouped by type and state, with coordinates as a flat 
 
 - The key is the block type followed by every state segment, in a fixed order (`type:state…`). States are always written explicitly: `lever:on` / `lever:off`, `torch:<north|east|south|west>:<lit|unlit>`, `delayer:<facing>:<delay>:<line>` (the line is one `0`/`1` per tick of delay, current output first), `button:<ticks remaining>`. Stateless blocks have no suffix.
 - Pistons: `piston:<facing>:<extended|retracted>`, `piston_head:<facing>`.
-- Format history: 1 – initial blocks; 2 – adds delayer and button; 3 – adds piston (no changes to existing content).
 - The value is a flat list of `x, y` pairs.
 - Output is canonical: keys and cells are sorted, so the same world always gives the same file.
-- `format` is the file version. Loading runs a chain of migrations `vN → vN+1`. A file newer than the app is rejected with a clear message. Old migrations are never edited, only appended.
+- `rudaversion` is the file version, which also marks the file as a Ruda world. It is 1 until the first release; there are no migrations yet. Loading runs a chain of migrations `vN → vN+1`. A file newer than the app is rejected with a clear message. Old migrations are never edited, only appended.
 - Loading is strict: unknown blocks, bad coordinates or a cell listed twice reject the file.
 - Names have no namespace prefix.
 - Worlds stored in the browser use the same format, so migrations apply to them too.

@@ -30,5 +30,5 @@ export { MAX_PUSH, type BlockMove } from './pistons';
 export { Simulation } from './simulation';
 export { CHUNK_SIZE, World, type BlockVisitor, type ReadonlyWorld } from './world';
 export { RudaFileError, type RudaFileErrorCode } from './file/errors';
-export { CURRENT_FORMAT } from './file/migrations';
+export { CURRENT_VERSION } from './file/migrations';
 export { parseWorld, serializeWorld, type LoadedWorld, type RudaFile } from './file/ruda';

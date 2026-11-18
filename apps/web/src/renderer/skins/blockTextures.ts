@@ -21,8 +21,6 @@ const LAST = N - 1;
 export const PALETTE = {
   stone: ['#7d7d7d', '#858585', '#747474', '#8b8b8b', '#797979'],
   stoneStreak: '#666666',
-  cobble: ['#7a7a7a', '#878787', '#6c6c6c', '#929292'],
-  mortar: '#4a4a4a',
   planks: ['#a2824f', '#9a7b49', '#ab8a55', '#977645'],
   plankSeam: '#6a5230',
   smooth: ['#a9a9a9', '#a4a4a4', '#aeaeae'],
@@ -42,6 +40,8 @@ export const PALETTE = {
   lampOnLine: '#c9822e',
   wood: '#6b4f2e',
   woodDark: '#4f3a20',
+  woodLight: '#8a6a3e',
+  leverOutline: '#2a2a2a',
   pistonBody: ['#7d7d7d', '#808080', '#7a7a7a'],
   pistonRecess: '#5a5a5a',
   pistonSocket: '#3e3e3e',
@@ -65,26 +65,6 @@ function paintStone(p: Painter): void {
     const x = Math.floor(p.random() * (N - 3));
     const y = Math.floor(p.random() * N);
     p.rect(x, y, 2 + Math.floor(p.random() * 2), 1, PALETTE.stoneStreak);
-  }
-}
-
-/** Cobblestone: rounded stones of different shades, with dark mortar where two stones meet. */
-function paintCobble(p: Painter, x0 = 0, y0 = 0, w = N, h = N): void {
-  const seeds = Array.from({ length: 7 }, () => ({
-    x: x0 + p.random() * w,
-    y: y0 + p.random() * h,
-    shade: pick(p.random, PALETTE.cobble),
-  }));
-  for (let y = y0; y < y0 + h; y++) {
-    for (let x = x0; x < x0 + w; x++) {
-      const near = seeds
-        .map((s) => ({ s, d: Math.hypot(s.x - x - 0.5, s.y - y - 0.5) }))
-        .sort((a, b) => a.d - b.d);
-      const [first, second] = near;
-      if (!first || !second) continue;
-      const edge = second.d - first.d < 1.1;
-      p.pixel(x, y, edge ? PALETTE.mortar : first.s.shade);
-    }
   }
 }
 
@@ -212,16 +192,26 @@ export const crossingTexture = textureCache((key: `${boolean}-${boolean}`) => {
   });
 });
 
+/**
+ * A slide switch: a stone plate with a slot and a wooden slider, at the bottom when off and at
+ * the top when on, where the open slot behind it glows.
+ */
 export const leverTexture = textureCache((on: boolean) =>
   paintTexture(79, (p) => {
-    paintCobble(p, 4, 5, 8, 10);
-    // The handle leans towards the side the lever is flipped to.
-    const tipX = on ? 12 : 3;
-    for (let i = 0; i <= 7; i++) {
-      const x = Math.round(7.5 + ((tipX - 7.5) * i) / 7);
-      p.rect(x, 10 - i, 2, 1, i % 2 ? PALETTE.wood : PALETTE.woodDark);
+    paintSmooth(p, 2, 1, 12, 14);
+    p.rect(2, 1, 12, 1, PALETTE.leverOutline);
+    p.rect(2, LAST - 1, 12, 1, PALETTE.leverOutline);
+    p.rect(2, 1, 1, 14, PALETTE.leverOutline);
+    p.rect(13, 1, 1, 14, PALETTE.leverOutline);
+    p.rect(6, 3, 4, 10, PALETTE.leverOutline);
+    if (on) {
+      p.noise(7, 3, 2, 10, PALETTE.dustOn);
+      p.rect(7, 7, 1, 5, PALETTE.torchOn[2]);
     }
-    p.rect(on ? 12 : 2, 1, 3, 3, on ? PALETTE.dustOn[0] : PALETTE.dustOff[0]);
+    const y = on ? 3 : 9;
+    p.rect(5, y, 6, 4, PALETTE.leverOutline);
+    p.rect(6, y + 1, 4, 1, PALETTE.woodLight);
+    p.rect(6, y + 2, 4, 1, PALETTE.woodDark);
   }),
 );
 

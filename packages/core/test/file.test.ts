@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   Axis,
-  CURRENT_FORMAT,
+  CURRENT_VERSION,
   Direction,
   parseWorld,
   RudaFileError,
@@ -29,7 +29,7 @@ describe('.ruda files', () => {
     world.set(0, 0, { type: 'wire' });
     world.set(-3, 5, { type: 'power_block' });
     expect(serializeWorld(world, 'Test')).toBe(
-      `{"format":${CURRENT_FORMAT},"name":"Test","blocks":{"lever:off":[2,2],"power_block":[-3,5],"torch:east:lit":[4,4],"wire":[0,0,1,0]}}`,
+      `{"rudaversion":${CURRENT_VERSION},"name":"Test","blocks":{"lever:off":[2,2],"power_block":[-3,5],"torch:east:lit":[4,4],"wire":[0,0,1,0]}}`,
     );
   });
 
@@ -49,7 +49,7 @@ describe('.ruda files', () => {
 
   it('restores a running circuit with derived power recomputed', () => {
     const { world } = parseWorld(
-      '{"format":1,"name":"x","blocks":{"lever:on":[0,0],"wire":[1,0],"torch:east:unlit":[2,0],"lamp":[3,0]}}',
+      '{"rudaversion":1,"name":"x","blocks":{"lever:on":[0,0],"wire":[1,0],"torch:east:unlit":[2,0],"lamp":[3,0]}}',
     );
     const sim = new Simulation(world);
     expect(sim.isChannelPowered(1, 0, Axis.Horizontal)).toBe(true);
@@ -67,46 +67,27 @@ describe('.ruda files', () => {
     expect(serializeWorld(sim.blocks, 'x')).toContain('"button:9":[2,0],"delayer:east:2:01":[1,0]');
   });
 
-  it('loads format 1 files', () => {
-    const { world } = parseWorld('{"format":1,"name":"Old","blocks":{"torch:north:lit":[1,1]}}');
-    expect(world.get(1, 1)).toEqual({ type: 'torch', facing: Direction.North, lit: true });
-  });
-
-  it('renames the old constant power source when loading format 3 and older', () => {
-    const { world } = parseWorld(
-      '{"format":3,"name":"Old","blocks":{"redstone_block":[0,0,4,1],"wire":[1,0]}}',
-    );
-    expect(world.get(0, 0)).toEqual({ type: 'power_block' });
-    expect(world.get(4, 1)).toEqual({ type: 'power_block' });
-    expect(world.get(1, 0)).toEqual({ type: 'wire' });
-  });
-
-  it('does not accept the old block name in current files', () => {
-    expect(
-      errorCode(`{"format":${CURRENT_FORMAT},"name":"x","blocks":{"redstone_block":[0,0]}}`),
-    ).toBe('invalid_content');
-  });
-
   it.each([
     ['not json', 'invalid_json'],
     ['[1, 2]', 'not_ruda'],
     ['{"name":"x","blocks":{}}', 'not_ruda'],
-    ['{"format":0,"name":"x","blocks":{}}', 'not_ruda'],
-    [`{"format":${CURRENT_FORMAT + 1},"name":"x","blocks":{}}`, 'too_new'],
-    ['{"format":1,"blocks":{}}', 'invalid_content'],
-    ['{"format":1,"name":"x","blocks":{"dirt":[0,0]}}', 'invalid_content'],
-    ['{"format":1,"name":"x","blocks":{"lever":[0,0]}}', 'invalid_content'],
-    ['{"format":1,"name":"x","blocks":{"torch:up:lit":[0,0]}}', 'invalid_content'],
-    ['{"format":1,"name":"x","blocks":{"wire:on":[0,0]}}', 'invalid_content'],
-    ['{"format":1,"name":"x","blocks":{"wire":[0]}}', 'invalid_content'],
-    ['{"format":1,"name":"x","blocks":{"wire":[0.5,0]}}', 'invalid_content'],
-    ['{"format":1,"name":"x","blocks":{"wire":[32000,0]}}', 'invalid_content'],
-    ['{"format":1,"name":"x","blocks":{"wire":[0,0],"stone":[0,0]}}', 'invalid_content'],
-    ['{"format":2,"name":"x","blocks":{"delayer:east:2:1":[0,0]}}', 'invalid_content'],
-    ['{"format":2,"name":"x","blocks":{"delayer:east:5:00000":[0,0]}}', 'invalid_content'],
-    ['{"format":2,"name":"x","blocks":{"delayer:east:2:12":[0,0]}}', 'invalid_content'],
-    ['{"format":2,"name":"x","blocks":{"button:11":[0,0]}}', 'invalid_content'],
-    ['{"format":2,"name":"x","blocks":{"button:05":[0,0]}}', 'invalid_content'],
+    ['{"rudaversion":0,"name":"x","blocks":{}}', 'not_ruda'],
+    [`{"rudaversion":${CURRENT_VERSION + 1},"name":"x","blocks":{}}`, 'too_new'],
+    ['{"rudaversion":1,"blocks":{}}', 'invalid_content'],
+    ['{"rudaversion":1,"name":"x","blocks":{"redstone_block":[0,0]}}', 'invalid_content'],
+    ['{"rudaversion":1,"name":"x","blocks":{"dirt":[0,0]}}', 'invalid_content'],
+    ['{"rudaversion":1,"name":"x","blocks":{"lever":[0,0]}}', 'invalid_content'],
+    ['{"rudaversion":1,"name":"x","blocks":{"torch:up:lit":[0,0]}}', 'invalid_content'],
+    ['{"rudaversion":1,"name":"x","blocks":{"wire:on":[0,0]}}', 'invalid_content'],
+    ['{"rudaversion":1,"name":"x","blocks":{"wire":[0]}}', 'invalid_content'],
+    ['{"rudaversion":1,"name":"x","blocks":{"wire":[0.5,0]}}', 'invalid_content'],
+    ['{"rudaversion":1,"name":"x","blocks":{"wire":[32000,0]}}', 'invalid_content'],
+    ['{"rudaversion":1,"name":"x","blocks":{"wire":[0,0],"stone":[0,0]}}', 'invalid_content'],
+    ['{"rudaversion":1,"name":"x","blocks":{"delayer:east:2:1":[0,0]}}', 'invalid_content'],
+    ['{"rudaversion":1,"name":"x","blocks":{"delayer:east:5:00000":[0,0]}}', 'invalid_content'],
+    ['{"rudaversion":1,"name":"x","blocks":{"delayer:east:2:12":[0,0]}}', 'invalid_content'],
+    ['{"rudaversion":1,"name":"x","blocks":{"button:11":[0,0]}}', 'invalid_content'],
+    ['{"rudaversion":1,"name":"x","blocks":{"button:05":[0,0]}}', 'invalid_content'],
   ])('rejects %s with %s', (text, code) => {
     expect(errorCode(text)).toBe(code);
   });
