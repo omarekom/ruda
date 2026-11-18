@@ -55,12 +55,12 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
     <!-- After the menu in the page, so Tab reaches Play first and the toggle last. -->
     <div class="corner"><ThemeToggle /></div>
     <div class="bottom-left">
-      <button type="button" class="blocky-button about-button" @click="showAbout = true">
+      <button type="button" class="slot-button" @click="showAbout = true">
         {{ t('about.open') }}
       </button>
       <button
         type="button"
-        class="version-button"
+        class="slot-button"
         :aria-label="t('changelog.open')"
         @click="showChangelog = true"
       >
@@ -103,12 +103,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   gap: 8px;
 }
 
-.about-button {
-  padding: 2px 16px;
-  font-size: 26px;
-}
-
-.version-button {
+.slot-button {
   align-self: stretch;
   padding: 0 12px;
   border: 3px solid #000;
@@ -120,11 +115,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   cursor: pointer;
 }
 
-.version-button:hover {
+.slot-button:hover {
   box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.4);
 }
 
-.version-button:focus-visible {
+.slot-button:focus-visible {
   outline: 3px solid #fff;
   outline-offset: 2px;
 }

@@ -1,8 +1,46 @@
 <script setup lang="ts">
+import { onBeforeUnmount, onMounted, useTemplateRef } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const emit = defineEmits<{ done: [] }>();
 const { t } = useI18n();
+const list = useTemplateRef<HTMLElement>('list');
+const done = useTemplateRef<HTMLElement>('done');
+
+const ARROW_STEP = 56;
+
+/** Enter and Escape close the dialog; the other keys scroll the list like a scrollable page. */
+function onKeyDown(event: KeyboardEvent): void {
+  if (event.key === 'Enter' || event.key === 'Escape') {
+    event.preventDefault();
+    emit('done');
+    return;
+  }
+  if (event.key === 'Tab') {
+    // The Done button is the dialog's only tab stop; the page behind it stays out of reach.
+    event.preventDefault();
+    done.value?.focus();
+    return;
+  }
+  const el = list.value;
+  if (!el) return;
+  const page = el.clientHeight - ARROW_STEP;
+  const target: Partial<Record<string, number>> = {
+    ArrowUp: el.scrollTop - ARROW_STEP,
+    ArrowDown: el.scrollTop + ARROW_STEP,
+    PageUp: el.scrollTop - page,
+    PageDown: el.scrollTop + page,
+    Home: 0,
+    End: el.scrollHeight,
+  };
+  const top = target[event.key];
+  if (top === undefined) return;
+  event.preventDefault();
+  el.scrollTo({ top });
+}
+
+onMounted(() => window.addEventListener('keydown', onKeyDown));
+onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 
 /** Each section lists actions (i18n keys under game.controls.actions) and the keys for them. */
 const SECTIONS: readonly (readonly [
@@ -58,7 +96,7 @@ function keyLabel(key: string): string {
 <template>
   <div class="controls" role="dialog" :aria-label="t('game.controls.title')">
     <h1>{{ t('game.controls.title') }}</h1>
-    <div class="list">
+    <div ref="list" class="list blocky-scroll">
       <section v-for="[section, rows] in SECTIONS" :key="section">
         <h2>{{ t(`game.controls.sections.${section}`) }}</h2>
         <div v-for="[action, ...keys] in rows" :key="action" class="row">
@@ -69,7 +107,7 @@ function keyLabel(key: string): string {
         </div>
       </section>
     </div>
-    <button type="button" class="blocky-button done" autofocus @click="emit('done')">
+    <button ref="done" type="button" class="blocky-button done" autofocus @click="emit('done')">
       {{ t('game.controls.done') }}
     </button>
   </div>
@@ -97,7 +135,6 @@ h1 {
 .list {
   flex: 1;
   width: 100%;
-  overflow-y: auto;
   border-top: 2px solid #000;
   border-bottom: 2px solid #000;
   background: rgba(0, 0, 0, 0.35);

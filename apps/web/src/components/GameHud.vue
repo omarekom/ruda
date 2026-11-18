@@ -85,7 +85,7 @@ watch(
 );
 
 function onKeyDown(event: KeyboardEvent): void {
-  if (props.blocked) return;
+  if (props.blocked || overlay.value === 'controls') return;
   if (event.key === 'Escape') {
     open(overlay.value === undefined ? 'menu' : undefined);
   } else if (overlay.value === 'menu' && isArrowKey(event.key)) {

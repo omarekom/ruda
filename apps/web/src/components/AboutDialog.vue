@@ -37,7 +37,7 @@ function onCancel(event: Event): void {
       <thead>
         <tr>
           <th scope="col">{{ t('about.contact') }}</th>
-          <th scope="col" colspan="2">{{ t('about.source') }}</th>
+          <th scope="col" colspan="2" class="source">{{ t('about.source') }}</th>
         </tr>
       </thead>
       <tbody>
@@ -45,10 +45,10 @@ function onCancel(event: Event): void {
           <td>
             <a :href="`mailto:${CONTACT_EMAIL}`">{{ CONTACT_EMAIL }}</a>
           </td>
-          <td>
+          <td class="source">
             <a :href="REPOSITORY_URL" target="_blank" rel="noopener">{{ t('about.repository') }}</a>
           </td>
-          <td>
+          <td class="source">
             <a :href="SOURCE_ARCHIVE" download>{{ t('about.download') }}</a>
           </td>
         </tr>
@@ -103,6 +103,15 @@ th,
 td {
   padding: 4px 16px 4px 0;
   text-align: left;
+}
+
+/* The source columns hug the right edge; the contact column takes the rest. */
+.source {
+  width: 1%;
+  padding-right: 0;
+  padding-left: 16px;
+  text-align: right;
+  white-space: nowrap;
 }
 
 th {

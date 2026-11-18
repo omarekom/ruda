@@ -2,3 +2,4 @@ node_modules/
 dist/
 *.tsbuildinfo
 coverage/
+tmp_gui_props/
