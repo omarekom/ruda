@@ -1,5 +1,6 @@
 <script setup lang="ts" generic="T extends string">
 import { onMounted, useTemplateRef } from 'vue';
+import { focusHoveredButton, isArrowKey, moveFocus } from '../input/focusNavigation';
 
 export interface DialogAction<V extends string> {
   readonly value: V;
@@ -18,7 +19,28 @@ const props = defineProps<{
 const emit = defineEmits<{ choose: [value: T] }>();
 const dialog = useTemplateRef<HTMLDialogElement>('dialog');
 
-onMounted(() => dialog.value?.showModal());
+onMounted(() => {
+  dialog.value?.showModal();
+  // Shown as keyboard focus even when the dialog was opened by a click, so Enter's target is clear.
+  primaryButton()?.focus({ focusVisible: true });
+});
+
+function buttons(): HTMLButtonElement[] {
+  return [...(dialog.value?.querySelectorAll<HTMLButtonElement>('.actions button') ?? [])];
+}
+
+function primaryButton(): HTMLButtonElement | undefined {
+  const index = props.actions.findIndex((action) => action.primary);
+  return buttons()[Math.max(0, index)];
+}
+
+/** Keys stay in the dialog, so the screen behind it does not react to them as well. */
+function onKeyDown(event: KeyboardEvent): void {
+  event.stopPropagation();
+  if (!isArrowKey(event.key)) return;
+  event.preventDefault();
+  moveFocus(buttons(), event.key);
+}
 
 function onCancel(event: Event): void {
   event.preventDefault();
@@ -27,7 +49,14 @@ function onCancel(event: Event): void {
 </script>
 
 <template>
-  <dialog ref="dialog" class="dialog" :class="{ blocky }" @cancel="onCancel">
+  <dialog
+    ref="dialog"
+    class="dialog"
+    :class="{ blocky }"
+    @cancel="onCancel"
+    @keydown="onKeyDown"
+    @pointerover="focusHoveredButton"
+  >
     <p>{{ message }}</p>
     <div class="actions">
       <button
@@ -35,7 +64,6 @@ function onCancel(event: Event): void {
         :key="action.value"
         type="button"
         :class="blocky ? 'blocky-button' : { primary: action.primary }"
-        :autofocus="action.primary"
         @click="emit('choose', action.value)"
       >
         {{ action.label }}
