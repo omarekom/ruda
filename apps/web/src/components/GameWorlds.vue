@@ -150,8 +150,11 @@ function onKeyDown(event: KeyboardEvent): void {
   if (renaming.value || deleting.value) return;
   const typing = event.target instanceof HTMLInputElement;
   if (event.key === 'Escape') {
-    if (typing && search.value) search.value = '';
-    else emit('back');
+    if (typing) {
+      // Without this, the browser also clears the search field.
+      event.preventDefault();
+      searchInput.value?.blur();
+    } else emit('back');
   } else if (
     nothingFocused() &&
     ((event.key === 'Tab' && !event.shiftKey) || isArrowKey(event.key))
