@@ -100,13 +100,12 @@ table {
 
 th,
 td {
-  padding: 6px 12px;
-  border: 2px solid #3a3a3a;
+  padding: 4px 16px 4px 0;
   text-align: left;
 }
 
 th {
-  background: rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
   color: #ffe14d;
   font-weight: normal;
 }
