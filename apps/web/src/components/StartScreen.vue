@@ -4,7 +4,9 @@ import { useI18n } from 'vue-i18n';
 import { focusHoveredButton, isArrowKey, moveFocus } from '../input/focusNavigation';
 import { lightRing } from '../start/lightRing';
 import { worldSkin } from '../theme';
+import { APP_VERSION } from '../version';
 import AboutDialog from './AboutDialog.vue';
+import ChangelogDialog from './ChangelogDialog.vue';
 import GameControls from './GameControls.vue';
 import LiveWorld from './LiveWorld.vue';
 import ThemeToggle from './ThemeToggle.vue';
@@ -15,13 +17,15 @@ const { t } = useI18n();
 const backdrop = lightRing();
 const showControls = ref(false);
 const showAbout = ref(false);
+const showChangelog = ref(false);
 const screen = useTemplateRef<HTMLElement>('screen');
 
 function onKeyDown(event: KeyboardEvent): void {
-  if (showControls.value || showAbout.value || !isArrowKey(event.key)) return;
+  if (showControls.value || showAbout.value || showChangelog.value || !isArrowKey(event.key))
+    return;
   event.preventDefault();
   const buttons = screen.value?.querySelectorAll<HTMLElement>(
-    '.buttons button, .corner button, .about-button',
+    '.buttons button, .corner button, .bottom-left button',
   );
   moveFocus([...(buttons ?? [])], event.key);
 }
@@ -50,10 +54,21 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
     </div>
     <!-- After the menu in the page, so Tab reaches Play first and the toggle last. -->
     <div class="corner"><ThemeToggle /></div>
-    <button type="button" class="blocky-button about-button" @click="showAbout = true">
-      {{ t('about.open') }}
-    </button>
+    <div class="bottom-left">
+      <button type="button" class="blocky-button about-button" @click="showAbout = true">
+        {{ t('about.open') }}
+      </button>
+      <button
+        type="button"
+        class="version-button"
+        :aria-label="t('changelog.open')"
+        @click="showChangelog = true"
+      >
+        {{ APP_VERSION }}
+      </button>
+    </div>
     <AboutDialog v-if="showAbout" @done="showAbout = false" />
+    <ChangelogDialog v-if="showChangelog" @done="showChangelog = false" />
     <GameControls v-if="showControls" @done="showControls = false" />
   </main>
 </template>
@@ -79,12 +94,33 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   right: 14px;
 }
 
-.about-button {
+.bottom-left {
   position: absolute;
   bottom: 14px;
   left: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.about-button {
   padding: 2px 16px;
   font-size: 26px;
+}
+
+.version-button {
+  padding: 2px 4px;
+  border: 0;
+  background: none;
+  color: rgba(255, 255, 255, 0.55);
+  font: 26px var(--font-retro);
+  text-shadow: 2px 2px #000;
+  cursor: pointer;
+}
+
+.version-button:hover,
+.version-button:focus-visible {
+  color: #fff;
 }
 
 .content {

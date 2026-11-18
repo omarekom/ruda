@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, useTemplateRef } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { APP_VERSION } from '../version';
 
 const emit = defineEmits<{ done: [] }>();
 const { t } = useI18n();
@@ -9,8 +10,8 @@ const dialog = useTemplateRef<HTMLDialogElement>('dialog');
 /** Public contact details and where the source of this version can be found. */
 const CONTACT_EMAIL = 'om@omarek.cz';
 const REPOSITORY_URL = 'https://github.com/omarekom/ruda';
-/** Made from the last commit by `pnpm build`; the dev server makes it on demand (vite.config.ts). */
-const SOURCE_ARCHIVE = 'ruda-source.zip';
+/** Made from the last commit by `pnpm build` (scripts/sourceZip.ts); the dev server makes it on demand. */
+const SOURCE_ARCHIVE = `ruda_v${APP_VERSION}.zip`;
 
 onMounted(() => dialog.value?.showModal());
 

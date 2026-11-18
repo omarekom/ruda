@@ -15,7 +15,7 @@ export default tseslint.config(
     languageOptions: { parserOptions: { parser: tseslint.parser } },
   },
   {
-    languageOptions: { globals: { ...globals.browser } },
+    languageOptions: { globals: { ...globals.browser, __RUDA_VERSION__: 'readonly' } },
   },
   prettier,
 );

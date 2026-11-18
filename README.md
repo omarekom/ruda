@@ -21,6 +21,8 @@ pnpm typecheck
 pnpm lint
 ```
 
+Versioning and the release checklist: [docs/UPDATE_GUIDE.md](docs/UPDATE_GUIDE.md).
+
 ## Stack
 
 - `packages/core` – TypeScript simulation library (no UI)

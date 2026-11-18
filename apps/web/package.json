@@ -1,11 +1,11 @@
 {
   "name": "@ruda/web",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build && git -C ../.. archive --format=zip --prefix=ruda/ -o apps/web/dist/ruda-source.zip HEAD",
+    "build": "vue-tsc --noEmit && vite build && node ../../scripts/sourceZip.ts dist",
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "vue-tsc --noEmit"
