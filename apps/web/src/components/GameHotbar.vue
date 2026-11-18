@@ -19,7 +19,12 @@ const emit = defineEmits<{ select: [index: number] }>();
       :title="$t(`blocks.${type}`)"
       @click="emit('select', index)"
     >
-      <BlockIcon :block="createBlock(type, state.facing)" :skin="workshopSkin" :size="34" />
+      <BlockIcon
+        class="icon"
+        :block="createBlock(type, state.facing)"
+        :skin="workshopSkin"
+        :size="34"
+      />
     </button>
   </nav>
 </template>
@@ -52,6 +57,18 @@ const emit = defineEmits<{ select: [index: number] }>();
 .slot.selected {
   z-index: 1;
   background: #d2ccc0;
+}
+
+/*
+ * The blocks are mid-toned, so on the dark slots they get a little brighter with a soft light
+ * rim; on the light selected slot they cast a shadow like blocks in the world instead.
+ */
+.icon {
+  filter: brightness(1.2) contrast(1.1) drop-shadow(0 0 2px rgba(255, 255, 255, 0.45));
+}
+
+.selected .icon {
+  filter: drop-shadow(3px 3px 0 rgba(0, 0, 0, 0.3));
 }
 
 /* The selection frame reaches past the slot and the panel on every side. */
