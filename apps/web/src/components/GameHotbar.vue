@@ -39,18 +39,16 @@ const emit = defineEmits<{ select: [index: number] }>();
   padding: 0;
   border: none;
   border-radius: 0;
-  background: #8b8b8b;
-  box-shadow:
-    inset 3px 3px 0 #373737,
-    inset -3px -3px 0 #fff;
+  background: #4a4a50;
   cursor: pointer;
 }
 
 .slot:hover {
-  background: #9d9d9d;
+  background: #5c5c63;
 }
 
 .slot.selected {
+  background: #8b8b8b;
   outline: 4px solid #fff;
   box-shadow: inset 0 0 0 3px #000;
 }
