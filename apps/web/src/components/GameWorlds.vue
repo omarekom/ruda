@@ -152,6 +152,12 @@ function onKeyDown(event: KeyboardEvent): void {
   if (event.key === 'Escape') {
     if (typing && search.value) search.value = '';
     else emit('back');
+  } else if (
+    nothingFocused() &&
+    ((event.key === 'Tab' && !event.shiftKey) || isArrowKey(event.key))
+  ) {
+    event.preventDefault();
+    focusFirstWorld();
   } else if (event.key === 'ArrowDown' && typing) {
     cards()[0]?.focus();
   } else if (!typing && !event.ctrlKey && !event.metaKey && !event.altKey) {
@@ -177,11 +183,14 @@ function focusFirstWorld(): void {
   (cards()[1] ?? cards()[0])?.focus();
 }
 
+/** Nothing is focused when the screen opens; the first Tab or arrow goes to the first world. */
+function nothingFocused(): boolean {
+  return document.activeElement === null || document.activeElement === document.body;
+}
+
 onMounted(async () => {
   window.addEventListener('keydown', onKeyDown);
   await refresh();
-  await nextTick();
-  focusFirstWorld();
 });
 onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 </script>
