@@ -23,6 +23,19 @@ pnpm lint
 
 Versioning and the release checklist: [docs/UPDATE_GUIDE.md](docs/UPDATE_GUIDE.md).
 
+## Deploy
+
+The game is a static site, so any web hosting works (production: <https://ruda.omarek.cz>). The library backend is not needed while the library is switched off.
+
+1. Make sure everything is committed (the source archive is made from the last commit) and that `pnpm typecheck`, `pnpm lint` and `pnpm test` pass.
+2. `pnpm build`. The result is in `apps/web/dist`: `index.html`, `assets/`, the favicon and social preview image, and the source archive `ruda_vN.N.zip` that the About dialog links to.
+3. Upload the **contents** of `apps/web/dist` to the web root of the (sub)domain, replacing the previous files. Old `assets/*` files can be deleted: their names change with every build.
+4. Serve it over HTTPS. No server-side code or rewrite rules are needed: the app never changes the URL path.
+5. Check the deployed site: the start screen loads, a world can be created and saved, and the zip downloads from About. Link previews can be tested with the sharing debuggers of Facebook or LinkedIn (they cache the image, so check it before announcing the release).
+6. Tag the release (`git tag v1.0`).
+
+The full release checklist (changelog, version bump) is in [docs/UPDATE_GUIDE.md](docs/UPDATE_GUIDE.md). To deploy the library later, see [apps/library-api/README.md](apps/library-api/README.md) and set `LIBRARY_ENABLED` to `true`.
+
 ## Stack
 
 - `packages/core` – TypeScript simulation library (no UI)
@@ -31,3 +44,7 @@ Versioning and the release checklist: [docs/UPDATE_GUIDE.md](docs/UPDATE_GUIDE.m
 - `apps/library-api` – PHP + SQLite backend of the library
 
 Worlds are saved locally and can be exported to `.ruda` files (minified JSON).
+
+## License
+
+[PolyForm Noncommercial 1.0.0](LICENSE): the source is open to read, use, change and share for any noncommercial purpose. Commercial use is not permitted.
