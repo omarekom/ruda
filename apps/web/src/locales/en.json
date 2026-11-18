@@ -9,8 +9,9 @@
     "title": "About Ruda",
     "description": "Ruda is a 2D simulator inspired by Minecraft's redstone. It is not a copy: signals, rules and blocks deviate from the original.",
     "disclaimer": "An independent project, not made by or affiliated with Mojang or Microsoft.",
+    "madeWithClaude": "The game was programmed with the help of Claude, an AI assistant by Anthropic.",
     "contact": "Contact",
-    "source": "Source code",
+    "source": "Source files",
     "repository": "GitHub",
     "download": "Download this version (.zip)",
     "done": "Done"

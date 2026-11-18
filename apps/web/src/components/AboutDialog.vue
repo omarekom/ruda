@@ -31,18 +31,28 @@ function onCancel(event: Event): void {
     <h1>{{ t('app.title') }}</h1>
     <p>{{ t('about.description') }}</p>
     <p class="disclaimer">{{ t('about.disclaimer') }}</p>
-    <dl>
-      <dt>{{ t('about.contact') }}</dt>
-      <dd>
-        <a :href="`mailto:${CONTACT_EMAIL}`">{{ CONTACT_EMAIL }}</a>
-      </dd>
-      <dt>{{ t('about.source') }}</dt>
-      <dd>
-        <a :href="REPOSITORY_URL" target="_blank" rel="noopener">{{ t('about.repository') }}</a>
-        ·
-        <a :href="SOURCE_ARCHIVE" download>{{ t('about.download') }}</a>
-      </dd>
-    </dl>
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">{{ t('about.contact') }}</th>
+          <th scope="col" colspan="2">{{ t('about.source') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <a :href="`mailto:${CONTACT_EMAIL}`">{{ CONTACT_EMAIL }}</a>
+          </td>
+          <td>
+            <a :href="REPOSITORY_URL" target="_blank" rel="noopener">{{ t('about.repository') }}</a>
+          </td>
+          <td>
+            <a :href="SOURCE_ARCHIVE" download>{{ t('about.download') }}</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">{{ t('about.madeWithClaude') }}</p>
     <button type="button" class="blocky-button" autofocus @click="emit('done')">
       {{ t('about.done') }}
     </button>
@@ -51,15 +61,15 @@ function onCancel(event: Event): void {
 
 <style scoped>
 .about {
-  width: min(560px, 92vw);
-  padding: 20px 24px;
+  width: min(640px, 92vw);
+  padding: 22px 26px;
   border: 3px solid #000;
   border-radius: 0;
   background: rgba(20, 20, 24, 0.96);
   box-shadow: inset 0 0 0 2px #555;
   color: #fff;
   font: 26px var(--font-retro);
-  text-align: center;
+  text-align: left;
 }
 
 .about::backdrop {
@@ -67,7 +77,7 @@ function onCancel(event: Event): void {
 }
 
 h1 {
-  margin: 0 0 10px;
+  margin: 0 0 12px;
   color: #ff3b2f;
   font: 48px var(--font-pixel);
   text-shadow: 4px 4px #5c1410;
@@ -77,28 +87,42 @@ p {
   margin: 0 0 10px;
 }
 
-.disclaimer {
+.disclaimer,
+.note {
   color: #a8a8a8;
   font-size: 22px;
 }
 
-dl {
-  margin: 16px 0;
+table {
+  width: 100%;
+  margin: 18px 0 14px;
+  border-collapse: collapse;
 }
 
-dt {
+th,
+td {
+  padding: 6px 12px;
+  border: 2px solid #3a3a3a;
+  text-align: left;
+}
+
+th {
+  background: rgba(255, 255, 255, 0.06);
   color: #ffe14d;
-}
-
-dd {
-  margin: 0 0 8px;
+  font-weight: normal;
 }
 
 a {
   color: #fff;
 }
 
+.note {
+  margin-bottom: 18px;
+}
+
 button {
+  display: block;
+  margin-left: auto;
   padding: 4px 28px;
 }
 </style>
