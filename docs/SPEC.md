@@ -79,7 +79,7 @@ One game, in one blocky, game-like style. Older sketches of the options consider
 Start screen
 
 - Shown on every visit. The whole screen is a live preview of the game: a slow ring of delayers runs at reduced speed behind it, so one lamp at a time lights up and hands over to the next.
-- In the middle the blocky **RUDA** logo and three buttons: **Play** (continues the last world, or creates a new one if there is none), **Worlds…** and **Controls…**.
+- In the middle the blocky **RUDA** logo and three buttons: **Play** (continues the last world, or creates a new one if there is none), **Worlds…** and **Controls…**. Play has the focus when the screen opens; Tab goes on through Worlds… and Controls… to the light/dark switch, and the arrows reach the switch too.
 - A link to the library (`#library`, `#admin`) opens it instead; nothing in the game links there for now.
 
 The game
@@ -99,7 +99,7 @@ Worlds
 - **Worlds…** (from the start screen or the menu) shows the worlds as a grid of cards on a calm dark backdrop: a thumbnail, the name and when it was last played, said the friendly way ("just now", "yesterday", "last week"). The most recently played come first.
 - Clicking a card plays the world. Clicking the name renames it in place (Enter keeps, Esc cancels). A small delete button on the card asks before deleting. Each card can also export its world as a `.ruda` file.
 - The first card creates a new world; **Import** next to the search field adds a `.ruda` file as a new world and opens it. A search field filters the worlds by name.
-- Fully usable with the keyboard: Space marks the first world, arrows move between cards, Enter plays, F2 renames, Delete deletes, E exports, I imports, `/` focuses the search, Esc goes back. Tab moves only between the cards and the bar; the rename, export and delete buttons on a card have their keys instead. Keys are listed once, in a line under the cards, and written in square brackets where shown elsewhere (`[/]`).
+- Fully usable with the keyboard: nothing is focused when the screen opens; Tab, an arrow or Space marks the first world, arrows move between cards, Enter plays, F2 renames, Delete deletes, E exports, I imports, `/` focuses the search, Esc goes back. Tab moves only between the cards and the bar; the rename, export and delete buttons on a card have their keys instead. Keys are listed once, in a line under the cards, and written in square brackets where shown elsewhere (`[/]`).
 
 Naming
 
