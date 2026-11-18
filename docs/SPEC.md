@@ -84,7 +84,7 @@ Start screen
 
 The game
 
-- Real time, simple and playful, with a deliberately blocky look: pixel fonts, bevelled grey buttons, a framed hotbar of plain dark slots; the selected one is light, with a white frame reaching a little past the hotbar on every side.
+- Real time, simple and playful, with a deliberately blocky look: pixel fonts, bevelled grey buttons, a framed hotbar of plain dark slots; the selected one is marked only by a white frame reaching a little past the hotbar on every side.
 - On screen only: the hotbar (no number hints; the keys still work), the name of the held block popping up briefly when it changes, and in the top right corner the light/dark switch and a menu button.
 - The menu (button or Esc) pauses the simulation. It offers: back to game, save, worlds, controls, debug mode, start screen. Saving shows a short confirmation. It takes the keyboard when it opens: arrows move between the buttons as they are laid out, Enter chooses. The start screen's buttons work the same way. Hovering a button with the mouse moves the focus to it, so only one button is ever highlighted and the arrows carry on from there.
 - **Controls** lists every key and mouse action by section (movement, building, using blocks, game, hotbar), each shown as a key cap. The hotbar is one row with its number keys.
