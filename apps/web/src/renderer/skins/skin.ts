@@ -7,6 +7,11 @@ export interface CellAppearance {
   /** Channel power, indexed by Axis. */
   readonly powered: readonly boolean[];
   readonly lit: boolean;
+  /**
+   * How far a piston's head is out while it slides (0–1), for the piston and its head alike.
+   * Left out, a piston is drawn as it stands: out when extended, and a head fully out.
+   */
+  readonly reach?: number;
 }
 
 /** How a block looks on its own, e.g. in the hotbar. */

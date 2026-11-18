@@ -69,7 +69,14 @@ function paintStone(p: Painter): void {
 }
 
 /** Rows of the piston's wooden face plate at the front (north) edge. */
-const PLATE_ROWS = 4;
+export const PLATE_ROWS = 4;
+
+/** The rod's place across the piston: its left column and its width, in texels. */
+export const ROD_X = 6;
+export const ROD_WIDTH = 4;
+
+/** How far back from the face plate the rod reaches while the head is not out, in texels. */
+export const ROD_LEAD = 8;
 
 /** How deep the face plate is, as a share of the cell. */
 export const PLATE_DEPTH = PLATE_ROWS / N;
@@ -106,8 +113,8 @@ function paintPlate(p: Painter): void {
 
 /** The piston's metal rod, four pixels wide and shaded on its right. */
 function paintRod(p: Painter, y: number, length: number): void {
-  p.rect(6, y, 4, length, PALETTE.rod);
-  p.rect(9, y, 1, length, PALETTE.rodShade);
+  p.rect(ROD_X, y, ROD_WIDTH, length, PALETTE.rod);
+  p.rect(ROD_X + ROD_WIDTH - 1, y, 1, length, PALETTE.rodShade);
 }
 
 /** A smooth stone slab: flat grey with a light top-left and dark bottom-right edge. */
@@ -265,34 +272,30 @@ export const buttonTexture = textureCache((pressed: boolean) =>
 );
 
 /**
- * A piston seen from above: a plain grey body with a recess the rod slides in. Retracted, the
- * wooden face plate sits at the front and the rod is tucked in; extended, the body keeps its
- * shape around the empty socket the plate left, and the rod runs out of it to the head.
+ * A piston seen from above: a plain grey body with the socket the face plate sits in and, behind
+ * it, the groove the rod slides in; the groove opens into the socket, so the rod comes from
+ * inside the body. With `plated`, the head is home: the plate sits in its socket and the rod is
+ * tucked in behind it. Otherwise the head is out, or on its way, and drawn on its own.
  */
-export const pistonTexture = textureCache((extended: boolean) =>
+export const pistonTexture = textureCache((plated: boolean) =>
   paintTexture(103, (p) => {
     p.noise(0, 0, N, N, PALETTE.pistonBody);
-    p.rect(5, PLATE_ROWS + 1, 6, N - PLATE_ROWS - 4, PALETTE.pistonRecess);
-    if (extended) {
-      p.rect(1, 1, N - 2, PLATE_ROWS - 1, PALETTE.pistonSocket);
-      p.rect(1, PLATE_ROWS, N - 2, 1, PALETTE.pistonSocketBack);
-      paintRod(p, 0, N - PLATE_ROWS);
-    } else {
-      paintRod(p, PLATE_ROWS + 2, N - PLATE_ROWS - 6);
+    p.rect(1, 1, N - 2, PLATE_ROWS - 1, PALETTE.pistonSocket);
+    p.rect(1, PLATE_ROWS, N - 2, 1, PALETTE.pistonSocketBack);
+    p.rect(ROD_X - 1, PLATE_ROWS, ROD_WIDTH + 2, N - PLATE_ROWS - 3, PALETTE.pistonRecess);
+    if (plated) {
+      paintRod(p, PLATE_ROWS, ROD_LEAD);
       paintPlate(p);
+      paintBevel(p, 0, 0, N, PLATE_ROWS);
     }
   }),
 );
 
-/**
- * The pushed-out face plate, standing up like the piston it came from, with the rod reaching
- * back to the piston.
- */
+/** The face plate of a head, standing up like the piston it came from; the rod is drawn apart. */
 export const pistonHeadTexture = lazyTexture(() =>
   paintTexture(107, (p) => {
     paintPlate(p);
     paintBevel(p, 0, 0, N, PLATE_ROWS);
-    paintRod(p, PLATE_ROWS, N - PLATE_ROWS);
   }),
 );
 

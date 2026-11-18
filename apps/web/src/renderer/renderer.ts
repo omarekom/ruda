@@ -212,35 +212,58 @@ export class Renderer {
   /**
    * The blocks to draw this frame, in drawing order. Blocks that arrived at their cell this
    * tick slide in instead of standing in place; blocks that left the world (a retracting head)
-   * slide away first, beneath the static blocks.
+   * slide away first, beneath the static blocks. Heads come last, as their rods run over the
+   * pistons behind them.
    */
   private shownBlocks(simulation: Simulation, tickProgress: number): ShownBlock[] {
     const arrived = new Set<number>();
-    const vanished: BlockMove[] = [];
     for (const move of simulation.recentMoves) {
       const there = simulation.blocks.get(move.toX, move.toY);
       if (there && sameBlock(there, move.block)) arrived.add(cellKey(move.toX, move.toY));
-      else vanished.push(move);
     }
-    const progress = easeOut(tickProgress);
-    const moving = (move: BlockMove): ShownBlock => ({
-      x: move.fromX + (move.toX - move.fromX) * progress,
-      y: move.fromY + (move.toY - move.fromY) * progress,
-      block: move.block,
-      appearance: appearanceOf(simulation, move.toX, move.toY),
-      seed: cellSeed(move.toX, move.toY),
-    });
+    const progress = easeInOut(tickProgress);
+    // How far each piston's head is out right now, by the piston's cell.
+    const reaches = new Map<number, number>();
+    const moving = (move: BlockMove): ShownBlock => {
+      const x = move.fromX + (move.toX - move.fromX) * progress;
+      const y = move.fromY + (move.toY - move.fromY) * progress;
+      let appearance = appearanceOf(simulation, move.toX, move.toY);
+      if (move.block.type === 'piston_head') {
+        const extending = arrived.has(cellKey(move.toX, move.toY));
+        const [pistonX, pistonY] = extending ? [move.fromX, move.fromY] : [move.toX, move.toY];
+        const reach = Math.abs(x - pistonX) + Math.abs(y - pistonY);
+        reaches.set(cellKey(pistonX, pistonY), reach);
+        appearance = { ...appearance, reach };
+      }
+      return { x, y, block: move.block, appearance, seed: cellSeed(move.toX, move.toY) };
+    };
+    const movers = simulation.recentMoves.map((move) => ({
+      shown: moving(move),
+      arrived: arrived.has(cellKey(move.toX, move.toY)),
+    }));
 
-    const shown = vanished.map(moving);
+    const shown: ShownBlock[] = [];
+    const heads: ShownBlock[] = [];
+    const add = (block: ShownBlock): void => {
+      (block.block.type === 'piston_head' ? heads : shown).push(block);
+    };
+    for (const mover of movers) if (!mover.arrived) add(mover.shown);
     const rect = this.camera.visibleCells();
     simulation.blocks.forEachInRect(rect.minX, rect.minY, rect.maxX, rect.maxY, (x, y, block) => {
-      if (arrived.has(cellKey(x, y))) return;
-      shown.push({ x, y, block, appearance: appearanceOf(simulation, x, y), seed: cellSeed(x, y) });
+      const key = cellKey(x, y);
+      if (arrived.has(key)) return;
+      const reach = reaches.get(key);
+      const appearance = appearanceOf(simulation, x, y);
+      add({
+        x,
+        y,
+        block,
+        appearance: reach === undefined ? appearance : { ...appearance, reach },
+        seed: cellSeed(x, y),
+      });
     });
-    for (const move of simulation.recentMoves) {
-      if (arrived.has(cellKey(move.toX, move.toY))) shown.push(moving(move));
-    }
-    return shown;
+    for (const mover of movers) if (mover.arrived) add(mover.shown);
+    return [...shown, ...heads];
   }
 
   /** Runs `draw` with the context moved so the cell's square starts at (0, 0). */
@@ -297,8 +320,8 @@ export function cellSeed(x: number, y: number): number {
   return Math.imul(x, 73856093) ^ Math.imul(y, 19349663);
 }
 
-function easeOut(t: number): number {
-  return 1 - (1 - t) * (1 - t);
+function easeInOut(t: number): number {
+  return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
 }
 
 /** How the cell looks given the simulation's current power state. */

@@ -8,9 +8,14 @@ import {
   dustCenterTexture,
   lampTexture,
   leverTexture,
+  PALETTE,
+  PLATE_ROWS,
   pistonHeadTexture,
   pistonTexture,
   powerBlockTexture,
+  ROD_LEAD,
+  ROD_WIDTH,
+  ROD_X,
   stoneTexture,
   torchTexture,
   VARIANTS,
@@ -79,6 +84,20 @@ function facingTexture(
   g.restore();
 }
 
+/**
+ * The rod behind a head that is `reach` (0–1) of a cell out, in a north-facing frame. It
+ * runs back from the plate into the piston's groove and may leave the head's cell, so heads
+ * are drawn after the pistons.
+ */
+function drawRod(g: CanvasRenderingContext2D, s: number, reach: number): void {
+  const unit = s / TEXTURE_SIZE;
+  const length = (ROD_LEAD + reach * TEXTURE_SIZE) * unit;
+  g.fillStyle = PALETTE.rod;
+  g.fillRect(ROD_X * unit, PLATE_ROWS * unit, ROD_WIDTH * unit, length);
+  g.fillStyle = PALETTE.rodShade;
+  g.fillRect((ROD_X + ROD_WIDTH - 1) * unit, PLATE_ROWS * unit, unit, length);
+}
+
 /** Block looks built from the shared 16×16 textures; skins choose how solid blocks look. */
 export function texturedLooks(finishSolid: FinishSolid): LookTable {
   const finished = new WeakMap<HTMLCanvasElement, HTMLCanvasElement>();
@@ -104,9 +123,15 @@ export function texturedLooks(finishSolid: FinishSolid): LookTable {
     power_block: (g, _block, s, _appearance, seed) =>
       solid(g, powerBlockTexture(variantOf(seed)), s),
     lamp: (g, _block, s, { lit }) => solid(g, lampTexture(lit), s),
-    piston: (g, block, s) =>
-      solid(g, turnedTexture(pistonTexture(block.extended), block.facing), s),
-    piston_head: (g, block, s) => facingTexture(g, pistonHeadTexture(), block.facing, s),
+    piston: (g, block, s, { reach = block.extended ? 1 : 0 }) =>
+      solid(g, turnedTexture(pistonTexture(reach === 0), block.facing), s),
+    piston_head: (g, block, s, { reach = 1 }) => {
+      g.save();
+      faceToward(g, block.facing, s);
+      drawTexture(g, pistonHeadTexture(), s);
+      drawRod(g, s, reach);
+      g.restore();
+    },
     wire,
     crossing: (g, _block, s, { powered }) => {
       const horizontal = powered[Axis.Horizontal] ?? false;
