@@ -32,6 +32,7 @@ const emit = defineEmits<{ select: [index: number] }>();
 }
 
 .slot {
+  position: relative;
   display: grid;
   place-items: center;
   width: 50px;
@@ -39,17 +40,29 @@ const emit = defineEmits<{ select: [index: number] }>();
   padding: 0;
   border: none;
   border-radius: 0;
-  background: #4a4a50;
+  /* Dark, so the mid-toned blocks stand out; the selected slot is light instead. */
+  background: #26272c;
   cursor: pointer;
 }
 
 .slot:hover {
-  background: #5c5c63;
+  background: #3a3b42;
 }
 
 .slot.selected {
-  background: #8b8b8b;
-  outline: 4px solid #fff;
-  box-shadow: inset 0 0 0 3px #000;
+  z-index: 1;
+  background: #d2ccc0;
+}
+
+/* The selection frame reaches past the slot and the panel on every side. */
+.slot.selected::after {
+  content: '';
+  position: absolute;
+  inset: -9px;
+  border: 4px solid #fff;
+  box-shadow:
+    0 0 0 2px #000,
+    inset 0 0 0 2px #000;
+  pointer-events: none;
 }
 </style>
