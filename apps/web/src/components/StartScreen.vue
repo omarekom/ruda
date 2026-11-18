@@ -20,7 +20,9 @@ const screen = useTemplateRef<HTMLElement>('screen');
 function onKeyDown(event: KeyboardEvent): void {
   if (showControls.value || showAbout.value || !isArrowKey(event.key)) return;
   event.preventDefault();
-  const buttons = screen.value?.querySelectorAll<HTMLElement>('.buttons button, .corner button, .about-button');
+  const buttons = screen.value?.querySelectorAll<HTMLElement>(
+    '.buttons button, .corner button, .about-button',
+  );
   moveFocus([...(buttons ?? [])], event.key);
 }
 
@@ -48,7 +50,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
     </div>
     <!-- After the menu in the page, so Tab reaches Play first and the toggle last. -->
     <div class="corner"><ThemeToggle /></div>
-    <button type="button" class="about-button" @click="showAbout = true">
+    <button type="button" class="blocky-button about-button" @click="showAbout = true">
       {{ t('about.open') }}
     </button>
     <AboutDialog v-if="showAbout" @done="showAbout = false" />
@@ -79,21 +81,10 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 
 .about-button {
   position: absolute;
-  bottom: 12px;
+  bottom: 14px;
   left: 14px;
-  padding: 2px 6px;
-  border: 0;
-  background: none;
-  color: #fff;
-  font: 22px var(--font-retro);
-  opacity: 0.45;
-  text-shadow: 2px 2px #000;
-  cursor: pointer;
-}
-
-.about-button:hover,
-.about-button:focus-visible {
-  opacity: 1;
+  padding: 2px 16px;
+  font-size: 26px;
 }
 
 .content {
