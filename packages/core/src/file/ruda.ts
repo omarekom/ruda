@@ -48,57 +48,28 @@ export function serializeWorld(world: ReadonlyWorld, name: string): string {
 
 /** Parses a `.ruda` file of any supported version. Throws `RudaFileError` on any defect. */
 export function parseWorld(text: string): LoadedWorld {
-  let json: unknown;
-  try {
-    json = JSON.parse(text);
-  } catch {
-    throw new RudaFileError('invalid_json', 'The file is not valid JSON');
-  }
-  return buildWorld(json, (message) => {
+  return buildWorld(parseJson(text), (message) => {
     throw invalid(message);
   });
 }
 
 /**
  * Loads as much of a damaged `.ruda` file as possible, skipping what cannot be understood and
- * listing every defect in `problems`. Still throws when the file is not a Ruda world at all
- * or comes from a newer version.
+ * listing every defect in `problems`. Still throws when the text is not valid JSON, is not a
+ * Ruda world at all, or comes from a newer version.
  */
 export function repairWorld(text: string): RepairedWorld {
   const problems: string[] = [];
-  let json: unknown;
-  try {
-    json = JSON.parse(text);
-  } catch {
-    json = salvage(text);
-    problems.push('The file is not valid JSON; only the parts that could be read were kept');
-  }
-  const loaded = buildWorld(json, (message) => problems.push(message));
+  const loaded = buildWorld(parseJson(text), (message) => problems.push(message));
   return { ...loaded, problems };
 }
 
-/**
- * Picks the version, name and block lists out of text that is not valid JSON (a missing comma,
- * a cut-off file) without parsing the structure around them.
- */
-function salvage(text: string): JsonObject {
-  const version = /"rudaversion"\s*:\s*(\d+)/.exec(text)?.[1];
-  if (version === undefined) throw new RudaFileError('invalid_json', 'The file is not valid JSON');
-  const name = /"name"\s*:\s*("(?:[^"\\]|\\.)*")/.exec(text)?.[1];
-  const blocks: Record<string, unknown[]> = {};
-  for (const [, key, list] of text.matchAll(/("(?:[^"\\]|\\.)*")\s*:\s*\[([^[\]]*)\]/g)) {
-    const numbers = (list ?? '')
-      .split(/[\s,]+/)
-      .filter(Boolean)
-      .map(Number);
-    const blockKey = JSON.parse(key ?? '""') as string;
-    blocks[blockKey] = [...(blocks[blockKey] ?? []), ...numbers];
+function parseJson(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new RudaFileError('invalid_json', 'The file is not valid JSON');
   }
-  return {
-    rudaversion: Number(version),
-    ...(name === undefined ? {} : { name: JSON.parse(name) as string }),
-    blocks,
-  };
 }
 
 function buildWorld(json: unknown, report: Report): LoadedWorld {

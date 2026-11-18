@@ -100,24 +100,6 @@ describe('.ruda files', () => {
       expect(repaired.world.get(0, 0)).toEqual({ type: 'wire' });
     });
 
-    it('reads what it can when a comma is missing', () => {
-      const repaired = repairWorld(
-        '{"rudaversion":1,"name":"Oops" "blocks":{"wire":[0,0,1 0],"lamp":[2,0]\n"stone":[3,0]}}',
-      );
-      expect(repaired.name).toBe('Oops');
-      expect(repaired.problems).toHaveLength(1);
-      expect(repaired.world.get(1, 0)).toEqual({ type: 'wire' });
-      expect(repaired.world.get(2, 0)).toEqual({ type: 'lamp' });
-      expect(repaired.world.get(3, 0)).toEqual({ type: 'stone' });
-    });
-
-    it('keeps the complete blocks of a cut-off file', () => {
-      const repaired = repairWorld('{"rudaversion":1,"name":"x","blocks":{"wire":[0,0],"lamp":[1,');
-      expect(repaired.world.get(0, 0)).toEqual({ type: 'wire' });
-      expect(repaired.world.blockCount).toBe(1);
-      expect(repaired.problems.length).toBeGreaterThan(0);
-    });
-
     it('skips unknown blocks, bad cells and repeated cells, and says so', () => {
       const repaired = repairWorld(
         '{"rudaversion":1,"name":"x","blocks":{"dirt":[0,0],"wire":[1,0,"a",2,9,9,32000,0],"lamp":[1,0],"lever":[3,0]}}',
@@ -144,7 +126,7 @@ describe('.ruda files', () => {
 
     it.each([
       ['not json at all', 'invalid_json'],
-      ['{"blocks":{"wire":[0,0]', 'invalid_json'],
+      ['{"rudaversion":1,"name":"x" "blocks":{}}', 'invalid_json'],
       ['[1, 2]', 'not_ruda'],
       [`{"rudaversion":${CURRENT_VERSION + 1},"name":"x","blocks":{}}`, 'too_new'],
     ])('still rejects %s with %s', (text, code) => {

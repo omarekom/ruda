@@ -59,7 +59,7 @@ Minified JSON. Blocks are grouped by type and state, with coordinates as a flat 
 - Output is canonical: keys and cells are sorted, so the same world always gives the same file.
 - `rudaversion` is the file version, which also marks the file as a Ruda world. It is 1 until the first release; there are no migrations yet. Loading runs a chain of migrations `vN → vN+1`. A file newer than the app is rejected with a clear message. Old migrations are never edited, only appended.
 - Loading is strict: unknown blocks, bad coordinates or a cell listed twice reject the file (`parseWorld`, used for saved worlds).
-- Importing uses `repairWorld`, which loads what it can and lists every problem: invalid JSON (a missing comma, a cut-off file) is read by picking the version, name and block lists out of the text; unknown blocks, bad or repeated cells and pistons without their other half are left out. A file that is not a Ruda world, or is newer than the app, is still rejected.
+- Importing uses `repairWorld`, which loads what it can and counts the problems: unknown blocks, bad or repeated cells and pistons without their other half are left out. Text that is not valid JSON (a missing comma, a cut-off file) is not repaired, and a file that is not a Ruda world or is newer than the app is rejected.
 - Names have no namespace prefix.
 - Worlds stored in the browser use the same format, so migrations apply to them too.
 
