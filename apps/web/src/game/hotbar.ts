@@ -1,4 +1,5 @@
 import {
+  BUTTON_TICKS,
   createBlock,
   Direction,
   isRotatable,
@@ -45,6 +46,26 @@ export function selectedType(state: HotbarState): BlockType {
 
 export function heldBlock(state: HotbarState): Block {
   return createBlock(selectedType(state), state.facing);
+}
+
+/**
+ * How a slot's block is shown in the hotbar: switched on, so its red stands out on the dark
+ * slot. Pistons stay retracted, as an extended one would need its head beside it.
+ */
+export function hotbarIcon(type: BlockType, facing: Direction): Block {
+  const block = createBlock(type, facing);
+  switch (block.type) {
+    case 'lever':
+      return { ...block, on: true };
+    case 'torch':
+      return { ...block, lit: true };
+    case 'button':
+      return { ...block, remaining: BUTTON_TICKS };
+    case 'delayer':
+      return { ...block, line: block.line.map(() => true) };
+    default:
+      return block;
+  }
 }
 
 export function selectSlot(state: HotbarState, index: number): void {

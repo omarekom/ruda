@@ -16,7 +16,7 @@ World and camera
 
 Editing
 
-- Hotbar ("inventory") at the bottom; slots selected with number keys (1–9, and 0 for the tenth slot) or clicking.
+- Hotbar ("inventory") at the bottom, every block shown switched on (lever flipped, torch lit, button pressed, wire and delayer powered, lamp lit) so the red stands out; slots selected with number keys (1–9, and 0 for the tenth slot) or clicking.
 - Right mouse button places the selected block, left mouse button removes the block under the cursor (Minecraft-style). Blocks are placed only into empty cells; nothing is replaced.
 - `R` rotates the held block. Holding the right mouse button and dragging also rotates it toward the drag direction.
 - Right-clicking a lever toggles it (and, from 0.3, presses a button or cycles a delayer's delay).
