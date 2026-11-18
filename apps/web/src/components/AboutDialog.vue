@@ -31,6 +31,7 @@ function onCancel(event: Event): void {
     <h1>{{ t('app.title') }}</h1>
     <p>{{ t('about.description') }}</p>
     <p class="disclaimer">{{ t('about.disclaimer') }}</p>
+    <p class="disclaimer">{{ t('about.madeWithClaude') }}</p>
     <table>
       <thead>
         <tr>
@@ -52,7 +53,6 @@ function onCancel(event: Event): void {
         </tr>
       </tbody>
     </table>
-    <p class="note">{{ t('about.madeWithClaude') }}</p>
     <button type="button" class="blocky-button" autofocus @click="emit('done')">
       {{ t('about.done') }}
     </button>
@@ -87,15 +87,14 @@ p {
   margin: 0 0 10px;
 }
 
-.disclaimer,
-.note {
+.disclaimer {
   color: #a8a8a8;
   font-size: 22px;
 }
 
 table {
   width: 100%;
-  margin: 18px 0 14px;
+  margin: 18px 0;
   border-collapse: collapse;
 }
 
@@ -114,10 +113,6 @@ th {
 
 a {
   color: #fff;
-}
-
-.note {
-  margin-bottom: 18px;
 }
 
 button {
