@@ -9,7 +9,7 @@ const dialog = useTemplateRef<HTMLDialogElement>('dialog');
 /** Public contact details and where the source of this version can be found. */
 const CONTACT_EMAIL = 'om@omarek.cz';
 const REPOSITORY_URL = 'https://github.com/omarekom/ruda';
-/** Written next to the built app by `pnpm build`; see apps/web/package.json. */
+/** Made from the last commit by `pnpm build`; the dev server makes it on demand (vite.config.ts). */
 const SOURCE_ARCHIVE = 'ruda-source.zip';
 
 onMounted(() => dialog.value?.showModal());
