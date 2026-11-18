@@ -64,7 +64,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
         :aria-label="t('changelog.open')"
         @click="showChangelog = true"
       >
-        {{ APP_VERSION }}
+        v{{ APP_VERSION }}
       </button>
     </div>
     <AboutDialog v-if="showAbout" @done="showAbout = false" />
@@ -100,7 +100,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   left: 14px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .about-button {
@@ -109,18 +109,24 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 }
 
 .version-button {
-  padding: 2px 4px;
-  border: 0;
-  background: none;
-  color: rgba(255, 255, 255, 0.55);
-  font: 26px var(--font-retro);
-  text-shadow: 2px 2px #000;
+  align-self: stretch;
+  padding: 0 12px;
+  border: 3px solid #000;
+  border-radius: 0;
+  background: rgba(20, 20, 24, 0.7);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.7);
+  font: 22px var(--font-retro);
   cursor: pointer;
 }
 
-.version-button:hover,
+.version-button:hover {
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.4);
+}
+
 .version-button:focus-visible {
-  color: #fff;
+  outline: 3px solid #fff;
+  outline-offset: 2px;
 }
 
 .content {

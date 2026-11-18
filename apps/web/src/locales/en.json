@@ -26,7 +26,6 @@
         "Endless 2D world with wires, crossings, levers, buttons, torches, delayers, lamps, power blocks and stone.",
         "Pistons that push chains of blocks, with animation.",
         "Worlds are saved in the browser and can be imported and exported as .ruda files.",
-        "Library of creations: browse built-in and community worlds, or submit your own.",
         "Blocky game-like interface, light and dark look, and a start screen with a live preview."
       ]
     }
