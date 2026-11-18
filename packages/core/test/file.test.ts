@@ -4,6 +4,7 @@ import {
   CURRENT_VERSION,
   Direction,
   parseWorld,
+  repairWorld,
   RudaFileError,
   serializeWorld,
   Simulation,
@@ -90,5 +91,64 @@ describe('.ruda files', () => {
     ['{"rudaversion":1,"name":"x","blocks":{"button:05":[0,0]}}', 'invalid_content'],
   ])('rejects %s with %s', (text, code) => {
     expect(errorCode(text)).toBe(code);
+  });
+
+  describe('repairing a damaged file', () => {
+    it('reports nothing for an intact file', () => {
+      const repaired = repairWorld('{"rudaversion":1,"name":"x","blocks":{"wire":[0,0]}}');
+      expect(repaired.problems).toEqual([]);
+      expect(repaired.world.get(0, 0)).toEqual({ type: 'wire' });
+    });
+
+    it('reads what it can when a comma is missing', () => {
+      const repaired = repairWorld(
+        '{"rudaversion":1,"name":"Oops" "blocks":{"wire":[0,0,1 0],"lamp":[2,0]\n"stone":[3,0]}}',
+      );
+      expect(repaired.name).toBe('Oops');
+      expect(repaired.problems).toHaveLength(1);
+      expect(repaired.world.get(1, 0)).toEqual({ type: 'wire' });
+      expect(repaired.world.get(2, 0)).toEqual({ type: 'lamp' });
+      expect(repaired.world.get(3, 0)).toEqual({ type: 'stone' });
+    });
+
+    it('keeps the complete blocks of a cut-off file', () => {
+      const repaired = repairWorld('{"rudaversion":1,"name":"x","blocks":{"wire":[0,0],"lamp":[1,');
+      expect(repaired.world.get(0, 0)).toEqual({ type: 'wire' });
+      expect(repaired.world.blockCount).toBe(1);
+      expect(repaired.problems.length).toBeGreaterThan(0);
+    });
+
+    it('skips unknown blocks, bad cells and repeated cells, and says so', () => {
+      const repaired = repairWorld(
+        '{"rudaversion":1,"name":"x","blocks":{"dirt":[0,0],"wire":[1,0,"a",2,9,9,32000,0],"lamp":[1,0],"lever":[3,0]}}',
+      );
+      expect(repaired.world.blockCount).toBe(2);
+      expect(repaired.world.get(1, 0)).toEqual({ type: 'wire' });
+      expect(repaired.world.get(9, 9)).toEqual({ type: 'wire' });
+      expect(repaired.problems).toHaveLength(5);
+    });
+
+    it('drops pistons that lost their other half', () => {
+      const repaired = repairWorld(
+        '{"rudaversion":1,"name":"x","blocks":{"piston:east:extended":[0,0],"wire":[5,5]}}',
+      );
+      expect(repaired.world.blockCount).toBe(1);
+      expect(repaired.problems).toHaveLength(1);
+    });
+
+    it('treats a missing name or blocks table as a problem, not a failure', () => {
+      const repaired = repairWorld('{"rudaversion":1}');
+      expect(repaired.name).toBe('');
+      expect(repaired.problems).toHaveLength(2);
+    });
+
+    it.each([
+      ['not json at all', 'invalid_json'],
+      ['{"blocks":{"wire":[0,0]', 'invalid_json'],
+      ['[1, 2]', 'not_ruda'],
+      [`{"rudaversion":${CURRENT_VERSION + 1},"name":"x","blocks":{}}`, 'too_new'],
+    ])('still rejects %s with %s', (text, code) => {
+      expect(() => repairWorld(text)).toThrow(expect.objectContaining({ code }));
+    });
   });
 });

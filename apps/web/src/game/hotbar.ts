@@ -8,17 +8,18 @@ import {
   type BlockType,
 } from '@ruda/core';
 
+/** In the order a signal flows through a circuit: inputs, wiring, logic, outputs, building. */
 export const HOTBAR_SLOTS: readonly BlockType[] = [
-  'power_block',
   'lever',
+  'button',
+  'power_block',
   'wire',
   'crossing',
-  'lamp',
   'torch',
-  'stone',
   'delayer',
-  'button',
+  'lamp',
   'piston',
+  'stone',
 ];
 
 /** The number key that selects a slot: 1–9, then 0 for the tenth. */

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { parseWorld } from '@ruda/core';
+import { repairWorld } from '@ruda/core';
 import {
   computed,
   nextTick,
@@ -31,6 +31,8 @@ const worlds = shallowRef<StoredWorld[]>([]);
 const search = ref('');
 const renaming = ref<{ id: string; name: string }>();
 const deleting = shallowRef<StoredWorld>();
+/** An imported world that had to be repaired, shown to the user before it opens. */
+const repaired = ref<{ id: string; problems: number }>();
 const error = ref<string>();
 const grid = useTemplateRef<HTMLElement>('grid');
 const searchInput = useTemplateRef<HTMLInputElement>('searchInput');
@@ -71,10 +73,11 @@ async function importFile(): Promise<void> {
   if (!fileInput.value || !file) return;
   fileInput.value.value = '';
   try {
-    const loaded = parseWorld(await file.text());
+    const loaded = repairWorld(await file.text());
     const name = loaded.name.trim() || t('worlds.defaultName');
     const created = await createWorld(props.store, name, loaded.world);
-    emit('open', created.id);
+    if (loaded.problems.length === 0) emit('open', created.id);
+    else repaired.value = { id: created.id, problems: loaded.problems.length };
   } catch (failure) {
     error.value = fileErrorKey(failure);
   }
@@ -115,6 +118,12 @@ function cancelRename(): void {
   if (target) void focusCard(target.id);
 }
 
+function onRepairedChoice(): void {
+  const target = repaired.value;
+  repaired.value = undefined;
+  if (target) emit('open', target.id);
+}
+
 async function onDeleteChoice(choice: 'delete' | 'cancel'): Promise<void> {
   const target = deleting.value;
   deleting.value = undefined;
@@ -147,7 +156,7 @@ function onCardKey(event: KeyboardEvent, world: StoredWorld | undefined): void {
 }
 
 function onKeyDown(event: KeyboardEvent): void {
-  if (renaming.value || deleting.value) return;
+  if (renaming.value || deleting.value || repaired.value) return;
   const typing = event.target instanceof HTMLInputElement;
   if (event.key === 'Escape') {
     if (typing) {
@@ -309,6 +318,14 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
       ]"
       cancel="cancel"
       @choose="onDeleteChoice"
+    />
+    <ConfirmDialog
+      v-if="repaired"
+      blocky
+      :message="t('game.worlds.repaired', repaired.problems)"
+      :actions="[{ value: 'open', label: t('game.worlds.openRepaired'), primary: true }]"
+      cancel="open"
+      @choose="onRepairedChoice"
     />
   </main>
 </template>

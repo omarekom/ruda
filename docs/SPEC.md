@@ -16,12 +16,12 @@ World and camera
 
 Editing
 
-- Hotbar ("inventory") at the bottom, every block shown switched on (lever flipped, torch lit, button pressed, wire and delayer powered, lamp lit) so the red stands out; slots selected with number keys (1–9, and 0 for the tenth slot) or clicking.
+- Hotbar ("inventory") at the bottom, every block shown switched on (lever flipped, torch lit, button pressed, wire and delayer powered, lamp lit) so the red stands out; slots selected with number keys (1–9, and 0 for the tenth slot) or clicking. The order follows a circuit's signal: inputs, wiring, logic, outputs, then building: 1 lever, 2 button, 3 power block, 4 wire, 5 crossing, 6 torch, 7 delayer, 8 lamp, 9 piston, 0 stone.
 - Right mouse button places the selected block, left mouse button removes the block under the cursor (Minecraft-style). Blocks are placed only into empty cells; nothing is replaced.
 - `R` rotates the held block. Holding the right mouse button and dragging also rotates it toward the drag direction.
 - Right-clicking a lever toggles it (and, from 0.3, presses a button or cycles a delayer's delay).
 
-Blocks (hotbar slots 1–7)
+Blocks
 
 - Power block – constant power source; powers its 4 neighbours.
 - Lever – toggleable power source; powers its 4 neighbours when on.
@@ -51,17 +51,17 @@ Other
 - Explicit **Save** button (and Ctrl+S) with a saved / unsaved indicator.
 - "Unsaved changes" warning when closing the window; leaving a world with unsaved changes asks to save, discard or cancel.
 - Background autosave as a safety net: every 30 s and when the tab is hidden, unsaved changes go to a separate recovery copy, never to the world's real save. Opening a world whose recovery copy is newer than its save offers to restore it.
-- Export / import of `.ruda` files (minified JSON, world name included). An imported world is added to the list.
+- Export / import of `.ruda` files (minified JSON, world name included). An imported world is added to the list. A damaged file is repaired as far as possible (unreadable blocks and cells are left out) and the user is told before the world opens, with the number of problems found.
 - Versioned file format with migrations from older versions to newer ones; files from a newer version are rejected with a clear message.
 
 ## 0.3 – Timing and inputs
 
-- Delayer (hotbar slot 8) – a pure delay line, rotatable. Its output equals its input from `delay` ticks earlier, so every pulse comes out unchanged, just later. Delay is 1–4 ticks (new delayers start at 1); right-clicking a placed delayer cycles 1 → 2 → 3 → 4 → 1, and the change keeps the current output. Like a torch, it reads only its back and powers only its front. It shows the signals travelling through it.
-- Button (hotbar slot 9) – momentary power source. Right-clicking powers its 4 neighbours for 10 ticks (1 s); presses while it is on are ignored.
+- Delayer – a pure delay line, rotatable. Its output equals its input from `delay` ticks earlier, so every pulse comes out unchanged, just later. Delay is 1–4 ticks (new delayers start at 1); right-clicking a placed delayer cycles 1 → 2 → 3 → 4 → 1, and the change keeps the current output. Like a torch, it reads only its back and powers only its front. It shows the signals travelling through it.
+- Button – momentary power source. Right-clicking powers its 4 neighbours for 10 ticks (1 s); presses while it is on are ignored.
 
 ## 0.4 – Pistons
 
-- Piston (hotbar slot 10, key `0`) – push only, no sticky variant, rotatable. Powered from its back and both sides, never from its front (head) side.
+- Piston – push only, no sticky variant, rotatable. Powered from its back and both sides, never from its front (head) side.
 - Extends 1 tick after it gets power; when power stops it retracts 1 tick later. Retracting only pulls the head back; pushed blocks stay where they are.
 - The extended head occupies the cell in front: nothing can be placed there and it does not conduct power (like stone). Removing either the piston or its head removes both.
 - Only solid blocks are pushed: stone, power block, lamp and retracted pistons. They keep their state.

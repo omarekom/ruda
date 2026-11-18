@@ -87,6 +87,8 @@
       "renameHint": "Click to rename",
       "nameLabel": "World name",
       "confirmDelete": "Delete “{name}”? It will be lost forever!",
+      "repaired": "The file was damaged. Ruda loaded what it could read and left out the rest, so some blocks may be missing. (1 problem found) | The file was damaged. Ruda loaded what it could read and left out the rest, so some blocks may be missing. ({n} problems found)",
+      "openRepaired": "Open the world",
       "keys": "Arrows select world · Enter plays · F2 renames · Del deletes · E exports · I imports · Esc back"
     },
     "loading": {

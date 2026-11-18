@@ -110,11 +110,16 @@ export function pistonPartner(
   return undefined;
 }
 
-/** Describes the first piston without its head (or head without its piston), if any. */
-export function findBrokenPiston(world: ReadonlyWorld): string | undefined {
-  let problem: string | undefined;
+/** A piston without its head, or a head without its piston. */
+export interface BrokenPiston {
+  readonly x: number;
+  readonly y: number;
+  readonly problem: string;
+}
+
+export function findBrokenPistons(world: ReadonlyWorld): BrokenPiston[] {
+  const broken: BrokenPiston[] = [];
   world.forEach((x, y, block) => {
-    if (problem) return;
     const partner = pistonPartner(world, x, y);
     if (!partner || (block.type !== 'piston' && block.type !== 'piston_head')) return;
     const other = world.get(...partner);
@@ -122,7 +127,13 @@ export function findBrokenPiston(world: ReadonlyWorld): string | undefined {
       block.type === 'piston'
         ? other?.type === 'piston_head' && other.facing === block.facing
         : other?.type === 'piston' && other.extended && other.facing === block.facing;
-    if (!matches) problem = `The ${block.type} at (${x}, ${y}) has no matching other half`;
+    if (!matches) {
+      broken.push({
+        x,
+        y,
+        problem: `The ${block.type} at (${x}, ${y}) has no matching other half`,
+      });
+    }
   });
-  return problem;
+  return broken;
 }
