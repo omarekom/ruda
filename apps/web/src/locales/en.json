@@ -269,5 +269,10 @@
     "unsupported": "Ruda needs a mouse and a keyboard, so it doesn't work on phones and tablets yet.",
     "later": "Touch support is coming in the future. Until then, come back on a computer!",
     "continueAnyway": "Continue anyway"
+  },
+  "motion": {
+    "title": "Flashing lights",
+    "warning": "Your browser asks for reduced motion. Ruda contains flashing: clocks and lamps can blink quickly, and circuits can run at high speed. Play with care if you are sensitive to flashing.",
+    "continue": "I understand"
   }
 }

@@ -92,6 +92,7 @@ The game
 - **Block look (Workshop)**: 16×16 Minecraft-like textures seen from straight above. Solid blocks (stone, power blocks, lamps, pistons) have a dark pixel outline, a bevel and a shadow. The lever is a slide switch: a stone plate with a wooden slider, at the bottom when off and at the top when on, where the open slot behind it glows red. The piston is kept plain: a grey body with a groove the metal rod slides in and a wooden face plate at the front. Extending, the plate and the rod slide out together over one tick, smoothly (slow at both ends), as do the blocks it pushes; the rod always comes from inside the body, through the empty socket the plate leaves, and stays joined to the plate. Retracting is the same in reverse. Light glows on the floor: yellow around lit lamps, red around power blocks and other powered parts. Zoomed out, blocks and floor blend smoothly into their average colours, with no shimmering or moiré. The same look is used by the hotbar, world thumbnails, library previews and the start screen.
 - **Light and dark**: in light, a bright, warm floor of smooth stone slabs; in dark, the same slabs at night, where the light pools stand out. One button shows the other variant and switches to it; the world fades smoothly from one to the other. The variant follows the system; a choice that differs from the system is remembered, and choosing the system's variant again forgets it. Menus, dialogs and the loading screen are dark in both.
 - On touch-only devices (phones, most tablets) the game shows a notice instead: it needs a mouse and a keyboard, and touch support comes later. A small "Continue anyway" dismisses it until the page is reloaded. The library opens on any device.
+- When the browser asks for reduced motion (`prefers-reduced-motion`), a notice warns up front that Ruda contains flashing; "I understand" dismisses it until the page is reloaded.
 - Dialogs (unsaved changes, delete) use the blocky look. Text in menus is large, for easy reading.
 
 Worlds
@@ -124,7 +125,7 @@ Still to decide: tuning debug mode and its map; overlays such as chunk borders a
 
 ## 0.7 – Library
 
-A shared library of creations in its own tab next to **Your worlds**. It is a separate module: it exchanges only `.ruda` text with the game.
+**Currently switched off in the app** (`LIBRARY_ENABLED` in `App.vue`; the UI and backend are complete, nothing links to it). A shared library of creations in its own tab next to **Your worlds**. It is a separate module: it exchanges only `.ruda` text with the game.
 
 - Browse published creations as cards with a live preview, title, author, date and description. Built-in creations ("From Ruda") come first, community creations newest first.
 - **Copy to my worlds** adds a creation to the player's worlds; the copy can then be opened from the card.

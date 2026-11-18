@@ -11,6 +11,7 @@ import type { OpenWorld } from './game/openWorld';
 import type { LibraryHost } from './library/host';
 import LibraryView from './library/LibraryView.vue';
 import MobileNotice from './components/MobileNotice.vue';
+import MotionNotice from './components/MotionNotice.vue';
 import { readPreferences, writePreference } from './preferences';
 import { createEmptyWorld, createWorld } from './storage/worldActions';
 import { fileErrorKey } from './storage/fileErrors';
@@ -38,11 +39,17 @@ const loadingScreen = ref(false);
 const touchOnly = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
 const mobileNoticeDismissed = ref(false);
 
+/** Ruda flashes by nature, so players who asked their browser for less motion are warned once per visit. */
+const motionNoticeDismissed = ref(!window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+/** The library is switched off for now: with this false its hashes lead nowhere and nothing links to it. */
+const LIBRARY_ENABLED = false;
 const ADMIN_HASH = '#admin';
 const LIBRARY_HASH = '#library';
 const admin = ref(false);
 
 function readHash(): void {
+  if (!LIBRARY_ENABLED) return;
   admin.value = location.hash === ADMIN_HASH;
   if (admin.value || location.hash === LIBRARY_HASH) screen.value = 'library';
   else if (screen.value === 'library') screen.value = 'start';
@@ -208,6 +215,10 @@ function show(stored: StoredWorld, data: string, restored: boolean): void {
   <MobileNotice
     v-if="touchOnly && !mobileNoticeDismissed && screen !== 'library'"
     @dismiss="mobileNoticeDismissed = true"
+  />
+  <MotionNotice
+    v-if="!motionNoticeDismissed && screen !== 'library'"
+    @dismiss="motionNoticeDismissed = true"
   />
 </template>
 
