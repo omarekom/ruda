@@ -99,7 +99,8 @@ Worlds
 - **Worlds…** (from the start screen or the menu) shows the worlds as a grid of cards on a calm dark backdrop: a thumbnail, the name and when it was last played, said the friendly way ("just now", "yesterday", "last week"). The most recently played come first.
 - Clicking a card plays the world. Clicking the name renames it in place (Enter keeps, Esc cancels). A small delete button on the card asks before deleting. Each card can also export its world as a `.ruda` file.
 - The first card creates a new world; **Import** next to the search field adds a `.ruda` file as a new world and opens it. A search field filters the worlds by name.
-- Fully usable with the keyboard: nothing is focused when the screen opens; Tab, an arrow or Space marks the first world, arrows move between cards, Enter plays, F2 renames, Delete deletes, E exports, I imports, `/` focuses the search, Esc goes back. Tab moves only between the cards and the bar; the rename, export and delete buttons on a card have their keys instead. Keys are listed once, in a line under the cards, and written in square brackets where shown elsewhere (`[/]`).
+- No two worlds share a name: a world created, imported or renamed to a name already in use is numbered like in Minecraft, `New world (1)`, `New world (2)`; a name that is already numbered gets a fresh number (`Showcase (1)` → `Showcase (2)`), not a second one.
+- Fully usable with the keyboard: nothing is focused when the screen opens; Tab, an arrow or Space marks the first world, arrows move between cards, Enter plays, F2 renames, Delete deletes, E exports, I imports, `/` focuses the search, Esc goes back. Tab moves only between the cards and the bar; the rename, export and delete buttons on a card have their keys instead. Keys are listed once, in a line under the cards (Space is left out there; arrows already mark the first world), and written in square brackets where shown elsewhere (`[/]`).
 
 Naming
 

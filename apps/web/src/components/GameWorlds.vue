@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { parseWorld, serializeWorld } from '@ruda/core';
+import { parseWorld } from '@ruda/core';
 import {
   computed,
   nextTick,
@@ -16,7 +16,7 @@ import { fileErrorKey } from '../storage/fileErrors';
 import { isArrowKey, moveFocus } from '../input/focusNavigation';
 import { formatRelativeTime } from '../relativeTime';
 import { downloadRudaFile, RUDA_FILE_ACCEPT } from '../storage/files';
-import { createEmptyWorld, renameWorld } from '../storage/worldActions';
+import { createEmptyWorld, createWorld, renameWorld } from '../storage/worldActions';
 import { lastPlayedAt, type StoredWorld, type WorldStore } from '../storage/worldStore';
 import ConfirmDialog from './ConfirmDialog.vue';
 import PixelIcon from './PixelIcon.vue';
@@ -73,7 +73,7 @@ async function importFile(): Promise<void> {
   try {
     const loaded = parseWorld(await file.text());
     const name = loaded.name.trim() || t('worlds.defaultName');
-    const created = await props.store.create(name, serializeWorld(loaded.world, name));
+    const created = await createWorld(props.store, name, loaded.world);
     emit('open', created.id);
   } catch (failure) {
     error.value = fileErrorKey(failure);

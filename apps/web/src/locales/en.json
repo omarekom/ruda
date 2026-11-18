@@ -87,7 +87,7 @@
       "renameHint": "Click to rename",
       "nameLabel": "World name",
       "confirmDelete": "Delete “{name}”? It will be lost forever!",
-      "keys": "Space first world · Arrows move · Enter plays · F2 renames · Del deletes · E exports · I imports · Esc back"
+      "keys": "Arrows select world · Enter plays · F2 renames · Del deletes · E exports · I imports · Esc back"
     },
     "loading": {
       "steps": {

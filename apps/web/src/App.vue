@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { parseWorld, serializeWorld } from '@ruda/core';
+import { parseWorld } from '@ruda/core';
 import { onBeforeUnmount, onMounted, ref, shallowRef } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ConfirmDialog from './components/ConfirmDialog.vue';
@@ -12,7 +12,7 @@ import type { LibraryHost } from './library/host';
 import LibraryView from './library/LibraryView.vue';
 import MobileNotice from './components/MobileNotice.vue';
 import { readPreferences, writePreference } from './preferences';
-import { createEmptyWorld } from './storage/worldActions';
+import { createEmptyWorld, createWorld } from './storage/worldActions';
 import { fileErrorKey } from './storage/fileErrors';
 import { WorldStore, type Recovery, type StoredWorld } from './storage/worldStore';
 
@@ -99,7 +99,7 @@ const libraryHost: LibraryHost = {
   async addWorld(name, data) {
     if (!store.value) throw new Error('Storage is not ready');
     const { world } = parseWorld(data);
-    return (await store.value.create(name, serializeWorld(world, name))).id;
+    return (await createWorld(store.value, name, world)).id;
   },
   openWorld(id) {
     leaveLibrary();
