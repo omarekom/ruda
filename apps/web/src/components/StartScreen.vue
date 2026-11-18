@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { focusHoveredButton, isArrowKey, moveFocus } from '../input/focusNavigation';
 import { lightRing } from '../start/lightRing';
 import { worldSkin } from '../theme';
+import AboutDialog from './AboutDialog.vue';
 import GameControls from './GameControls.vue';
 import LiveWorld from './LiveWorld.vue';
 import ThemeToggle from './ThemeToggle.vue';
@@ -13,12 +14,13 @@ const { t } = useI18n();
 
 const backdrop = lightRing();
 const showControls = ref(false);
+const showAbout = ref(false);
 const screen = useTemplateRef<HTMLElement>('screen');
 
 function onKeyDown(event: KeyboardEvent): void {
-  if (showControls.value || !isArrowKey(event.key)) return;
+  if (showControls.value || showAbout.value || !isArrowKey(event.key)) return;
   event.preventDefault();
-  const buttons = screen.value?.querySelectorAll<HTMLElement>('.buttons button, .corner button');
+  const buttons = screen.value?.querySelectorAll<HTMLElement>('.buttons button, .corner button, .about-button');
   moveFocus([...(buttons ?? [])], event.key);
 }
 
@@ -46,6 +48,10 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
     </div>
     <!-- After the menu in the page, so Tab reaches Play first and the toggle last. -->
     <div class="corner"><ThemeToggle /></div>
+    <button type="button" class="about-button" @click="showAbout = true">
+      {{ t('about.open') }}
+    </button>
+    <AboutDialog v-if="showAbout" @done="showAbout = false" />
     <GameControls v-if="showControls" @done="showControls = false" />
   </main>
 </template>
@@ -69,6 +75,25 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   position: absolute;
   top: 14px;
   right: 14px;
+}
+
+.about-button {
+  position: absolute;
+  bottom: 12px;
+  left: 14px;
+  padding: 2px 6px;
+  border: 0;
+  background: none;
+  color: #fff;
+  font: 22px var(--font-retro);
+  opacity: 0.45;
+  text-shadow: 2px 2px #000;
+  cursor: pointer;
+}
+
+.about-button:hover,
+.about-button:focus-visible {
+  opacity: 1;
 }
 
 .content {

@@ -4,6 +4,17 @@
     "storageUnavailable": "Worlds cannot be stored in this browser (IndexedDB is unavailable).",
     "backToGame": "Back to the game"
   },
+  "about": {
+    "open": "About",
+    "title": "About Ruda",
+    "description": "Ruda is a 2D redstone simulator: build logic circuits on an endless canvas.",
+    "disclaimer": "An independent project, not made by or affiliated with Mojang or Microsoft.",
+    "contact": "Contact",
+    "source": "Source code",
+    "repository": "GitHub",
+    "download": "Download this version (.zip)",
+    "done": "Done"
+  },
   "start": {
     "tagline": "Now with pistons!",
     "play": "Play",

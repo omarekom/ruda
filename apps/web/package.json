@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build",
+    "build": "vue-tsc --noEmit && vite build && git -C ../.. archive --format=zip --prefix=ruda/ -o apps/web/dist/ruda-source.zip HEAD",
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "vue-tsc --noEmit"

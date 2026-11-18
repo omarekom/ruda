@@ -78,6 +78,7 @@ Start screen
 
 - Shown on every visit. The whole screen is a live preview of the game: a slow ring of delayers runs at reduced speed behind it, so one lamp at a time lights up and hands over to the next.
 - In the middle the blocky **RUDA** logo and three buttons: **Play** (continues the last world, or creates a new one if there is none), **Worlds…** and **Controls…**. Nothing is focused when the screen opens; Tab (or an arrow) focuses Play first, then Tab goes on through Worlds… and Controls… to the light/dark switch, and the arrows reach the switch too.
+- Bottom left, a faint **About** button opens a dialog: what Ruda is, that it is independent of Mojang and Microsoft, the contact e-mail, the GitHub repository and a download of this version's source as a `.zip` (made from the last commit by `pnpm build`).
 - A link to the library (`#library`, `#admin`) opens it instead; nothing in the game links there for now.
 
 The game
