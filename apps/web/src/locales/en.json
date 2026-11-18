@@ -132,6 +132,7 @@
   "debug": {
     "title": "Ruda debug",
     "closeHint": "/ to close",
+    "version": "version",
     "tick": "tick",
     "paused": "paused",
     "speed": "speed",

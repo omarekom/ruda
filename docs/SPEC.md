@@ -10,7 +10,7 @@ World and camera
 
 - Seemingly infinite 2D canvas (sparse, chunked world; hard limit 64 000 × 64 000 cells).
 - Canvas 2D rendering, only visible chunks are drawn.
-- Zoom with the mouse wheel; pan with WASD / arrow keys or the middle mouse button.
+- Zoom with the mouse wheel or the + and − keys (towards the middle of the screen; digit keys stay hotbar slots); pan with WASD / arrow keys or the middle mouse button.
 - Crosshair cursor.
 - Edge scrolling: moving the cursor to the edge of the screen pans the view. Not along the bottom edge under the hotbar and a little to its sides, where the cursor often slips while picking a block.
 
@@ -116,7 +116,7 @@ Still to design:
 Extra information and control over time, for understanding and testing circuits. It keeps the game's look for buttons and titles, but shows its data in a monospace font, which reads much better than the pixel font.
 
 - Turned on and off with `/` or from the menu. The game stays fully playable while it is on.
-- Top left, a block of text like a game's debug screen: tick, speed, measured ticks per second, the cell under the cursor (x, y) and the block there with its state (facing, on/off, lit, delay…), and the camera's position and zoom.
+- Top left, a block of text like a game's debug screen: the game version (e.g. "Ruda 1.0.2"), tick, speed, measured ticks per second, the cell under the cursor (x, y) and the block there with its state (facing, on/off, lit, delay…), and the camera's position and zoom.
 - At the top in the middle, time control: pause, ▶ normal speed, ▶▶ 3×, ▶▶▶ 10×, **max** (as many ticks as the browser manages), a field for any speed, and a single step (while paused). Turning debug mode off returns to normal speed.
 - Bottom left, switches for panels that are hidden by default, each with its key: **I** the information text, **C** the world's contents (block counts per type), **M** a minimap (clicking it moves the view there). They work with the mouse as well.
 

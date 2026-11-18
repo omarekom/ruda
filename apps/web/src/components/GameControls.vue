@@ -18,7 +18,7 @@ const SECTIONS: readonly (readonly [
       ['moveRight', 'D', '→'],
       ['pan', 'middleDrag'],
       ['edge', 'screenEdge'],
-      ['zoom', 'wheel'],
+      ['zoom', 'wheel', '+', '−'],
     ],
   ],
   [

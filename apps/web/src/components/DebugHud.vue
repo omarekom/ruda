@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 import type { Game } from '../game/game';
 import { inspect, type Inspection } from '../game/inspect';
 import { MAX_SPEED } from '../game/tickLoop';
+import { APP_VERSION } from '../version';
 import { DEFAULT_CELL_SIZE } from '../renderer/camera';
 import { drawMinimap, minimapToWorld } from '../renderer/minimap';
 import type { Skin } from '../renderer/skins/skin';
@@ -157,6 +158,10 @@ onBeforeUnmount(() => {
     <dl v-if="shown.info" class="info">
       <dt class="title">{{ t('debug.title') }}</dt>
       <dd class="title muted">{{ t('debug.closeHint') }}</dd>
+      <dt>{{ t('debug.version') }}</dt>
+      <dd>
+        {{ t('app.title') }} <b>{{ APP_VERSION }}</b>
+      </dd>
       <dt>{{ t('debug.tick') }}</dt>
       <dd>
         <b>{{ tick }}</b>

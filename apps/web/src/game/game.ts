@@ -30,7 +30,10 @@ export class Game {
     skin: Skin,
   ) {
     this.renderer = new Renderer(canvas, this.camera, skin);
-    this.keyboard = new KeyboardInput(hotbar);
+    this.keyboard = new KeyboardInput(hotbar, (factor) => {
+      const [width, height] = this.camera.viewSize;
+      this.camera.zoomAt(width / 2, height / 2, factor);
+    });
     this.pointer = new PointerInput(
       canvas,
       this.camera,

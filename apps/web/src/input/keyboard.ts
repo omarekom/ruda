@@ -11,11 +11,25 @@ const PAN_KEYS: Readonly<Record<string, readonly [number, number]>> = {
   ArrowRight: [1, 0],
 };
 
-/** Tracks held pan keys and handles hotbar shortcuts (0–9, R). */
+/** How much one press of a zoom key zooms in (or, inverted, out). */
+const ZOOM_STEP = 1.25;
+
+/** Whether the key is a plus (1) or minus (-1) key; digit keys stay hotbar slots whatever they type. */
+function zoomDirection(event: KeyboardEvent): number {
+  if (event.code === 'NumpadAdd' || event.code === 'Equal') return 1;
+  if (event.code === 'NumpadSubtract' || event.code === 'Minus') return -1;
+  if (event.code.startsWith('Digit')) return 0;
+  return event.key === '+' ? 1 : event.key === '-' ? -1 : 0;
+}
+
+/** Tracks held pan keys and handles hotbar shortcuts (0–9, R) and the zoom keys (+, −). */
 export class KeyboardInput {
   private readonly pressed = new Set<string>();
 
-  constructor(private readonly hotbar: HotbarState) {}
+  constructor(
+    private readonly hotbar: HotbarState,
+    private readonly zoomBy: (factor: number) => void,
+  ) {}
 
   attach(): void {
     window.addEventListener('keydown', this.onKeyDown);
@@ -46,6 +60,12 @@ export class KeyboardInput {
     if (event.ctrlKey || event.metaKey || event.altKey) return;
     if (event.code in PAN_KEYS) {
       this.pressed.add(event.code);
+      event.preventDefault();
+      return;
+    }
+    const zoom = zoomDirection(event);
+    if (zoom !== 0) {
+      this.zoomBy(ZOOM_STEP ** zoom);
       event.preventDefault();
       return;
     }
