@@ -33,7 +33,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
       <h1 class="logo">{{ t('app.title') }}</h1>
       <span class="tagline">{{ t('start.tagline') }}</span>
       <div class="buttons">
-        <button type="button" class="blocky-button play" autofocus @click="emit('play')">
+        <button type="button" class="blocky-button play" @click="emit('play')">
           {{ t('start.play') }}
         </button>
         <button type="button" class="blocky-button" @click="emit('worlds')">

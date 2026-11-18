@@ -79,7 +79,7 @@ One game, in one blocky, game-like style. Older sketches of the options consider
 Start screen
 
 - Shown on every visit. The whole screen is a live preview of the game: a slow ring of delayers runs at reduced speed behind it, so one lamp at a time lights up and hands over to the next.
-- In the middle the blocky **RUDA** logo and three buttons: **Play** (continues the last world, or creates a new one if there is none), **Worlds…** and **Controls…**. Play has the focus when the screen opens; Tab goes on through Worlds… and Controls… to the light/dark switch, and the arrows reach the switch too.
+- In the middle the blocky **RUDA** logo and three buttons: **Play** (continues the last world, or creates a new one if there is none), **Worlds…** and **Controls…**. Nothing is focused when the screen opens; Tab (or an arrow) focuses Play first, then Tab goes on through Worlds… and Controls… to the light/dark switch, and the arrows reach the switch too.
 - A link to the library (`#library`, `#admin`) opens it instead; nothing in the game links there for now.
 
 The game
