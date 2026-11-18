@@ -57,9 +57,9 @@ const emit = defineEmits<{ select: [index: number] }>();
   z-index: 1;
 }
 
-/* The blocks are mid-toned, so on the dark slots they get a little brighter with a soft light rim. */
+/* The blocks are mid-toned, so on the dark slots they get a little brighter. */
 .icon {
-  filter: brightness(1.2) contrast(1.1) drop-shadow(0 0 2px rgba(255, 255, 255, 0.45));
+  filter: brightness(1.2) contrast(1.1);
 }
 
 /* The selection frame reaches past the slot and the panel on every side. */
