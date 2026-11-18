@@ -13,12 +13,13 @@ const { t } = useI18n();
 
 const backdrop = lightRing();
 const showControls = ref(false);
-const buttons = useTemplateRef<HTMLElement>('buttons');
+const screen = useTemplateRef<HTMLElement>('screen');
 
 function onKeyDown(event: KeyboardEvent): void {
   if (showControls.value || !isArrowKey(event.key)) return;
   event.preventDefault();
-  moveFocus([...(buttons.value?.querySelectorAll('button') ?? [])], event.key);
+  const buttons = screen.value?.querySelectorAll<HTMLElement>('.buttons button, .corner button');
+  moveFocus([...(buttons ?? [])], event.key);
 }
 
 onMounted(() => window.addEventListener('keydown', onKeyDown));
@@ -26,13 +27,12 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 </script>
 
 <template>
-  <main class="start">
+  <main ref="screen" class="start" @pointerover="focusHoveredButton">
     <LiveWorld class="backdrop" :world="backdrop" :skin="worldSkin" :cell-size="56" :speed="0.4" />
-    <div class="corner"><ThemeToggle /></div>
     <div class="content">
       <h1 class="logo">{{ t('app.title') }}</h1>
       <span class="tagline">{{ t('start.tagline') }}</span>
-      <div ref="buttons" class="buttons" @pointerover="focusHoveredButton">
+      <div class="buttons">
         <button type="button" class="blocky-button play" autofocus @click="emit('play')">
           {{ t('start.play') }}
         </button>
@@ -44,6 +44,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
         </button>
       </div>
     </div>
+    <!-- After the menu in the page, so Tab reaches Play first and the toggle last. -->
+    <div class="corner"><ThemeToggle /></div>
     <GameControls v-if="showControls" @done="showControls = false" />
   </main>
 </template>
