@@ -235,5 +235,10 @@
       "invalid_description": "The description can have up to 500 characters.",
       "invalid_data": "This world cannot be shared (it may be too large or damaged)."
     }
+  },
+  "mobile": {
+    "unsupported": "Ruda needs a mouse and a keyboard, so it doesn't work on phones and tablets yet.",
+    "later": "Touch support is coming in the future. Until then, come back on a computer!",
+    "continueAnyway": "Continue anyway"
   }
 }

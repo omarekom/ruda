@@ -10,6 +10,7 @@ import WorldScreen from './components/WorldScreen.vue';
 import type { OpenWorld } from './game/openWorld';
 import type { LibraryHost } from './library/host';
 import LibraryView from './library/LibraryView.vue';
+import MobileNotice from './components/MobileNotice.vue';
 import { readPreferences, writePreference } from './preferences';
 import { createEmptyWorld } from './storage/worldActions';
 import { fileErrorKey } from './storage/fileErrors';
@@ -29,6 +30,13 @@ const screen = ref<'start' | 'worlds' | 'library'>('start');
  */
 const LOADING_SCREEN_MS = 1200;
 const loadingScreen = ref(false);
+
+/**
+ * The game needs a mouse and a keyboard; on touch-only devices (phones, most tablets) it shows
+ * a notice instead, which the player may dismiss. The library works on any device.
+ */
+const touchOnly = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+const mobileNoticeDismissed = ref(false);
 
 const ADMIN_HASH = '#admin';
 const LIBRARY_HASH = '#library';
@@ -196,6 +204,10 @@ function show(stored: StoredWorld, data: string, restored: boolean): void {
     ]"
     cancel="cancel"
     @choose="onRestoreChoice"
+  />
+  <MobileNotice
+    v-if="touchOnly && !mobileNoticeDismissed && screen !== 'library'"
+    @dismiss="mobileNoticeDismissed = true"
   />
 </template>
 
