@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { isArrowKey, moveFocus } from '../input/focusNavigation';
+import { focusHoveredButton, isArrowKey, moveFocus } from '../input/focusNavigation';
 import { lightRing } from '../start/lightRing';
 import { worldSkin } from '../theme';
 import GameControls from './GameControls.vue';
@@ -32,7 +32,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
     <div class="content">
       <h1 class="logo">{{ t('app.title') }}</h1>
       <span class="tagline">{{ t('start.tagline') }}</span>
-      <div ref="buttons" class="buttons">
+      <div ref="buttons" class="buttons" @pointerover="focusHoveredButton">
         <button type="button" class="blocky-button play" autofocus @click="emit('play')">
           {{ t('start.play') }}
         </button>

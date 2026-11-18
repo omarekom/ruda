@@ -85,3 +85,15 @@ export function moveFocus(elements: readonly HTMLElement[], key: ArrowKey): void
   );
   if (target !== undefined) others[target]?.focus();
 }
+
+/**
+ * Lets the mouse take over from the keyboard in a group of buttons: hovering a button focuses
+ * it, so only one button is highlighted and the arrow keys carry on from there.
+ */
+export function focusHoveredButton(event: PointerEvent): void {
+  if (event.pointerType !== 'mouse' || !(event.target instanceof Element)) return;
+  const button = event.target.closest('button');
+  if (button && button !== document.activeElement && !button.disabled) {
+    button.focus({ preventScroll: true });
+  }
+}

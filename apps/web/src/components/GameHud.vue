@@ -3,7 +3,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from
 import { useI18n } from 'vue-i18n';
 import { selectedType, selectSlot, type HotbarState } from '../game/hotbar';
 import type { SaveResult } from '../game/saving';
-import { isArrowKey, moveFocus } from '../input/focusNavigation';
+import { focusHoveredButton, isArrowKey, moveFocus } from '../input/focusNavigation';
 import GameControls from './GameControls.vue';
 import GameHotbar from './GameHotbar.vue';
 import PixelIcon from './PixelIcon.vue';
@@ -146,7 +146,13 @@ function save(): void {
     />
 
     <div v-if="overlay === 'menu'" class="shade">
-      <div ref="menu" class="menu" role="dialog" :aria-label="t('game.menu.title')">
+      <div
+        ref="menu"
+        class="menu"
+        role="dialog"
+        :aria-label="t('game.menu.title')"
+        @pointerover="focusHoveredButton"
+      >
         <h1>{{ t('game.menu.title') }}</h1>
         <button type="button" class="blocky-button" @click="open(undefined)">
           {{ t('game.menu.resume') }}
