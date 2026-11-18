@@ -30,7 +30,11 @@ The game is a static site, so any web hosting works (production: <https://ruda.o
 1. Make sure everything is committed (the source archive is made from the last commit) and that `pnpm typecheck`, `pnpm lint` and `pnpm test` pass.
 2. `pnpm build`. The result is in `apps/web/dist`: `index.html`, `assets/`, the favicon and social preview image, and the source archive `ruda_vN.N.zip` that the About dialog links to.
 3. Upload the **contents** of `apps/web/dist` to the web root of the (sub)domain, replacing the previous files. Old `assets/*` files can be deleted: their names change with every build.
-4. Serve it over HTTPS. No server-side code or rewrite rules are needed: the app never changes the URL path.
+4. HTTPS is required: the game uses browser APIs (`crypto.randomUUID`) that exist only in secure contexts. The `.htaccess` that ships in `dist` redirects HTTP and `www.` to `https://ruda.omarek.cz` (Apache with `mod_rewrite`). Before the first upload:
+   - enable a certificate (e.g. Let's Encrypt) for **both** `ruda.omarek.cz` and `www.ruda.omarek.cz`, and create the `www` DNS record (CNAME to `ruda.omarek.cz`), otherwise visitors of `www` get a certificate warning before the redirect can happen;
+   - if the hosting terminates TLS in a proxy and the redirect loops, replace the first condition with `RewriteCond %{HTTP:X-Forwarded-Proto} !https`;
+   - the HSTS header is sticky: browsers remember it for a year, so do not enable HTTPS only halfway.
+     Otherwise no server-side code is needed: the app never changes the URL path.
 5. Check the deployed site: the start screen loads, a world can be created and saved, and the zip downloads from About. Link previews can be tested with the sharing debuggers of Facebook or LinkedIn (they cache the image, so check it before announcing the release).
 6. Tag the release (`git tag v1.0`).
 

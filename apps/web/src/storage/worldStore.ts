@@ -1,5 +1,4 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
-import { newId } from './newId';
 
 /** A saved world; `data` is the world as `.ruda` text. */
 export interface StoredWorld {
@@ -63,7 +62,7 @@ export class WorldStore {
   }
 
   async create(name: string, data: string): Promise<StoredWorld> {
-    const world: StoredWorld = { id: newId(), name, data, updatedAt: Date.now() };
+    const world: StoredWorld = { id: crypto.randomUUID(), name, data, updatedAt: Date.now() };
     await this.db.add('worlds', world);
     return world;
   }

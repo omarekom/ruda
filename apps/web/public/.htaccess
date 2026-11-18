@@ -1,0 +1,11 @@
+# Ruda runs on https://ruda.omarek.cz only: plain HTTP and the www host are
+# redirected there with one permanent redirect (Apache with mod_rewrite).
+RewriteEngine On
+RewriteCond %{HTTPS} off [OR]
+RewriteCond %{HTTP_HOST} ^www\. [NC]
+RewriteRule ^ https://ruda.omarek.cz%{REQUEST_URI} [L,R=301]
+
+# Browsers that have seen the site over HTTPS refuse plain HTTP afterwards.
+<IfModule mod_headers.c>
+    Header always set Strict-Transport-Security "max-age=31536000" "expr=%{HTTPS} == 'on'"
+</IfModule>
