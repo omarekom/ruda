@@ -44,6 +44,8 @@ export const PALETTE = {
   woodDark: '#4f3a20',
   pistonBody: ['#7d7d7d', '#808080', '#7a7a7a'],
   pistonRecess: '#5a5a5a',
+  pistonSocket: '#3e3e3e',
+  pistonSocketBack: '#333333',
   rod: '#c9c9c9',
   rodShade: '#8e8e8e',
   torchOn: ['#ff2a1a', '#ff6a40', '#ffd0b0'],
@@ -88,6 +90,33 @@ function paintCobble(p: Painter, x0 = 0, y0 = 0, w = N, h = N): void {
 
 /** Rows of the piston's wooden face plate at the front (north) edge. */
 const PLATE_ROWS = 4;
+
+/** How deep the face plate is, as a share of the cell. */
+export const PLATE_DEPTH = PLATE_ROWS / N;
+
+/**
+ * The look of a block standing up from the floor: a dark outline and, inside it, a one-texel
+ * bevel, light along the top and left edge and dark along the bottom and right.
+ */
+export function paintBevel(
+  p: Pick<Painter, 'rect'>,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+): void {
+  const outline = 'rgba(0, 0, 0, 0.6)';
+  p.rect(x, y, w, 1, outline);
+  p.rect(x, y + h - 1, w, 1, outline);
+  p.rect(x, y + 1, 1, h - 2, outline);
+  p.rect(x + w - 1, y + 1, 1, h - 2, outline);
+  const light = 'rgba(255, 255, 255, 0.28)';
+  p.rect(x + 1, y + 1, w - 2, 1, light);
+  p.rect(x + 1, y + 2, 1, h - 3, light);
+  const shade = 'rgba(0, 0, 0, 0.32)';
+  p.rect(x + 2, y + h - 2, w - 3, 1, shade);
+  p.rect(x + w - 2, y + 2, 1, h - 4, shade);
+}
 
 /** The piston's wooden face plate: one plain board with a dark seam behind it. */
 function paintPlate(p: Painter): void {
@@ -247,27 +276,32 @@ export const buttonTexture = textureCache((pressed: boolean) =>
 
 /**
  * A piston seen from above: a plain grey body with a recess the rod slides in. Retracted, the
- * wooden face plate sits at the front and the rod is tucked in; extended, the rod runs out
- * through the front edge to the head in the next cell.
+ * wooden face plate sits at the front and the rod is tucked in; extended, the body keeps its
+ * shape around the empty socket the plate left, and the rod runs out of it to the head.
  */
 export const pistonTexture = textureCache((extended: boolean) =>
   paintTexture(103, (p) => {
     p.noise(0, 0, N, N, PALETTE.pistonBody);
+    p.rect(5, PLATE_ROWS + 1, 6, N - PLATE_ROWS - 4, PALETTE.pistonRecess);
     if (extended) {
-      p.rect(5, 0, 6, N - 3, PALETTE.pistonRecess);
-      paintRod(p, 0, N - 3);
+      p.rect(1, 1, N - 2, PLATE_ROWS - 1, PALETTE.pistonSocket);
+      p.rect(1, PLATE_ROWS, N - 2, 1, PALETTE.pistonSocketBack);
+      paintRod(p, 0, N - PLATE_ROWS);
     } else {
-      p.rect(5, PLATE_ROWS + 1, 6, N - PLATE_ROWS - 4, PALETTE.pistonRecess);
       paintRod(p, PLATE_ROWS + 2, N - PLATE_ROWS - 6);
       paintPlate(p);
     }
   }),
 );
 
-/** The pushed-out face plate, with the rod reaching back to the piston. */
+/**
+ * The pushed-out face plate, standing up like the piston it came from, with the rod reaching
+ * back to the piston.
+ */
 export const pistonHeadTexture = lazyTexture(() =>
   paintTexture(107, (p) => {
     paintPlate(p);
+    paintBevel(p, 0, 0, N, PLATE_ROWS);
     paintRod(p, PLATE_ROWS, N - PLATE_ROWS);
   }),
 );

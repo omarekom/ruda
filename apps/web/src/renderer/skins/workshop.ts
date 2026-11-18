@@ -1,42 +1,62 @@
-import { nightSlabFloor, PALETTE, slabFloor } from './blockTextures';
+import { Direction } from '@ruda/core';
+import { nightSlabFloor, PALETTE, PLATE_DEPTH, paintBevel, slabFloor } from './blockTextures';
 import { drawFromTable, type Skin } from './skin';
 import { isSolid, texturedLooks, tiledFloor } from './textured';
 
-/** Solid blocks' shadow towards the bottom right, as a share of the cell. */
+/** Solid blocks' (and piston plates') shadow towards the bottom right, as a share of the cell. */
 const SHADOW_OFFSET = 0.1;
 
 /**
- * Solid blocks get a dark pixel outline and, inside it, a bevel like an inventory icon:
- * light along the top and left edge, dark along the bottom and right. Both are one texel wide,
- * so they are painted into the texture and scale (and fade when zoomed out) with it.
+ * Solid blocks get a dark pixel outline and a bevel like an inventory icon. Both are one texel
+ * wide, so they are painted into the texture and scale (and fade when zoomed out) with it.
  */
 const LOOKS = texturedLooks((top) => {
-  const n = top.width;
   const image = document.createElement('canvas');
-  image.width = n;
+  image.width = top.width;
   image.height = top.height;
   const g = image.getContext('2d');
   if (!g) return top;
   g.drawImage(top, 0, 0);
-  g.fillStyle = 'rgba(0, 0, 0, 0.6)';
-  g.fillRect(0, 0, n, 1);
-  g.fillRect(0, n - 1, n, 1);
-  g.fillRect(0, 1, 1, n - 2);
-  g.fillRect(n - 1, 1, 1, n - 2);
-  g.fillStyle = 'rgba(255, 255, 255, 0.28)';
-  g.fillRect(1, 1, n - 2, 1);
-  g.fillRect(1, 2, 1, n - 3);
-  g.fillStyle = 'rgba(0, 0, 0, 0.32)';
-  g.fillRect(2, n - 2, n - 3, 1);
-  g.fillRect(n - 2, 2, 1, n - 4);
+  paintBevel(
+    {
+      rect(x, y, w, h, color) {
+        g.fillStyle = color;
+        g.fillRect(x, y, w, h);
+      },
+    },
+    0,
+    0,
+    top.width,
+    top.height,
+  );
   return image;
 });
 
+/** The square a piston head's face plate covers in its cell, turned the way the head faces. */
+function plateRect(facing: Direction, size: number): [number, number, number, number] {
+  const depth = size * PLATE_DEPTH;
+  switch (facing) {
+    case Direction.North:
+      return [0, 0, size, depth];
+    case Direction.East:
+      return [size - depth, 0, depth, size];
+    case Direction.South:
+      return [0, size - depth, size, depth];
+    case Direction.West:
+      return [0, 0, depth, size];
+  }
+}
+
 function solidShadow(alpha: number): NonNullable<Skin['drawUnder']> {
   return (g, block, size) => {
-    if (!isSolid(block)) return;
+    const offset = size * SHADOW_OFFSET;
     g.fillStyle = `rgba(0, 0, 0, ${alpha})`;
-    g.fillRect(size * SHADOW_OFFSET, size * SHADOW_OFFSET, size, size);
+    if (isSolid(block)) {
+      g.fillRect(offset, offset, size, size);
+    } else if (block.type === 'piston_head') {
+      const [x, y, w, h] = plateRect(block.facing, size);
+      g.fillRect(x + offset, y + offset, w, h);
+    }
   };
 }
 
