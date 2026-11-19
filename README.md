@@ -8,7 +8,7 @@ Not a 1:1 Minecraft clone: signals are on/off, the world is flat, and crossings 
 
 ## Status
 
-Version 1.0 is ready for release. Implemented: the playable core, saving, timing and inputs, pistons, the graphical interface (start screen, the game, world selection), debug mode and the library. Sounds (0.8) are not done yet. The library (a shared collection of creations with a PHP backend) is built and tested but switched off in the web app for now (`LIBRARY_ENABLED` in [App.vue](apps/web/src/App.vue)). See [docs/SPEC.md](docs/SPEC.md) for the feature list per version and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the design.
+Version 1.0 is ready for release. Implemented: the playable core, saving, timing and inputs, pistons, the graphical interface (start screen, the game, world selection), debug mode and the library. Sounds are not done yet. The library (a shared collection of creations with a PHP backend) is built and tested but switched off in the web app for now (`LIBRARY_ENABLED` in [App.vue](apps/web/src/App.vue)). See [docs/SPEC.md](docs/SPEC.md) for the feature list and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the design.
 
 ## Development
 

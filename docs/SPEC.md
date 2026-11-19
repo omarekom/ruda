@@ -2,9 +2,9 @@
 
 Ruda is a 2D, top-down, web-based redstone simulator inspired by Minecraft. It is **not** a 1:1 clone: the goal is a fun tool in which you can build real logic (up to something like a calculator).
 
-Each section below is a release. Items are a plain feature list; design details live in [ARCHITECTURE.md](ARCHITECTURE.md).
+The sections up to Debug mode describe what version 1.0 contains. Upcoming work is grouped into named packages without version numbers or order; a package gets a version only when it ships. Items are a plain feature list; design details live in [ARCHITECTURE.md](ARCHITECTURE.md). The release process is in [UPDATE_GUIDE.md](UPDATE_GUIDE.md).
 
-## 0.1 – Playable core
+## Playable core
 
 World and camera
 
@@ -20,7 +20,7 @@ Editing
 - Hotbar ("inventory") at the bottom, every block shown switched on (lever flipped, torch lit, button pressed, wire and delayer powered, lamp lit) so the red stands out; slots selected with number keys (1–9, and 0 for the tenth slot) or clicking. The order follows a circuit's signal: inputs, wiring, logic, outputs, then building: 1 lever, 2 button, 3 power block, 4 wire, 5 crossing, 6 torch, 7 delayer, 8 lamp, 9 piston, 0 stone.
 - Right mouse button places the selected block, left mouse button removes the block under the cursor (Minecraft-style). Blocks are placed only into empty cells; nothing is replaced.
 - `R` rotates the held block. Holding the right mouse button and dragging also rotates it toward the drag direction.
-- Right-clicking a lever toggles it (and, from 0.3, presses a button or cycles a delayer's delay).
+- Right-clicking a lever toggles it (and presses a button or cycles a delayer's delay).
 
 Blocks
 
@@ -45,7 +45,7 @@ Other
 
 - English UI.
 
-## 0.2 – Saving
+## Saving
 
 - Multiple saved worlds, with a world list: create, open, rename, delete (with confirmation), import and export.
 - Worlds stored locally (IndexedDB).
@@ -55,12 +55,12 @@ Other
 - Export / import of `.ruda` files (minified JSON, world name included). An imported world is added to the list. A damaged file is repaired as far as possible (unreadable blocks and cells are left out) and the user is told before the world opens, with the number of problems found.
 - Versioned file format with migrations from older versions to newer ones; files from a newer version are rejected with a clear message.
 
-## 0.3 – Timing and inputs
+## Timing and inputs
 
 - Delayer – a pure delay line, rotatable. Its output equals its input from `delay` ticks earlier, so every pulse comes out unchanged, just later. Delay is 1–4 ticks (new delayers start at 1); right-clicking a placed delayer cycles 1 → 2 → 3 → 4 → 1, and the change keeps the current output. Like a torch, it reads only its back and powers only its front. It shows the signals travelling through it.
 - Button – momentary power source. Right-clicking powers its 4 neighbours for 10 ticks (1 s); presses while it is on are ignored.
 
-## 0.4 – Pistons
+## Pistons
 
 - Piston – push only, no sticky variant, rotatable. Powered from its back and both sides, never from its front (head) side.
 - Extends 1 tick after it gets power; when power stops it retracts 1 tick later. Retracting only pulls the head back; pushed blocks stay where they are.
@@ -71,7 +71,7 @@ Other
 - Push animation.
 - If two pistons would touch the same cell in one tick (pushing into the same cell, or one pushing the other), neither moves.
 
-## 0.5 – Graphical interface
+## Graphical interface
 
 One game, in one blocky, game-like style. Older sketches of the options considered live in `tmp_gui_props/` (the current direction in `tmp_gui_props/v2/`).
 
@@ -110,10 +110,9 @@ Naming
 
 Still to design:
 
-- Where the library of ready-made worlds (built-in and community creations) and sharing a creation appear in the game. Both stay; for now the library is reachable only by its link and the built-in creations only through it.
 - UI icons and further tuning of block visuals.
 
-## 0.6 – Debug mode
+## Debug mode
 
 Extra information and control over time, for understanding and testing circuits. It keeps the game's look for buttons and titles, but shows its data in a monospace font, which reads much better than the pixel font.
 
@@ -124,9 +123,13 @@ Extra information and control over time, for understanding and testing circuits.
 
 Still to decide: tuning debug mode and its map; overlays such as chunk borders and highlighted wire networks; better keys if the letters clash with the game later.
 
-## 0.7 – Library
+## Upcoming
 
-**Currently switched off in the app** (`LIBRARY_ENABLED` in `App.vue`; the UI and backend are complete, nothing links to it). A shared library of creations in its own tab next to **Your worlds**. It is a separate module: it exchanges only `.ruda` text with the game.
+Packages of work, in no particular order.
+
+### Library
+
+Built, but **currently switched off in the app** (`LIBRARY_ENABLED` in `App.vue`; the UI and backend are complete, nothing links to it). A shared library of creations in its own tab next to **Your worlds**. It is a separate module: it exchanges only `.ruda` text with the game. Still to design: where the library and sharing a creation appear in the game. Both stay; for now the library is reachable only by its link and the built-in creations only through it.
 
 - Browse published creations as cards with a live preview, title, author, date and description. Built-in creations ("From Ruda") come first, community creations newest first.
 - **Copy to my worlds** adds a creation to the player's worlds; the copy can then be opened from the card.
@@ -135,7 +138,7 @@ Still to decide: tuning debug mode and its map; overlays such as chunk borders a
 - Built-in creations, built and tested in code: block tour, logic gates (NOT, OR, NOR, AND, NAND, XOR), clocks, light chaser, pulse tools (edge detectors, delay line), memory cell (latch), adders (half, full, 2-bit), piston switches, lamp sign.
 - Backend: PHP 8.1+ with SQLite on ordinary PHP hosting (see `apps/library-api/README.md`).
 
-## 0.8 – Sounds
+### Sounds
 
 Game mode gets sounds, tuned to its playful feel. To design:
 
@@ -149,18 +152,27 @@ Ideas, not committed:
 
 - Keyboard shortcuts across the game, to tune: consistent keys on every screen (Import and Back in Worlds have keys but no labels on their buttons) and how to show them without writing them everywhere, e.g. `?` on any screen overlays the keys that work there.
 - Guidance when starting: a short tour (coach marks pointing at parts of the screen) so new players get to know each mode's interface.
-- Czech localization (strings kept in locale files from the start).
-- Undo / redo.
-- Selection, copy and paste, saved blueprints.
+- Czech localization (strings kept in locale files from the start). [Mby waste of time and confusing only]
+- images in changelog for each version, optional actually
+- propper in game docs with visuals
+- Undo / redo in debug.
+- Selection, copy and paste.
 - Modules: reusable building blocks (the exact concept is open). The hard part will be their UX, which needs a lot of exploration to get right.
+	- library of modules
+	- module abstraction has to be included on the field somewhere, then you clone it
+	- NOT seprate modal for module creation, that is confusing
+	- being able to specify modules interface: pins and lights outside
+	- module names, naming pins (see 'hole'/portal feature)
+	- optimization of module behaviour simulation?
 - Sticky pistons.
 - Delayer locking: a delayer powered from its side by another delayer holds its output.
-- Observer, comparator and other components.
+- Observer, comparator and other components. (mby not needed)
 - Multiplayer: one client hosts, others join (see ARCHITECTURE.md).
 - Fully playable with only a keyboard or only a mouse (the default is both together).
 - Mobile / touch support.
-- Richer game-like visuals.
 - Simulation in a Web Worker.
 - Running worlds headless from a file (CLI / library use).
 - A 3D flat world, multiplayer included, controlled like Minecraft (first-person movement and building).
 - Cross-browser rendering checks: test the display in both Chrome and Firefox.
+- Advanced wire placement, e.g. laying parallel wires at once in debug mode?
+- 'holes'/portals in debug mode lets player connect a wire to the grid anywehre on the field, by specifying id [a-zA-Z0-9 and -_]
