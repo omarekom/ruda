@@ -3,7 +3,7 @@ import { onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { focusHoveredButton, isArrowKey, moveFocus } from '../input/focusNavigation';
 import { lightRing } from '../start/lightRing';
-import { worldSkin } from '../theme';
+import { theme, worldSkin } from '../theme';
 import { APP_VERSION } from '../version';
 import AboutDialog from './AboutDialog.vue';
 import ChangelogDialog from './ChangelogDialog.vue';
@@ -35,7 +35,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 </script>
 
 <template>
-  <main ref="screen" class="start" @pointerover="focusHoveredButton">
+  <main ref="screen" class="start" :data-theme="theme" @pointerover="focusHoveredButton">
     <LiveWorld class="backdrop" :world="backdrop" :skin="worldSkin" :cell-size="56" :speed="0.4" />
     <div class="content">
       <h1 class="logo">{{ t('app.title') }}</h1>
@@ -122,6 +122,13 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 .slot-button:focus-visible {
   outline: 3px solid #fff;
   outline-offset: 2px;
+}
+
+/* A white ring disappears against the daylight backdrop. */
+.start[data-theme='light'] .slot-button:focus-visible {
+  outline-color: #000;
+  background: rgba(20, 20, 24, 0.95);
+  color: #fff;
 }
 
 .content {
