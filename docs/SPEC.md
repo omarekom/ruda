@@ -176,3 +176,4 @@ Ideas, not committed:
 - Cross-browser rendering checks: test the display in both Chrome and Firefox.
 - Advanced wire placement, e.g. laying parallel wires at once in debug mode?
 - 'holes'/portals in debug mode lets player connect a wire to the grid anywehre on the field, by specifying id [a-zA-Z0-9 and -_]
+- test inverting mouse button functinos
