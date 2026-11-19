@@ -2,6 +2,8 @@
 
 A 2D, top-down web simulator inspired by Minecraft redstone. Build logic circuits (clocks, gates, even a calculator) on an endless canvas.
 
+**Play it: <https://ruda.omarek.cz>**
+
 Not a 1:1 Minecraft clone: signals are on/off, the world is flat, and crossings are a dedicated tile.
 
 ## Status
@@ -51,4 +53,4 @@ Worlds are saved locally and can be exported to `.ruda` files (minified JSON).
 
 ## License
 
-[PolyForm Noncommercial 1.0.0](LICENSE): the source is open to read, use, change and share for any noncommercial purpose. Commercial use is not permitted.
+[PolyForm Noncommercial 1.0.0](LICENSE): the source is open to read, use, change and share for any noncommercial purpose. Commercial use is not permitted. Because of that restriction the project is source-available, not open source in the OSI sense, and GitHub shows the license as "Other".
