@@ -28,6 +28,14 @@ describe('Piston', () => {
     ]);
   });
 
+  it('forgets the moves of a piston broken before the next tick', () => {
+    const sim = simulationFrom('LpS');
+    sim.execute({ kind: 'interact', x: 0, y: 0 });
+    sim.step();
+    sim.execute({ kind: 'remove', x: 1, y: 0 });
+    expect(sim.recentMoves.map((m) => m.block.type)).toEqual(['stone']);
+  });
+
   it('retracts when power stops, leaving pushed blocks in place', () => {
     const sim = simulationFrom('LpS');
     sim.execute({ kind: 'interact', x: 0, y: 0 });

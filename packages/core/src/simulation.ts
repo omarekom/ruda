@@ -79,6 +79,7 @@ export class Simulation {
       case 'place':
         if (current || !isPlaceable(command.block)) return false;
         this.edit(x, y, command.block);
+        this.forgetMoves([cellKey(x, y)]);
         return true;
       case 'remove': {
         if (!current) return false;
@@ -86,12 +87,14 @@ export class Simulation {
         const partner = pistonPartner(this.world, x, y);
         this.edit(x, y, undefined);
         if (partner) this.edit(...partner, undefined);
+        this.forgetMoves(partner ? [cellKey(x, y), cellKey(...partner)] : [cellKey(x, y)]);
         return true;
       }
       case 'interact': {
         const next = current && interactWith(current);
         if (!next) return false;
         this.edit(x, y, next);
+        this.forgetMoves([cellKey(x, y)]);
         return true;
       }
     }
@@ -173,6 +176,14 @@ export class Simulation {
     // Blocked pistons try again every tick until they can move or no longer want to.
     for (const key of blocked) this.pending.add(key);
     this.ticks++;
+  }
+
+  /**
+   * Drops the last tick's moves into an edited cell, so the renderer does not keep animating
+   * a block that is gone, e.g. the head of a piston broken while time is paused.
+   */
+  private forgetMoves(cells: readonly number[]): void {
+    this.moves = this.moves.filter((move) => !cells.includes(cellKey(move.toX, move.toY)));
   }
 
   private applyStateChanges(changes: readonly [number, number, Block, Block][]): void {
