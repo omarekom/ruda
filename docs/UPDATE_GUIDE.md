@@ -5,8 +5,9 @@ How Ruda is versioned and what to do before each release. Releases are deployed 
 ## Versioning
 
 - The first release is **1.0**; later ones count up: 1.1, 1.2, …
-- **Minor** (second digit): new features. Gets a changelog entry.
-- **Patch** (third digit, e.g. 1.0.1): bugfixes only. No changelog entry.
+- **Minor** (second digit): new gameplay that players will feel, such as new blocks, new mechanics or a new mode. Gets a changelog entry.
+- **Patch** (third digit, e.g. 1.0.1): everything else: bugfixes, interface and usability improvements, and small tools such as additions to debug mode (undo and redo, keyboard shortcuts, the `?` keys overlay). No changelog entry.
+- The project owner decides. Before releasing, or when unsure which number to raise, ask; never bump the version or release on your own.
 - No plans for 2.0.
 - The version lives in one place: `version` in [apps/web/package.json](../apps/web/package.json), written in full semver (`1.1.0`). The app shows it as `1.1` (`1.0.1` for a patch release) next to the About button.
 

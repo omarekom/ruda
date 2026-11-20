@@ -17,6 +17,7 @@ Project: Ruda, a 2D web redstone simulator. Read [docs/SPEC.md](docs/SPEC.md) an
 
 - Commit continuously in small, logical commits with clear messages.
 - Keep docs/SPEC.md in sync with what is implemented.
+- Never bump the version or release without asking the user first; which number to raise is their call (see docs/UPDATE_GUIDE.md).
 
 ## Communication with the user
 
