@@ -26,6 +26,7 @@ export {
   WORLD_MAX,
   WORLD_MIN,
 } from './coords';
+export { History, HISTORY_LIMIT } from './history';
 export { MAX_PUSH, type BlockMove } from './pistons';
 export { Simulation } from './simulation';
 export { CHUNK_SIZE, World, type BlockVisitor, type ReadonlyWorld } from './world';
