@@ -1,6 +1,7 @@
 <script setup lang="ts" generic="T extends string">
 import { onMounted, useTemplateRef } from 'vue';
 import { focusHoveredButton, isArrowKey, moveFocus } from '../input/focusNavigation';
+import { useKeyHelpBlocker } from '../input/keyHelp';
 
 export interface DialogAction<V extends string> {
   readonly value: V;
@@ -18,6 +19,7 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ choose: [value: T] }>();
 const dialog = useTemplateRef<HTMLDialogElement>('dialog');
+useKeyHelpBlocker();
 
 onMounted(() => {
   dialog.value?.showModal();

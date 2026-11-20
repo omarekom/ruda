@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { serializeWorld, Simulation } from '@ruda/core';
+import { HISTORY_LIMIT, serializeWorld, Simulation } from '@ruda/core';
 import {
   computed,
   onBeforeUnmount,
@@ -14,7 +14,8 @@ import { useI18n } from 'vue-i18n';
 import { Game } from '../game/game';
 import { createHotbarState } from '../game/hotbar';
 import type { OpenWorld } from '../game/openWorld';
-import type { SaveResult } from '../game/saving';
+import type { Notice } from '../game/notice';
+import { useKeyHelp, type KeyRow } from '../input/keyHelp';
 import { NEW_WORLD_CELL_SIZE } from '../renderer/camera';
 import type { WorldStore } from '../storage/worldStore';
 import { worldSkin } from '../theme';
@@ -23,6 +24,29 @@ import DebugHud from './DebugHud.vue';
 import GameHud from './GameHud.vue';
 
 const AUTOSAVE_INTERVAL_MS = 30_000;
+const GAME_KEYS: readonly KeyRow[] = [
+  ['move', 'WASD', 'arrows'],
+  ['zoom', '+', '−'],
+  ['turn', 'R'],
+  ['slot', '1–9', '0'],
+  ['menu', 'Esc'],
+  ['save', 'Ctrl+S'],
+  ['debug', '/'],
+  ['help', '?'],
+];
+const DEBUG_KEYS: readonly KeyRow[] = [
+  ['pause', 'space'],
+  ['step', '.'],
+  ['panels', 'I', 'C', 'M'],
+  ['undo', 'Z'],
+  ['redo', 'Shift+Z'],
+];
+const MENU_KEYS: readonly KeyRow[] = [
+  ['buttons', 'arrows'],
+  ['choose', 'Enter'],
+  ['resume', 'Esc'],
+  ['help', '?'],
+];
 /** How far beside the hotbar the bottom edge still does not scroll. */
 const HOTBAR_EDGE_MARGIN_PX = 64;
 
@@ -38,7 +62,7 @@ const dirty = ref(props.world.restored);
 /** Edits not yet in the recovery copy. */
 let recoveryStale = false;
 const saving = ref(false);
-const lastSave = ref<SaveResult>();
+const notice = ref<Notice>();
 /** Where to go once the player has decided about unsaved changes. */
 const leavingTo = ref<'worlds' | 'start'>();
 const menuOpen = ref(false);
@@ -52,6 +76,11 @@ let autosaveTimer: ReturnType<typeof setInterval> | undefined;
 const paused = computed(() => menuOpen.value || (debugOn.value && debugPaused.value));
 const speed = computed(() => (debugOn.value ? debugSpeed.value : 1));
 const inputEnabled = computed(() => !menuOpen.value && leavingTo.value === undefined);
+
+useKeyHelp(() => {
+  if (menuOpen.value) return MENU_KEYS;
+  return debugOn.value ? [...GAME_KEYS, ...DEBUG_KEYS] : GAME_KEYS;
+});
 
 watch(worldSkin, (next) => game.value?.setSkin(next));
 watch(paused, (next) => {
@@ -81,6 +110,28 @@ function serialize(): string {
   return serializeWorld(simulation.blocks, props.world.name);
 }
 
+function showNotice(key: string, options: Pick<Notice, 'values' | 'warning'> = {}): void {
+  notice.value = { key, ...options, at: Date.now() };
+}
+
+/**
+ * Flashes what undo or redo did, so a key pressed by mistake does not go unnoticed. When
+ * there is nothing left, the warning says why: no edits at all, or only older ones dropped.
+ */
+function undoOrRedo(action: 'undo' | 'redo'): void {
+  const current = game.value;
+  if (!current) return;
+  if (action === 'undo' ? current.undo() : current.redo()) {
+    showNotice(action === 'undo' ? 'game.history.undone' : 'game.history.redone');
+  } else if (action === 'redo') {
+    showNotice('game.history.redoNothing', { warning: true });
+  } else if (current.undoLimitReached) {
+    showNotice('game.history.undoLimit', { values: { count: HISTORY_LIMIT }, warning: true });
+  } else {
+    showNotice('game.history.undoNothing', { warning: true });
+  }
+}
+
 function onEdit(): void {
   dirty.value = true;
   recoveryStale = true;
@@ -96,11 +147,12 @@ async function save(): Promise<boolean> {
     recoveryStale = false;
     ok = true;
   } catch {
-    // Reported to the player through lastSave.
+    // Reported to the player through the notice.
   } finally {
     saving.value = false;
   }
-  lastSave.value = { ok, at: Date.now() };
+  if (ok) showNotice('game.saved');
+  else showNotice('game.saveFailed', { warning: true });
   return ok;
 }
 
@@ -133,15 +185,25 @@ async function onLeaveChoice(choice: 'save' | 'discard' | 'cancel'): Promise<voi
   finishLeaving(target);
 }
 
+/**
+ * Undo and redo keys, only in debug mode: Z or Ctrl+Z undoes, Shift+Z or Ctrl+Shift+Z
+ * redoes. Read from the typed letter, so they follow the keyboard layout.
+ */
+function historyAction(event: KeyboardEvent): 'undo' | 'redo' | undefined {
+  if (event.altKey || event.key.toLowerCase() !== 'z') return undefined;
+  return event.shiftKey ? 'redo' : 'undo';
+}
+
 function onKeyDown(event: KeyboardEvent): void {
+  const typing = event.target instanceof HTMLInputElement;
+  const action = debugOn.value && inputEnabled.value && !typing ? historyAction(event) : undefined;
   if ((event.ctrlKey || event.metaKey) && event.code === 'KeyS') {
     event.preventDefault();
     void save();
-  } else if (
-    event.key === '/' &&
-    inputEnabled.value &&
-    !(event.target instanceof HTMLInputElement)
-  ) {
+  } else if (action) {
+    event.preventDefault();
+    undoOrRedo(action);
+  } else if (event.key === '/' && inputEnabled.value && !typing) {
     event.preventDefault();
     toggleDebug();
   }
@@ -191,10 +253,11 @@ onBeforeUnmount(() => {
       @pause="(next) => (debugPaused = next)"
       @speed="(next) => (debugSpeed = next)"
       @step="game.step()"
+      @exit="toggleDebug"
     />
     <GameHud
       :hotbar="hotbar"
-      :last-save="lastSave"
+      :notice="notice"
       :blocked="leavingTo !== undefined"
       :debug-on="debugOn"
       @menu="(open) => (menuOpen = open)"

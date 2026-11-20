@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, useTemplateRef } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { keyLabel, useKeyHelpBlocker } from '../input/keyHelp';
 
 const emit = defineEmits<{ done: [] }>();
 const { t } = useI18n();
@@ -8,6 +9,8 @@ const list = useTemplateRef<HTMLElement>('list');
 const done = useTemplateRef<HTMLElement>('done');
 
 const ARROW_STEP = 56;
+
+useKeyHelpBlocker();
 
 /** Enter and Escape close the dialog; the other keys scroll the list like a scrollable page. */
 function onKeyDown(event: KeyboardEvent): void {
@@ -82,15 +85,14 @@ const SECTIONS: readonly (readonly [
       ['menu', 'Esc'],
       ['save', 'Ctrl+S'],
       ['debug', '/'],
+      ['pause', 'space'],
+      ['step', '.'],
+      ['undo', 'Z'],
+      ['redo', 'Shift+Z'],
     ],
   ],
   ['hotbar', [['slot', '1–9', '0']]],
 ];
-
-/** Keys written as words (mouse buttons) are translated; letters and symbols are shown as is. */
-function keyLabel(key: string): string {
-  return /^[a-z]/.test(key) ? t(`game.controls.keys.${key}`) : key;
-}
 </script>
 
 <template>
@@ -102,7 +104,7 @@ function keyLabel(key: string): string {
         <div v-for="[action, ...keys] in rows" :key="action" class="row">
           <span class="action">{{ t(`game.controls.actions.${action}`) }}</span>
           <span class="keys">
-            <kbd v-for="key in keys" :key="key">{{ keyLabel(key) }}</kbd>
+            <kbd v-for="key in keys" :key="key" class="blocky-key">{{ keyLabel(t, key) }}</kbd>
           </span>
         </div>
       </section>
@@ -175,22 +177,8 @@ h2 {
   gap: 6px;
 }
 
-kbd {
+kbd:first-child {
   min-width: 150px;
-  padding: 2px 10px;
-  border: 3px solid #000;
-  background: #6f6f6f;
-  box-shadow:
-    inset -3px -3px 0 #444,
-    inset 3px 3px 0 #a0a0a0;
-  color: #fff;
-  font: 26px/28px var(--font-retro);
-  text-align: center;
-  text-shadow: 2px 2px #333;
-}
-
-.keys kbd + kbd {
-  min-width: 56px;
 }
 
 .done {

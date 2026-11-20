@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { onMounted, useTemplateRef } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useKeyHelpBlocker } from '../input/keyHelp';
 
 const emit = defineEmits<{ done: [] }>();
 const { t, tm, rt } = useI18n();
+useKeyHelpBlocker();
 const dialog = useTemplateRef<HTMLDialogElement>('dialog');
 
 /** Newest first, as ordered in the locale file; the key "v1_0" stands for version 1.0. */

@@ -9,7 +9,6 @@ How Ruda is versioned and what to do before each release. Releases are deployed 
 - **Patch** (third digit, e.g. 1.0.1): bugfixes only. No changelog entry.
 - No plans for 2.0.
 - The version lives in one place: `version` in [apps/web/package.json](../apps/web/package.json), written in full semver (`1.1.0`). The app shows it as `1.1` (`1.0.1` for a patch release) next to the About button.
-- The spec's `0.x` headings are the development milestones leading up to 1.0, not release versions.
 
 ## Checklist for every new version (minor and major)
 

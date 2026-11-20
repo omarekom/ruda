@@ -1,4 +1,10 @@
-import { isInteractive, type Command, type ReadonlyWorld, type Simulation } from '@ruda/core';
+import {
+  History,
+  isInteractive,
+  type Command,
+  type ReadonlyWorld,
+  type Simulation,
+} from '@ruda/core';
 import { KeyboardInput } from '../input/keyboard';
 import { PointerInput } from '../input/pointer';
 import { Camera } from '../renderer/camera';
@@ -19,6 +25,8 @@ export class Game {
   private readonly pointer: PointerInput;
   private readonly loop: TickLoop;
   private readonly resizeObserver: ResizeObserver;
+  /** Kept for as long as the world is open; saving does not clear it. */
+  private readonly history: History;
   private inputAttached = false;
 
   /** `onEdit` runs after every command that changed the world. */
@@ -30,6 +38,7 @@ export class Game {
     skin: Skin,
   ) {
     this.renderer = new Renderer(canvas, this.camera, skin);
+    this.history = new History(simulation);
     this.keyboard = new KeyboardInput(hotbar, (factor) => {
       const [width, height] = this.camera.viewSize;
       this.camera.zoomAt(width / 2, height / 2, factor);
@@ -129,8 +138,26 @@ export class Game {
     return this.pointer.overlay().hover;
   }
 
+  /** Reverses the latest edit; false if there is nothing to undo. */
+  undo(): boolean {
+    return this.afterEdit(this.history.undo());
+  }
+
+  /** Whether undo has run out because older edits were dropped, not because there were none. */
+  get undoLimitReached(): boolean {
+    return this.history.hasForgotten;
+  }
+
+  /** Repeats the latest undone edit; false if there is nothing to redo. */
+  redo(): boolean {
+    return this.afterEdit(this.history.redo());
+  }
+
   private execute(command: Command): boolean {
-    const applied = this.simulation.execute(command);
+    return this.afterEdit(this.history.execute(command));
+  }
+
+  private afterEdit(applied: boolean): boolean {
     if (applied) {
       this.renderer.invalidate();
       this.onEdit();

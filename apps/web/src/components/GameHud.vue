@@ -2,7 +2,7 @@
 import { nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { selectedType, selectSlot, type HotbarState } from '../game/hotbar';
-import type { SaveResult } from '../game/saving';
+import type { Notice } from '../game/notice';
 import { focusHoveredButton, isArrowKey, moveFocus } from '../input/focusNavigation';
 import GameControls from './GameControls.vue';
 import GameHotbar from './GameHotbar.vue';
@@ -14,7 +14,7 @@ const TOAST_SHOWN_MS = 1400;
 
 const props = defineProps<{
   hotbar: HotbarState;
-  lastSave: SaveResult | undefined;
+  notice: Notice | undefined;
   /** Whether another dialog has the keyboard; Escape then belongs to it. */
   blocked: boolean;
   debugOn: boolean;
@@ -33,7 +33,9 @@ const { t } = useI18n();
 type Overlay = 'menu' | 'controls';
 const overlay = ref<Overlay>();
 const showName = ref(false);
-const toast = ref<string>();
+/** The latest notice; its text stays while it fades out. */
+const toast = ref<{ text: string; warning: boolean; at: number }>();
+const toastShown = ref(false);
 let nameTimer: ReturnType<typeof setTimeout> | undefined;
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
 const menu = useTemplateRef<HTMLElement>('menu');
@@ -75,12 +77,17 @@ watch(
 );
 
 watch(
-  () => props.lastSave,
-  (result) => {
-    if (!result) return;
-    toast.value = t(result.ok ? 'game.saved' : 'game.saveFailed');
+  () => props.notice,
+  (notice) => {
+    if (!notice) return;
+    toast.value = {
+      text: t(notice.key, notice.values ?? {}),
+      warning: notice.warning ?? false,
+      at: notice.at,
+    };
+    toastShown.value = true;
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => (toast.value = undefined), TOAST_SHOWN_MS);
+    toastTimer = setTimeout(() => (toastShown.value = false), TOAST_SHOWN_MS);
   },
 );
 
@@ -134,7 +141,15 @@ function save(): void {
       </button>
     </div>
 
-    <p class="toast" :class="{ shown: toast }" role="status">{{ toast }}</p>
+    <!-- Keyed by time, so the same message pressed again pops once more instead of just staying. -->
+    <p
+      :key="toast?.at"
+      class="toast"
+      :class="{ shown: toastShown, warning: toast?.warning }"
+      role="status"
+    >
+      {{ toast?.text }}
+    </p>
     <p class="block-name" :class="{ shown: showName }">
       {{ t(`blocks.${selectedType(hotbar)}`) }}
     </p>
@@ -233,6 +248,26 @@ function save(): void {
   color: #8f8;
   font-size: 30px;
   text-shadow: 2px 2px #000;
+}
+
+.toast.warning {
+  color: #ffb74d;
+}
+
+.toast.shown {
+  animation: toast-pop 0.18s ease-out;
+}
+
+@keyframes toast-pop {
+  from {
+    transform: translateX(-50%) scale(1.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast.shown {
+    animation: none;
+  }
 }
 
 .shown {

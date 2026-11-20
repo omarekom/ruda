@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { onMounted, useTemplateRef } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useKeyHelpBlocker } from '../input/keyHelp';
 
 const emit = defineEmits<{ dismiss: [] }>();
 const { t } = useI18n();
+useKeyHelpBlocker();
 const button = useTemplateRef<HTMLButtonElement>('button');
 
 onMounted(() => button.value?.focus());

@@ -10,6 +10,7 @@ Project: Ruda, a 2D web redstone simulator. Read [docs/SPEC.md](docs/SPEC.md) an
 - Simulation must stay deterministic.
 - All world changes go through explicit commands, never direct mutation from the UI. Undo/redo and multiplayer depend on this.
 - Code, identifiers and docs are in English. UI strings go through i18n keys.
+- Every new screen supports the `?` keys overlay, and every new dialog or notice blocks it (see Keys overlay in ARCHITECTURE.md).
 - Add tests for the core (Vitest), especially simulation and file migrations.
 
 ## Workflow

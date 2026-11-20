@@ -2,7 +2,7 @@
 
 Ruda is a 2D, top-down, web-based redstone simulator inspired by Minecraft. It is **not** a 1:1 clone: the goal is a fun tool in which you can build real logic (up to something like a calculator).
 
-The sections up to Debug mode describe what version 1.0 contains. Upcoming work is grouped into named packages without version numbers or order; a package gets a version only when it ships. Items are a plain feature list; design details live in [ARCHITECTURE.md](ARCHITECTURE.md). The release process is in [UPDATE_GUIDE.md](UPDATE_GUIDE.md).
+The sections up to Debug mode describe what is implemented: version 1.0 and what came after it. Upcoming work is grouped into named packages without version numbers or order; a package gets a version only when it ships. Items are a plain feature list; design details live in [ARCHITECTURE.md](ARCHITECTURE.md). The release process is in [UPDATE_GUIDE.md](UPDATE_GUIDE.md).
 
 ## Playable core
 
@@ -73,7 +73,7 @@ Other
 
 ## Graphical interface
 
-One game, in one blocky, game-like style. Older sketches of the options considered live in `tmp_gui_props/` (the current direction in `tmp_gui_props/v2/`).
+One game, in one blocky, game-like style.
 
 Start screen
 
@@ -88,7 +88,8 @@ The game
 - Real time, simple and playful, with a deliberately blocky look: pixel fonts, bevelled grey buttons, a framed hotbar of plain dark slots; the selected one is marked only by a white frame reaching a little past the hotbar on every side.
 - On screen only: the hotbar (no number hints; the keys still work), the name of the held block popping up briefly when it changes, and in the top right corner the light/dark switch and a menu button.
 - The menu (button or Esc) pauses the simulation. It offers: back to game, save, worlds, controls, debug mode, start screen. Saving shows a short confirmation. It takes the keyboard when it opens: arrows move between the buttons as they are laid out, Enter chooses. The start screen's buttons work the same way. Hovering a button with the mouse moves the focus to it, so only one button is ever highlighted and the arrows carry on from there.
-- **Controls** lists every key and mouse action by section (movement, building, using blocks, game, hotbar), each shown as a key cap. The hotbar is one row with its number keys.
+- **Controls** lists every key and mouse action by section (movement, building, using blocks, game, hotbar), each shown as a key cap. The hotbar is one row with its number keys. Undo and redo are listed under game as Z and Shift+Z.
+- **Keys overlay**: `?` on the start screen, in Worlds, in the game and in its menu overlays a short list of the keys that work there (in the game, debug mode's keys too while it is on); `?`, Esc or a click closes it. It does nothing while typing in a field or while a dialog, notice or the Controls list is open. While it is up, key presses do not reach the screen behind it. Every screen added later gets the overlay too, listing its own keys; every new dialog or notice turns it off while open.
 - Opening a world shows a loading screen: a plain dark backdrop, "Loading world", playful status lines and a filling bar. It stays up for at least 1.2 s on purpose, as part of the game feel, so no menu flashes by on the way in.
 - **Block look (Workshop)**: 16×16 Minecraft-like textures seen from straight above. Solid blocks (stone, power blocks, lamps, pistons) have a dark pixel outline, a bevel and a shadow. The lever is a slide switch: a stone plate with a wooden slider, at the bottom when off and at the top when on, where the open slot behind it glows red. The piston is kept plain: a grey body with a groove the metal rod slides in and a wooden face plate at the front. Extending, the plate and the rod slide out together over one tick, smoothly (slow at both ends), as do the blocks it pushes; the rod always comes from inside the body, through the empty socket the plate leaves, and stays joined to the plate. Retracting is the same in reverse. Light glows on the floor: yellow around lit lamps, red around power blocks and other powered parts. Zoomed out, blocks and floor blend smoothly into their average colours, with no shimmering or moiré. The same look is used by the hotbar, world thumbnails, library previews and the start screen.
 - **Light and dark**: in light, a bright, warm floor of smooth stone slabs; in dark, the same slabs at night, where the light pools stand out. One button shows the other variant and switches to it; the world fades smoothly from one to the other. The variant follows the system; a choice that differs from the system is remembered, and choosing the system's variant again forgets it. Menus, dialogs and the loading screen are dark in both.
@@ -116,9 +117,10 @@ Still to design:
 
 Extra information and control over time, for understanding and testing circuits. It keeps the game's look for buttons and titles, but shows its data in a monospace font, which reads much better than the pixel font.
 
-- Turned on and off with `/` or from the menu. The game stays fully playable while it is on.
-- Top left, a block of text like a game's debug screen: the game version (e.g. "Ruda 1.0.2"), tick, speed, measured ticks per second, the cell under the cursor (x, y) and the block there with its state (facing, on/off, lit, delay…), and the camera's position and zoom.
-- At the top in the middle, time control: pause, ▶ normal speed, ▶▶ 3×, ▶▶▶ 10×, **max** (as many ticks as the browser manages), a field for any speed, and a single step (while paused). Turning debug mode off returns to normal speed.
+- Turned on and off with `/` or from the menu; bottom right, an **Exit debug** button with its `/` key cap turns it off too. The game stays fully playable while it is on.
+- **Undo and redo** of the player's edits (placing, breaking, flipping levers, changing a delayer's delay; button presses are not undone): undo with Z or Ctrl+Z, redo with Shift+Z or Ctrl+Shift+Z. Each press briefly flashes a short message at the top of the screen, where "World saved" appears, so a key pressed by mistake does not go unnoticed: "Undo" or "Redo". When there is nothing left, an orange warning says so: "Nothing left to undo", "Nothing left to redo", or "Can't go further back: only 100 steps are kept" once older ones were dropped. The same message pressed again pops once more instead of just staying. Warnings (also a failed save) are orange, confirmations green. The keys work only in debug mode, but every edit since the world was opened is remembered, the last 100; saving keeps the history and leaving the world forgets it. Undo removes a placed block, puts a broken block back with its state (an extended piston comes back retracted), and flips a lever or a delayer back. The world keeps running meanwhile, so an edit that can no longer be reversed (its block was pushed away by a piston) is skipped and the one before it is undone instead.
+- Top left, a block of text like a game's debug screen, headed with the game version (e.g. "Ruda 1.0.2 debug"): tick, speed, measured ticks per second, the cell under the cursor (x, y) and the block there with its state (facing, on/off, lit, delay…; a crossing shows its horizontal and vertical channel separately, horizontal first, e.g. "on / off"; a delayer its delay and the signals travelling through it, output first, e.g. "4 ticks · 0110"), and the camera's position and zoom. The box keeps its width as the values change, so it does not jump.
+- At the top in the middle, time control as a row of pixel-icon buttons in the game's blocky style: **step** (one tick), **pause**, **normal speed** (10 ticks/s), **fast** (3×, 30 ticks/s) and **max** (as many ticks as the browser manages). The chosen one looks pressed in and lit. Step works only while paused; otherwise it is greyed out and its tooltip says it is available only while paused. Keys: Space pauses and resumes at the chosen speed, `.` steps one tick while paused (otherwise it does nothing); both are in the tooltips, Controls and the `?` overlay. Turning debug mode off returns to normal speed.
 - Bottom left, switches for panels that are hidden by default, each with its key: **I** the information text, **C** the world's contents (block counts per type), **M** a minimap (clicking it moves the view there). They work with the mouse as well.
 
 Still to decide: tuning debug mode and its map; overlays such as chunk borders and highlighted wire networks; better keys if the letters clash with the game later.
@@ -150,12 +152,11 @@ Game mode gets sounds, tuned to its playful feel. To design:
 
 Ideas, not committed:
 
-- Keyboard shortcuts across the game, to tune: consistent keys on every screen (Import and Back in Worlds have keys but no labels on their buttons) and how to show them without writing them everywhere, e.g. `?` on any screen overlays the keys that work there.
+- Keyboard shortcuts across the game, to tune: consistent keys on every screen (Import and Back in Worlds have keys but no labels on their buttons); the `?` overlay is a first step.
 - Guidance when starting: a short tour (coach marks pointing at parts of the screen) so new players get to know each mode's interface.
 - Czech localization (strings kept in locale files from the start). [Mby waste of time and confusing only]
 - images in changelog for each version, optional actually
 - propper in game docs with visuals
-- Undo / redo in debug.
 - Selection, copy and paste.
 - Modules: reusable building blocks (the exact concept is open). The hard part will be their UX, which needs a lot of exploration to get right.
 	- library of modules
@@ -177,3 +178,4 @@ Ideas, not committed:
 - Advanced wire placement, e.g. laying parallel wires at once in debug mode?
 - 'holes'/portals in debug mode lets player connect a wire to the grid anywehre on the field, by specifying id [a-zA-Z0-9 and -_]
 - test inverting mouse button functinos
+- campaign mode; learning basics of CPU architecture

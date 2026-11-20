@@ -14,6 +14,7 @@ import { nightSlabFloor } from '../renderer/skins/blockTextures';
 import { worldSkin } from '../theme';
 import { fileErrorKey } from '../storage/fileErrors';
 import { isArrowKey, moveFocus } from '../input/focusNavigation';
+import { useKeyHelp, type KeyRow } from '../input/keyHelp';
 import { formatRelativeTime } from '../relativeTime';
 import { downloadRudaFile, RUDA_FILE_ACCEPT } from '../storage/files';
 import { createEmptyWorld, createWorld, renameWorld } from '../storage/worldActions';
@@ -26,6 +27,20 @@ import WorldThumbnail from './WorldThumbnail.vue';
 const props = defineProps<{ store: WorldStore }>();
 const emit = defineEmits<{ open: [id: string]; back: [] }>();
 const { t, locale } = useI18n();
+
+const KEYS: readonly KeyRow[] = [
+  ['cards', 'arrows', 'Tab'],
+  ['firstWorld', 'space'],
+  ['playWorld', 'Enter'],
+  ['rename', 'F2'],
+  ['delete', 'Delete'],
+  ['export', 'E'],
+  ['import', 'I'],
+  ['search', '/'],
+  ['back', 'Esc'],
+  ['help', '?'],
+];
+useKeyHelp(() => KEYS);
 
 const worlds = shallowRef<StoredWorld[]>([]);
 const search = ref('');

@@ -87,6 +87,17 @@ pnpm workspaces, TypeScript 6 (strict), Vite, Vue 3, vue-i18n, idb, Fontsource (
 - Lighting is a pass in the renderer: lit lamps, torches, sources and powered wires each add a soft glow (a pre-painted sprite) into a small light buffer at a quarter of the screen resolution, which is then blended once under the blocks (added on dark skins, overlaid on light ones), plus a faint second time over the blocks on dark skins. Light from blocks just off screen is included so glows do not pop at the edges; at very small zoom lighting is skipped.
 - The renderer draws a frame only when it would differ from the last one (camera, ticks, hover, ghost block, piston animation; edits, skin changes and resizes invalidate it), so an idle world costs almost nothing. The canvas is opaque, and solid blocks' outline and bevel are baked into their textures, so a block is one image.
 
+## Keys overlay
+
+- The `?` overlay (`KeyHelp.vue`) shows the keys of the screen in front. A screen lists them with `useKeyHelp(() => rows)` during setup (`input/keyHelp.ts`); the getter may depend on state, like the game's menu or debug mode. Dialogs and notices call `useKeyHelpBlocker()` so `?` does nothing while they are open.
+- Every new screen must call `useKeyHelp` and every new dialog or notice `useKeyHelpBlocker`, and the overlay's list must stay in step with the keys the screen actually handles.
+
+## Undo
+
+- `History` (core) wraps the simulation: it runs each player command and stores how to reverse it, as further commands, so undo works the same way over the network later. It is computed from the world just before the command runs (a removed block's state, a lever's or delayer's interaction repeated).
+- The world keeps ticking between edits, so each reverse step remembers which block type its cell must hold; when that no longer matches (a piston moved the block), the step is dropped and the next one is tried.
+- The app keeps one `History` per opened world, inside `Game`.
+
 ## Mouse placement
 
 One click places one block (no painting). Pressing the right button shows a ghost block, dragging sets its rotation, releasing places it.

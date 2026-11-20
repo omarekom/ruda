@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useKeyHelpBlocker } from '../input/keyHelp';
 
 /** How long the bar takes to fill; App keeps the screen up at least this long. */
 const props = defineProps<{ durationMs: number }>();
 const { t } = useI18n();
+useKeyHelpBlocker();
 
 /** Playful status lines (i18n keys under game.loading.steps), shown one after another. */
 const STEPS = ['terrain', 'dust', 'lamps', 'pistons', 'torches', 'levers'] as const;

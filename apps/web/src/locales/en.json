@@ -48,7 +48,14 @@
   },
   "game": {
     "saved": "World saved",
-    "saveFailed": "Saving failed!",
+    "saveFailed": "Couldn't save. Please try again",
+    "history": {
+      "undone": "Undo",
+      "redone": "Redo",
+      "undoNothing": "Nothing left to undo",
+      "redoNothing": "Nothing left to redo",
+      "undoLimit": "Can't go further back: only {count} steps are kept"
+    },
     "menu": {
       "open": "Menu",
       "title": "Game paused",
@@ -88,7 +95,11 @@
         "menu": "Pause menu",
         "save": "Save the world",
         "slot": "Pick a hotbar slot",
-        "debug": "Debug mode"
+        "debug": "Debug mode",
+        "undo": "Undo (debug mode)",
+        "redo": "Redo (debug mode)",
+        "pause": "Pause or resume (debug mode)",
+        "step": "One tick while paused (debug mode)"
       },
       "keys": {
         "middleDrag": "Middle drag",
@@ -96,7 +107,9 @@
         "wheel": "Mouse wheel",
         "rightClick": "Right click",
         "leftClick": "Left click",
-        "rightDrag": "Right drag"
+        "rightDrag": "Right drag",
+        "arrows": "Arrows",
+        "space": "Space"
       }
     },
     "worlds": {
@@ -130,9 +143,8 @@
     }
   },
   "debug": {
-    "title": "Ruda debug",
-    "closeHint": "/ to close",
-    "version": "version",
+    "title": "Ruda {version} debug",
+    "exit": "Exit debug",
     "tick": "tick",
     "paused": "paused",
     "speed": "speed",
@@ -147,12 +159,12 @@
     },
     "time": {
       "label": "Time",
-      "pause": "Pause",
-      "speed": "{speed}× speed",
-      "max": "max",
-      "maxHint": "As fast as the browser can",
-      "custom": "Any speed",
-      "step": "One tick (while paused)"
+      "step": "One tick [.]",
+      "stepUnavailable": "Only while paused [.]",
+      "pause": "Pause [Space]",
+      "normal": "Normal speed ({ticks} ticks/s)",
+      "fast": "Fast ({ticks} ticks/s)",
+      "max": "As fast as the browser can"
     },
     "map": {
       "title": "Map",
@@ -177,11 +189,16 @@
       "released": "released",
       "extended": "extended",
       "retracted": "retracted",
-      "delay": "delays {ticks} tick | delays {ticks} ticks",
+      "delay": "{ticks} tick · {line} | {ticks} ticks · {line}",
       "powering": "always powering",
       "powered": "powered",
-      "unpowered": "unpowered"
-    }
+      "unpowered": "unpowered",
+      "crossingNeither": "off / off",
+      "crossingHorizontal": "on / off",
+      "crossingVertical": "off / on",
+      "crossingBoth": "on / on"
+    },
+    "maxSpeed": "max"
   },
   "theme": {
     "toLight": "Switch to day",
@@ -274,5 +291,36 @@
     "title": "Flashing lights",
     "warning": "Your browser asks for reduced motion. Ruda contains flashing: clocks and lamps can blink quickly, and circuits can run at high speed. Play with care if you are sensitive to flashing.",
     "continue": "I understand"
+  },
+  "keyHelp": {
+    "title": "Keys",
+    "close": "? or Esc to close",
+    "actions": {
+      "buttons": "Move between buttons",
+      "choose": "Press the button",
+      "help": "Show these keys",
+      "cards": "Move between worlds",
+      "firstWorld": "Mark the first world",
+      "playWorld": "Play or create",
+      "rename": "Rename",
+      "delete": "Delete",
+      "export": "Export",
+      "import": "Import",
+      "search": "Search",
+      "back": "Back",
+      "move": "Move",
+      "zoom": "Zoom",
+      "turn": "Turn the held block",
+      "slot": "Pick a hotbar slot",
+      "menu": "Pause menu",
+      "save": "Save the world",
+      "debug": "Debug mode",
+      "panels": "Debug panels",
+      "undo": "Undo",
+      "redo": "Redo",
+      "resume": "Back to game",
+      "pause": "Pause or resume",
+      "step": "One tick while paused"
+    }
   }
 }

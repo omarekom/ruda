@@ -2,6 +2,7 @@
 import { onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { focusHoveredButton, isArrowKey, moveFocus } from '../input/focusNavigation';
+import { useKeyHelp, type KeyRow } from '../input/keyHelp';
 import { lightRing } from '../start/lightRing';
 import { theme, worldSkin } from '../theme';
 import { APP_VERSION } from '../version';
@@ -13,6 +14,13 @@ import ThemeToggle from './ThemeToggle.vue';
 
 const emit = defineEmits<{ play: []; worlds: [] }>();
 const { t } = useI18n();
+
+const KEYS: readonly KeyRow[] = [
+  ['buttons', 'arrows', 'Tab'],
+  ['choose', 'Enter'],
+  ['help', '?'],
+];
+useKeyHelp(() => KEYS);
 
 const backdrop = lightRing();
 const showControls = ref(false);

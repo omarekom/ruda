@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 import ConfirmDialog from './components/ConfirmDialog.vue';
 import GameLoading from './components/GameLoading.vue';
 import GameWorlds from './components/GameWorlds.vue';
+import KeyHelp from './components/KeyHelp.vue';
 import StartScreen from './components/StartScreen.vue';
 import WorldScreen from './components/WorldScreen.vue';
 import type { OpenWorld } from './game/openWorld';
@@ -220,6 +221,7 @@ function show(stored: StoredWorld, data: string, restored: boolean): void {
     v-if="!motionNoticeDismissed && screen !== 'library'"
     @dismiss="motionNoticeDismissed = true"
   />
+  <KeyHelp />
 </template>
 
 <style scoped>

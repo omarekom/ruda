@@ -4,20 +4,21 @@ import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef }
 import { useI18n } from 'vue-i18n';
 import type { Game } from '../game/game';
 import { inspect, type Inspection } from '../game/inspect';
-import { MAX_SPEED } from '../game/tickLoop';
+import { MAX_SPEED, TICKS_PER_SECOND } from '../game/tickLoop';
 import { APP_VERSION } from '../version';
 import { DEFAULT_CELL_SIZE } from '../renderer/camera';
 import { drawMinimap, minimapToWorld } from '../renderer/minimap';
 import type { Skin } from '../renderer/skins/skin';
+import PixelIcon from './PixelIcon.vue';
 
 const INFO_INTERVAL_MS = 100;
 const RATE_INTERVAL_MS = 500;
 const MINIMAP_INTERVAL_MS = 200;
 const CONTENTS_INTERVAL_MS = 1000;
-const PRESETS = [
-  { speed: 1, label: '▶' },
-  { speed: 3, label: '▶▶' },
-  { speed: 10, label: '▶▶▶' },
+const SPEEDS = [
+  { speed: 1, icon: 'play', tip: 'debug.time.normal' },
+  { speed: 3, icon: 'fast', tip: 'debug.time.fast' },
+  { speed: MAX_SPEED, icon: 'max', tip: 'debug.time.max' },
 ] as const;
 const DIRECTION_NAMES = ['north', 'east', 'south', 'west'] as const;
 
@@ -37,7 +38,12 @@ const props = defineProps<{
   /** Whether the panel keys work; off while a menu or dialog is open. */
   active: boolean;
 }>();
-const emit = defineEmits<{ pause: [paused: boolean]; speed: [speed: number]; step: [] }>();
+const emit = defineEmits<{
+  pause: [paused: boolean];
+  speed: [speed: number];
+  step: [];
+  exit: [];
+}>();
 const { t } = useI18n();
 
 const shown = ref<Record<Panel, boolean>>({ info: true, contents: false, map: false });
@@ -48,13 +54,12 @@ const inspection = shallowRef<Inspection>();
 const camera = ref({ x: 0, y: 0, zoom: 100 });
 const counts = shallowRef<readonly (readonly [BlockType, number])[]>([]);
 const total = ref(0);
-const customSpeed = ref('');
 const minimap = useTemplateRef<HTMLCanvasElement>('minimap');
 const timers: ReturnType<typeof setInterval>[] = [];
 let rateSample = { tick: 0, at: 0 };
 
 const speedText = computed(() =>
-  props.speed === MAX_SPEED ? t('debug.time.max') : `${props.speed}×`,
+  props.speed === MAX_SPEED ? t('debug.maxSpeed') : `${props.speed}×`,
 );
 
 function refreshInfo(): void {
@@ -106,16 +111,12 @@ function run(speed: number): void {
   emit('pause', false);
 }
 
-function applyCustomSpeed(): void {
-  const speed = Number(customSpeed.value.replace(',', '.'));
-  if (Number.isFinite(speed) && speed > 0) run(speed);
-  customSpeed.value = '';
-}
-
 function stateText(state: NonNullable<Inspection['state']>): string {
   const key = `debug.state.${state.key}`;
-  const ticks = state.values?.ticks;
-  return ticks === undefined ? t(key) : t(key, { ticks }, ticks);
+  const { values } = state;
+  if (!values) return t(key);
+  // A tick count picks the plural form.
+  return typeof values.ticks === 'number' ? t(key, values, values.ticks) : t(key, values);
 }
 
 const blockText = computed(() => {
@@ -128,11 +129,29 @@ const blockText = computed(() => {
   return parts.join(' · ');
 });
 
+/** Space pauses and resumes at the chosen speed; `.` steps one tick, only while paused. */
 function onKeyDown(event: KeyboardEvent): void {
   if (!props.active || event.ctrlKey || event.metaKey || event.altKey) return;
   if (event.target instanceof HTMLInputElement) return;
+  if (event.code === 'Space') {
+    // Also keeps Space from pressing a focused button, such as the last time button clicked.
+    event.preventDefault();
+    if (!event.repeat) emit('pause', !props.paused);
+    return;
+  }
+  if (event.key === '.') {
+    if (props.paused) emit('step');
+    return;
+  }
   const entry = PANELS.find(({ code }) => code === event.code);
   if (entry) toggle(entry.panel);
+}
+
+/** A focused button would be pressed by Space on its release. */
+function onKeyUp(event: KeyboardEvent): void {
+  if (props.active && event.code === 'Space' && !(event.target instanceof HTMLInputElement)) {
+    event.preventDefault();
+  }
 }
 
 onMounted(() => {
@@ -145,23 +164,20 @@ onMounted(() => {
     setInterval(refreshContents, CONTENTS_INTERVAL_MS),
   );
   window.addEventListener('keydown', onKeyDown);
+  window.addEventListener('keyup', onKeyUp);
 });
 
 onBeforeUnmount(() => {
   timers.forEach(clearInterval);
   window.removeEventListener('keydown', onKeyDown);
+  window.removeEventListener('keyup', onKeyUp);
 });
 </script>
 
 <template>
   <div class="debug">
     <dl v-if="shown.info" class="info">
-      <dt class="title">{{ t('debug.title') }}</dt>
-      <dd class="title muted">{{ t('debug.closeHint') }}</dd>
-      <dt>{{ t('debug.version') }}</dt>
-      <dd>
-        {{ t('app.title') }} <b>{{ APP_VERSION }}</b>
-      </dd>
+      <dt class="title">{{ t('debug.title', { version: APP_VERSION }) }}</dt>
       <dt>{{ t('debug.tick') }}</dt>
       <dd>
         <b>{{ tick }}</b>
@@ -188,54 +204,47 @@ onBeforeUnmount(() => {
     </dl>
 
     <div class="time blocky-panel" role="group" :aria-label="t('debug.time.label')">
+      <!-- Not disabled, only marked so: a disabled button would not show why it is off. -->
       <button
         type="button"
+        class="blocky-button icon-button"
+        :class="{ unavailable: !paused }"
+        :aria-disabled="!paused"
+        :data-tip="t(paused ? 'debug.time.step' : 'debug.time.stepUnavailable')"
+        :aria-label="t('debug.time.step')"
+        @click="paused && emit('step')"
+      >
+        <PixelIcon name="step" />
+      </button>
+      <button
+        type="button"
+        class="blocky-button icon-button"
         :class="{ on: paused }"
+        :aria-pressed="paused"
         :data-tip="t('debug.time.pause')"
         :aria-label="t('debug.time.pause')"
         @click="emit('pause', !paused)"
       >
-        ⏸
+        <PixelIcon name="pause" />
       </button>
       <button
-        v-for="preset in PRESETS"
+        v-for="preset in SPEEDS"
         :key="preset.speed"
         type="button"
+        class="blocky-button icon-button"
         :class="{ on: !paused && speed === preset.speed }"
-        :data-tip="t('debug.time.speed', { speed: preset.speed })"
-        :aria-label="t('debug.time.speed', { speed: preset.speed })"
+        :aria-pressed="!paused && speed === preset.speed"
+        :data-tip="t(preset.tip, { ticks: preset.speed * TICKS_PER_SECOND })"
+        :aria-label="t(preset.tip, { ticks: preset.speed * TICKS_PER_SECOND })"
         @click="run(preset.speed)"
       >
-        {{ preset.label }}
-      </button>
-      <button
-        type="button"
-        class="wide"
-        :class="{ on: !paused && speed === MAX_SPEED }"
-        :data-tip="t('debug.time.maxHint')"
-        @click="run(MAX_SPEED)"
-      >
-        {{ t('debug.time.max') }}
-      </button>
-      <form class="custom" @submit.prevent="applyCustomSpeed">
-        <input
-          v-model="customSpeed"
-          inputmode="decimal"
-          :placeholder="String(speed === MAX_SPEED ? '' : speed)"
-          :aria-label="t('debug.time.custom')"
-        />
-        <span>×</span>
-      </form>
-      <button
-        type="button"
-        :disabled="!paused"
-        :data-tip="t('debug.time.step')"
-        :aria-label="t('debug.time.step')"
-        @click="emit('step')"
-      >
-        ⏭
+        <PixelIcon :name="preset.icon" />
       </button>
     </div>
+
+    <button type="button" class="exit" @click="emit('exit')">
+      <kbd>/</kbd>{{ t('debug.exit') }}
+    </button>
 
     <div class="bottom">
       <section v-if="shown.map" class="panel blocky-panel">
@@ -305,7 +314,8 @@ b {
   top: 14px;
   left: 14px;
   display: grid;
-  grid-template-columns: auto auto;
+  /* Wide enough for the longest usual value, so the box does not jump as the cursor moves. */
+  grid-template-columns: auto minmax(32ch, auto);
   gap: 0 18px;
   margin: 0;
   padding: 8px 12px;
@@ -318,13 +328,10 @@ b {
 }
 
 .info .title {
+  grid-column: 1 / -1;
   margin-bottom: 4px;
   color: #ffd34d;
   font-weight: 700;
-}
-
-.info dd.title {
-  font-weight: 400;
 }
 
 .time {
@@ -332,66 +339,57 @@ b {
   top: 14px;
   left: 50%;
   display: flex;
-  align-items: center;
-  gap: 2px;
-  padding: 3px;
+  gap: 6px;
+  padding: 4px;
   transform: translateX(-50%);
 }
 
-.time button,
-.switches button {
-  border: 2px solid #000;
-  border-radius: 0;
-  background: #3a3d44;
-  color: #ddd;
-  font: 14px var(--font-mono);
+.time .icon-button {
+  width: 40px;
+  height: 40px;
+  font-size: 22px;
 }
 
-.time button {
-  width: 42px;
-  height: 34px;
-  padding: 0;
+/*
+ * The chosen time is pushed in, with the hotbar's white selection frame reaching past it.
+ * The frame is ::before, since ::after holds the tooltip.
+ */
+.time .on,
+.time .on:hover,
+.time .on:focus-visible {
+  z-index: 1;
+  background: #555;
+  box-shadow:
+    inset 3px 3px 0 #333,
+    inset -3px -3px 0 #777;
+  color: #fff;
 }
 
-.time button.wide {
-  width: auto;
-  padding: 0 8px;
+.time .on::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border: 3px solid #fff;
+  box-shadow:
+    0 0 0 2px #000,
+    inset 0 0 0 2px #000;
+  pointer-events: none;
 }
 
-.time button:hover:not(:disabled),
-.switches button:hover {
-  background: #4a4e57;
+.time .unavailable,
+.time .unavailable:hover {
+  background: #4a4a4a;
+  box-shadow:
+    inset -3px -3px 0 #333,
+    inset 3px 3px 0 #5e5e5e;
+  color: #8a8a8a;
+  cursor: default;
 }
 
-.time button.on,
-.time button.on:hover {
-  background: #ffd34d;
-  color: #000;
-}
-
-.time button[data-tip]::after {
+.time [data-tip]::after {
   right: auto;
   left: 50%;
   transform: translateX(-50%);
-}
-
-.custom {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin: 0 4px;
-}
-
-.custom input {
-  box-sizing: border-box;
-  width: 56px;
-  height: 34px;
-  padding: 0 6px;
-  border: 2px solid #000;
-  border-radius: 0;
-  background: #0c0d10;
-  font: 14px var(--font-mono);
-  text-align: right;
 }
 
 .bottom {
@@ -453,13 +451,28 @@ b {
   gap: 6px;
 }
 
+.exit,
 .switches button {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 3px 8px;
+  border: 2px solid #000;
+  border-radius: 0;
   background: rgba(0, 0, 0, 0.62);
-  font-size: 13px;
+  color: #ddd;
+  font: 13px var(--font-mono);
+}
+
+.exit:hover,
+.switches button:hover {
+  background: #4a4e57;
+}
+
+.exit {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
 }
 
 .switches button.on {
