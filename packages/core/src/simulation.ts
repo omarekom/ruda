@@ -26,6 +26,7 @@ import {
   type Channel,
   type Network,
 } from './networks';
+import { isValidLabel } from './labels';
 import { isPlaceable, pistonPartner, planPiston, type BlockMove, type PistonPlan } from './pistons';
 import { World, type ReadonlyWorld } from './world';
 
@@ -95,6 +96,13 @@ export class Simulation {
         if (!next) return false;
         this.edit(x, y, next);
         this.forgetMoves([cellKey(x, y)]);
+        return true;
+      }
+      case 'label': {
+        const text = command.text === '' ? undefined : command.text;
+        if (text !== undefined && !isValidLabel(text)) return false;
+        if (this.world.label(x, y) === text) return false;
+        this.world.setLabel(x, y, text);
         return true;
       }
     }

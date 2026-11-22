@@ -7,16 +7,21 @@ import type { ReadonlyWorld } from './world';
 /** How many edits can be undone. */
 export const HISTORY_LIMIT = 100;
 
-/**
- * Commands that take the world one way through an edit. The world keeps running between
- * edits (pistons move blocks), so a step only applies while its cell still holds the
- * block type the edit left there.
- */
-interface Step {
-  readonly commands: readonly Command[];
+/** A cell that must hold a block of the given type (or be empty) for a step to apply. */
+interface Guard {
   readonly x: number;
   readonly y: number;
   readonly expected: BlockType | undefined;
+}
+
+/**
+ * Commands that take the world one way through an edit. The world keeps running between
+ * edits (pistons move blocks), so a block step only applies while its cell still holds the
+ * block type the edit left there. Labels never move, so their steps have no guard.
+ */
+interface Step {
+  readonly commands: readonly Command[];
+  readonly guard: Guard | undefined;
 }
 
 interface Entry {
@@ -81,9 +86,11 @@ export class History {
     return false;
   }
 
-  private apply(step: Step): boolean {
-    if (this.simulation.blocks.get(step.x, step.y)?.type !== step.expected) return false;
-    const [first, ...rest] = step.commands;
+  private apply({ commands, guard }: Step): boolean {
+    if (guard && this.simulation.blocks.get(guard.x, guard.y)?.type !== guard.expected) {
+      return false;
+    }
+    const [first, ...rest] = commands;
     if (!first || !this.simulation.execute(first)) return false;
     for (const command of rest) this.simulation.execute(command);
     return true;
@@ -97,13 +104,23 @@ function entryFor(world: ReadonlyWorld, command: Command): Entry | undefined {
   switch (command.kind) {
     case 'place':
       return {
-        undo: { commands: [{ kind: 'remove', x, y }], x, y, expected: command.block.type },
-        redo: { commands: [command], x, y, expected: undefined },
+        undo: {
+          commands: [{ kind: 'remove', x, y }],
+          guard: { x, y, expected: command.block.type },
+        },
+        redo: { commands: [command], guard: { x, y, expected: undefined } },
       };
     case 'remove':
       return current && removalEntry(world, x, y, current);
     case 'interact':
       return current && interactionEntry(command, current);
+    case 'label': {
+      const undo: Command = { kind: 'label', x, y, text: world.label(x, y) ?? '' };
+      return {
+        undo: { commands: [undo], guard: undefined },
+        redo: { commands: [command], guard: undefined },
+      };
+    }
   }
 }
 
@@ -119,17 +136,18 @@ function removalEntry(world: ReadonlyWorld, x: number, y: number, removed: Block
   return {
     undo: {
       commands: [{ kind: 'place', x: px, y: py, block: restored }],
-      x: px,
-      y: py,
-      expected: undefined,
+      guard: { x: px, y: py, expected: undefined },
     },
-    redo: { commands: [{ kind: 'remove', x: px, y: py }], x: px, y: py, expected: restored.type },
+    redo: {
+      commands: [{ kind: 'remove', x: px, y: py }],
+      guard: { x: px, y: py, expected: restored.type },
+    },
   };
 }
 
 function interactionEntry(command: Command, block: Block): Entry | undefined {
   const { x, y } = command;
-  const redo: Step = { commands: [command], x, y, expected: block.type };
+  const redo: Step = { commands: [command], guard: { x, y, expected: block.type } };
   switch (block.type) {
     case 'lever':
       return { undo: redo, redo };

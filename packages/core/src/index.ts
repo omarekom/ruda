@@ -27,9 +27,16 @@ export {
   WORLD_MIN,
 } from './coords';
 export { History, HISTORY_LIMIT } from './history';
+export { isValidLabel, MAX_LABEL_LENGTH } from './labels';
 export { MAX_PUSH, type BlockMove } from './pistons';
 export { Simulation } from './simulation';
-export { CHUNK_SIZE, World, type BlockVisitor, type ReadonlyWorld } from './world';
+export {
+  CHUNK_SIZE,
+  World,
+  type BlockVisitor,
+  type LabelVisitor,
+  type ReadonlyWorld,
+} from './world';
 export { RudaFileError, type RudaFileErrorCode } from './file/errors';
 export { CURRENT_VERSION } from './file/migrations';
 export {
@@ -39,4 +46,5 @@ export {
   type LoadedWorld,
   type RepairedWorld,
   type RudaFile,
+  type RudaLabel,
 } from './file/ruda';

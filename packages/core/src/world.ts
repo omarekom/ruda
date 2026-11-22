@@ -1,5 +1,5 @@
 import type { Block } from './blocks';
-import { isInWorld } from './coords';
+import { cellFromKey, cellKey, isInWorld } from './coords';
 
 export const CHUNK_SIZE = 32;
 const CHUNK_AREA = CHUNK_SIZE * CHUNK_SIZE;
@@ -15,6 +15,7 @@ interface Chunk {
 }
 
 export type BlockVisitor = (x: number, y: number, block: Block) => void;
+export type LabelVisitor = (x: number, y: number, text: string) => void;
 
 export interface ReadonlyWorld {
   get(x: number, y: number): Block | undefined;
@@ -22,11 +23,19 @@ export interface ReadonlyWorld {
   /** Visits every block in the inclusive rectangle. */
   forEachInRect(minX: number, minY: number, maxX: number, maxY: number, visit: BlockVisitor): void;
   forEach(visit: BlockVisitor): void;
+  /** The text of the label that starts in the cell, if any. */
+  label(x: number, y: number): string | undefined;
+  readonly labelCount: number;
+  forEachLabel(visit: LabelVisitor): void;
 }
 
-/** A sparse grid of blocks; a chunk exists only while it holds at least one block. */
+/**
+ * A sparse grid of blocks; a chunk exists only while it holds at least one block. Labels are
+ * a separate layer over the blocks: each starts in a cell and runs on to the east.
+ */
 export class World implements ReadonlyWorld {
   private readonly chunks = new Map<number, Chunk>();
+  private readonly labels = new Map<number, string>();
   private count = 0;
 
   get blockCount(): number {
@@ -75,6 +84,25 @@ export class World implements ReadonlyWorld {
     for (const chunk of this.chunks.values()) {
       visitChunk(chunk, -Infinity, -Infinity, Infinity, Infinity, visit);
     }
+  }
+
+  label(x: number, y: number): string | undefined {
+    return isInWorld(x, y) ? this.labels.get(cellKey(x, y)) : undefined;
+  }
+
+  get labelCount(): number {
+    return this.labels.size;
+  }
+
+  /** Sets or clears (with undefined) the label starting in a cell. Validity is the caller's job. */
+  setLabel(x: number, y: number, text: string | undefined): void {
+    if (!isInWorld(x, y)) throw new RangeError(`Cell (${x}, ${y}) is outside the world`);
+    if (text === undefined) this.labels.delete(cellKey(x, y));
+    else this.labels.set(cellKey(x, y), text);
+  }
+
+  forEachLabel(visit: LabelVisitor): void {
+    for (const [key, text] of this.labels) visit(...cellFromKey(key), text);
   }
 }
 

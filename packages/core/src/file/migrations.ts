@@ -5,11 +5,11 @@ export type JsonObject = { readonly [key: string]: unknown };
 /** Converts a file of version N to version N + 1. */
 export type Migration = (file: JsonObject) => JsonObject;
 
-/**
- * `MIGRATIONS[i]` migrates version `i + 1` to `i + 2`. Append new migrations; never edit old ones.
- * Empty while version 1 is the only one: the app has not been released yet.
- */
-export const MIGRATIONS: readonly Migration[] = [];
+/** `MIGRATIONS[i]` migrates version `i + 1` to `i + 2`. Append new migrations; never edit old ones. */
+export const MIGRATIONS: readonly Migration[] = [
+  // 2 adds the optional "labels" list; a version 1 file simply has none.
+  (file) => file,
+];
 
 export const CURRENT_VERSION = MIGRATIONS.length + 1;
 

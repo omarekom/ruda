@@ -33,6 +33,7 @@ The core knows nothing about the UI, storage or real time. Persistence and tick 
 - Wires, levers, lamps and crossings have no delay. Torch, delayer and button (and later piston) have a delay of 1 tick or more.
 - Only active parts are recomputed (event-driven), not the whole world: only torches whose input may have changed are evaluated, and only networks touched by a change are rebuilt.
 - Torch lit state, delayer contents and button countdown are world state (they are saved); network power and lamp state are derived and recomputed on load.
+- Labels change with one `label` command (an empty text removes the label); they take no part in the simulation.
 - Player interaction is one `interact` command; the registry decides what it does (flip a lever, press a button, cycle a delay).
 
 ## File format (`.ruda`)
@@ -41,7 +42,7 @@ Minified JSON. Blocks are grouped by type and state, with coordinates as a flat 
 
 ```json
 {
-  "rudaversion": 1,
+  "rudaversion": 2,
   "name": "My world",
   "blocks": {
     "power_block": [0, 0, 5, 3],
@@ -49,15 +50,17 @@ Minified JSON. Blocks are grouped by type and state, with coordinates as a flat 
     "torch:east:lit": [4, 4],
     "delayer:north:3:010": [6, 1],
     "button:0": [7, 7]
-  }
+  },
+  "labels": [[0, -2, "Clock"], [6, 1, "Delay 3"]]
 }
 ```
 
 - The key is the block type followed by every state segment, in a fixed order (`type:state…`). States are always written explicitly: `lever:on` / `lever:off`, `torch:<north|east|south|west>:<lit|unlit>`, `delayer:<facing>:<delay>:<line>` (the line is one `0`/`1` per tick of delay, current output first), `button:<ticks remaining>`. Stateless blocks have no suffix.
 - Pistons: `piston:<facing>:<extended|retracted>`, `piston_head:<facing>`.
 - The value is a flat list of `x, y` pairs.
+- `labels` lists `[x, y, text]`: the cell the label starts in and its text (one line of 1–80 characters, no spaces at either end). It is left out when the world has no labels. Labels are not blocks: they live in their own layer of the world, a cell can hold both a block and the start of a label, and pistons never move labels.
 - Output is canonical: keys and cells are sorted, so the same world always gives the same file.
-- `rudaversion` is the file version, which also marks the file as a Ruda world. It is 1 until the first release; there are no migrations yet. Loading runs a chain of migrations `vN → vN+1`. A file newer than the app is rejected with a clear message. Old migrations are never edited, only appended.
+- `rudaversion` is the file version, which also marks the file as a Ruda world. Version 2 (Ruda 1.1) added `labels`; its migration from 1 changes nothing, but a 1.0 app rejects a version 2 file as too new instead of silently dropping its labels. Loading runs a chain of migrations `vN → vN+1`. A file newer than the app is rejected with a clear message. Old migrations are never edited, only appended.
 - Loading is strict: unknown blocks, bad coordinates or a cell listed twice reject the file (`parseWorld`, used for saved worlds).
 - Importing uses `repairWorld`, which loads what it can and counts the problems: unknown blocks, bad or repeated cells and pistons without their other half are left out. Text that is not valid JSON (a missing comma, a cut-off file) is not repaired, and a file that is not a Ruda world or is newer than the app is rejected.
 - Names have no namespace prefix.

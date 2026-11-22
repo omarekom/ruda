@@ -1,16 +1,23 @@
 import { blockFromState, isBlockType, stateOf, type Block } from '../blocks';
 import { cellKey, isInWorld } from '../coords';
+import { isValidLabel } from '../labels';
 import { findBrokenPistons } from '../pistons';
 import { World, type ReadonlyWorld } from '../world';
 import { RudaFileError } from './errors';
 import { CURRENT_VERSION, migrate, type JsonObject } from './migrations';
 
-/** The `.ruda` file: blocks grouped by `type[:state…]`, each with flat `x, y` pairs. */
+/**
+ * The `.ruda` file: blocks grouped by `type[:state…]`, each with flat `x, y` pairs, and the
+ * labels as `[x, y, text]`, left out when there are none.
+ */
 export interface RudaFile {
   readonly rudaversion: number;
   readonly name: string;
   readonly blocks: Readonly<Record<string, readonly number[]>>;
+  readonly labels?: readonly RudaLabel[];
 }
+
+export type RudaLabel = readonly [x: number, y: number, text: string];
 
 export interface LoadedWorld {
   readonly name: string;
@@ -42,7 +49,15 @@ export function serializeWorld(world: ReadonlyWorld, name: string): string {
     cells.sort(([ax, ay], [bx, by]) => ax - bx || ay - by);
     blocks[key] = cells.flat();
   }
-  const file: RudaFile = { rudaversion: CURRENT_VERSION, name, blocks };
+  const labels: RudaLabel[] = [];
+  world.forEachLabel((x, y, text) => labels.push([x, y, text]));
+  labels.sort(([ax, ay], [bx, by]) => ax - bx || ay - by);
+  const file: RudaFile = {
+    rudaversion: CURRENT_VERSION,
+    name,
+    blocks,
+    ...(labels.length > 0 && { labels }),
+  };
   return JSON.stringify(file);
 }
 
@@ -114,7 +129,31 @@ function buildWorld(json: unknown, report: Report): LoadedWorld {
     report(problem);
     world.set(x, y, undefined);
   }
+  if (file.labels !== undefined) addLabels(world, file.labels, report);
   return { name: typeof name === 'string' ? name : '', world };
+}
+
+function addLabels(world: World, labels: unknown, report: Report): void {
+  if (!Array.isArray(labels)) {
+    report('"labels" must be a list of [x, y, text] entries');
+    return;
+  }
+  for (const entry of labels as unknown[]) {
+    if (!Array.isArray(entry) || entry.length !== 3) {
+      report(`Invalid label ${JSON.stringify(entry)}`);
+      continue;
+    }
+    const [x, y, text]: unknown[] = entry;
+    if (typeof x !== 'number' || typeof y !== 'number' || !isInWorld(x, y)) {
+      report(`Invalid cell (${String(x)}, ${String(y)}) for a label`);
+    } else if (typeof text !== 'string' || !isValidLabel(text)) {
+      report(`Invalid label text at (${x}, ${y})`);
+    } else if (world.label(x, y) !== undefined) {
+      report(`Two labels start in cell (${x}, ${y})`);
+    } else {
+      world.setLabel(x, y, text);
+    }
+  }
 }
 
 function blockKey(block: Block): string {

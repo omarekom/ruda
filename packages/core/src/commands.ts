@@ -8,4 +8,6 @@ export type Command =
   | { readonly kind: 'place'; readonly x: number; readonly y: number; readonly block: Block }
   | { readonly kind: 'remove'; readonly x: number; readonly y: number }
   /** Interacts with the block: flips a lever, presses a button, cycles a delayer's delay. */
-  | { readonly kind: 'interact'; readonly x: number; readonly y: number };
+  | { readonly kind: 'interact'; readonly x: number; readonly y: number }
+  /** Sets the text of the label starting in the cell; an empty text removes the label. */
+  | { readonly kind: 'label'; readonly x: number; readonly y: number; readonly text: string };
