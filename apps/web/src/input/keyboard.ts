@@ -30,11 +30,13 @@ export interface KeyboardActions {
   readonly endPrimary: () => void;
   /** Delete, like the right mouse button. */
   readonly secondary: () => void;
+  /** T: writes or edits the label at the cursor. */
+  readonly editLabel: () => void;
 }
 
 /**
- * Tracks held pan keys and handles hotbar shortcuts (0–9, R), the zoom keys (+, −) and the
- * mouse button aliases (Space, Delete).
+ * Tracks held pan keys and handles hotbar shortcuts (0–9, R), the zoom keys (+, −), the
+ * mouse button aliases (Space, Delete) and the label key (T).
  */
 export class KeyboardInput {
   private readonly pressed = new Set<string>();
@@ -79,6 +81,12 @@ export class KeyboardInput {
     }
     if (event.code === 'Delete') {
       if (!event.repeat) this.actions.secondary();
+      return;
+    }
+    if (event.code === 'KeyT') {
+      // The label editor takes the focus now, and the T itself must not be typed into it.
+      event.preventDefault();
+      if (!event.repeat) this.actions.editLabel();
       return;
     }
     if (event.code in PAN_KEYS) {

@@ -49,6 +49,10 @@
   "game": {
     "saved": "World saved",
     "saveFailed": "Couldn't save. Please try again",
+    "label": {
+      "field": "Label",
+      "placeholder": "Write a label…"
+    },
     "history": {
       "undone": "Undo",
       "redone": "Redo",
@@ -89,6 +93,7 @@
         "break": "Break block",
         "turn": "Turn the held block",
         "aim": "Aim while placing",
+        "label": "Write or edit a label",
         "lever": "Flip a lever",
         "button": "Press a button",
         "delay": "Change a delayer's delay",
@@ -314,6 +319,7 @@
       "break": "Break (like right click)",
       "zoom": "Zoom",
       "turn": "Turn the held block",
+      "label": "Write or edit a label",
       "slot": "Pick a hotbar slot",
       "menu": "Pause menu",
       "save": "Save the world",

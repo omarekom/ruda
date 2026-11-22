@@ -11,7 +11,7 @@ import {
   watch,
 } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { Game } from '../game/game';
+import { Game, type LabelPlacement } from '../game/game';
 import { createHotbarState } from '../game/hotbar';
 import type { OpenWorld } from '../game/openWorld';
 import type { Notice } from '../game/notice';
@@ -22,6 +22,7 @@ import { worldSkin } from '../theme';
 import ConfirmDialog from './ConfirmDialog.vue';
 import DebugHud from './DebugHud.vue';
 import GameHud from './GameHud.vue';
+import LabelEditor from './LabelEditor.vue';
 
 const AUTOSAVE_INTERVAL_MS = 30_000;
 const GAME_KEYS: readonly KeyRow[] = [
@@ -30,6 +31,7 @@ const GAME_KEYS: readonly KeyRow[] = [
   ['break', 'delete'],
   ['zoom', '+', '−'],
   ['turn', 'R'],
+  ['label', 'T'],
   ['slot', '1–9', '0'],
   ['menu', 'Esc'],
   ['save', 'Ctrl+S'],
@@ -73,11 +75,20 @@ const debugOn = ref(false);
 const debugPaused = ref(false);
 const debugSpeed = ref(1);
 const game = shallowRef<Game>();
+/** The label being written or edited, while its editor is open. */
+const editingLabel = shallowRef<{
+  readonly x: number;
+  readonly y: number;
+  readonly text: string;
+  readonly placement: LabelPlacement;
+}>();
 let autosaveTimer: ReturnType<typeof setInterval> | undefined;
 
 const paused = computed(() => menuOpen.value || (debugOn.value && debugPaused.value));
 const speed = computed(() => (debugOn.value ? debugSpeed.value : 1));
-const inputEnabled = computed(() => !menuOpen.value && leavingTo.value === undefined);
+const inputEnabled = computed(
+  () => !menuOpen.value && leavingTo.value === undefined && editingLabel.value === undefined,
+);
 
 useKeyHelp(() => {
   if (menuOpen.value) return MENU_KEYS;
@@ -132,6 +143,21 @@ function undoOrRedo(action: 'undo' | 'redo'): void {
   } else {
     showNotice('game.history.undoNothing', { warning: true });
   }
+}
+
+function startLabelEdit(x: number, y: number, text: string): void {
+  const current = game.value;
+  if (!current) return;
+  current.setEditingLabel([x, y]);
+  editingLabel.value = { x, y, text, placement: current.labelPlacement(x, y) };
+}
+
+/** An empty text removes the label; undefined means the edit was cancelled. */
+function finishLabelEdit(text: string | undefined): void {
+  const target = editingLabel.value;
+  editingLabel.value = undefined;
+  game.value?.setEditingLabel(undefined);
+  if (target && text !== undefined) game.value?.setLabel(target.x, target.y, text);
 }
 
 function onEdit(): void {
@@ -221,7 +247,10 @@ function onVisibilityChange(): void {
 
 onMounted(() => {
   if (!canvas.value) return;
-  game.value = new Game(canvas.value, hotbar, simulation, onEdit, worldSkin.value);
+  game.value = new Game(canvas.value, hotbar, simulation, worldSkin.value, {
+    edit: onEdit,
+    editLabel: startLabelEdit,
+  });
   if (simulation.blocks.blockCount === 0) game.value.camera.setCellSize(NEW_WORLD_CELL_SIZE);
   game.value.paused = paused.value;
   game.value.speed = speed.value;
@@ -256,6 +285,12 @@ onBeforeUnmount(() => {
       @speed="(next) => (debugSpeed = next)"
       @step="game.step()"
       @exit="toggleDebug"
+    />
+    <LabelEditor
+      v-if="editingLabel"
+      :text="editingLabel.text"
+      :placement="editingLabel.placement"
+      @done="finishLabelEdit"
     />
     <GameHud
       :hotbar="hotbar"

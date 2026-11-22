@@ -23,6 +23,14 @@ Editing
 - Left-clicking a lever toggles it (and presses a button or cycles a delayer's delay).
 - Keyboard aliases at the cursor: Space works like the left button (held and released, so dragging the mouse while holding it aims too), Delete like the right button.
 
+Labels
+
+- Short one-line notes on the canvas (up to 80 characters). A label starts in a cell and runs on to the east, over whatever lies there; it is a layer of its own, not a block, so blocks under it keep working and pistons do not move it.
+- `T` writes a new label in the cell under the cursor, or edits the label under the cursor. The text is typed in place; Enter keeps it, Esc cancels, clicking elsewhere keeps it, and an empty text removes the label.
+- Right-clicking (or Delete) a label where no block lies removes it; over a block, the block is broken instead.
+- Light text on a dark plate, the same in day and night. The text grows with the zoom but never gets smaller than a readable size; zoomed far out (below about 30%) labels are hidden.
+- Labels are saved with the world and undone like any other edit.
+
 Blocks
 
 - Power block – constant power source; powers its 4 neighbours.
@@ -89,7 +97,7 @@ The game
 - Real time, simple and playful, with a deliberately blocky look: pixel fonts, bevelled grey buttons, a framed hotbar of plain dark slots; the selected one is marked only by a white frame reaching a little past the hotbar on every side.
 - On screen only: the hotbar (no number hints; the keys still work), the name of the held block popping up briefly when it changes, and in the top right corner the light/dark switch and a menu button.
 - The menu (button or Esc) pauses the simulation. It offers: back to game, save, worlds, controls, debug mode, start screen. Saving shows a short confirmation. It takes the keyboard when it opens: arrows move between the buttons as they are laid out, Enter chooses. The start screen's buttons work the same way. Hovering a button with the mouse moves the focus to it, so only one button is ever highlighted and the arrows carry on from there.
-- **Controls** lists every key and mouse action by section (movement, building, using blocks, game, hotbar), each shown as a key cap. The hotbar is one row with its number keys. Undo and redo are listed under game as Z and Shift+Z.
+- **Controls** lists every key and mouse action by section (movement, building, using blocks, game, hotbar), each shown as a key cap. Building lists the label key T. The hotbar is one row with its number keys. Undo and redo are listed under game as Z and Shift+Z.
 - **Keys overlay**: `?` on the start screen, in Worlds, in the game and in its menu overlays a short list of the keys that work there (in the game, debug mode's keys too while it is on); `?`, Esc or a click closes it. It does nothing while typing in a field or while a dialog, notice or the Controls list is open. While it is up, key presses do not reach the screen behind it. Every screen added later gets the overlay too, listing its own keys; every new dialog or notice turns it off while open.
 - Opening a world shows a loading screen: a plain dark backdrop, "Loading world", playful status lines and a filling bar. It stays up for at least 1.2 s on purpose, as part of the game feel, so no menu flashes by on the way in.
 - **Block look (Workshop)**: 16×16 Minecraft-like textures seen from straight above. Solid blocks (stone, power blocks, lamps, pistons) have a dark pixel outline, a bevel and a shadow. The lever is a slide switch: a stone plate with a wooden slider, at the bottom when off and at the top when on, where the open slot behind it glows red. The piston is kept plain: a grey body with a groove the metal rod slides in and a wooden face plate at the front. Extending, the plate and the rod slide out together over one tick, smoothly (slow at both ends), as do the blocks it pushes; the rod always comes from inside the body, through the empty socket the plate leaves, and stays joined to the plate. Retracting is the same in reverse. Light glows on the floor: yellow around lit lamps, red around power blocks and other powered parts. Zoomed out, blocks and floor blend smoothly into their average colours, with no shimmering or moiré. The same look is used by the hotbar, world thumbnails, library previews and the start screen.

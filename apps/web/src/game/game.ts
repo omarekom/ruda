@@ -9,6 +9,7 @@ import { KeyboardInput } from '../input/keyboard';
 import { PointerInput } from '../input/pointer';
 import { Camera } from '../renderer/camera';
 import { crossfade } from '../renderer/crossfade';
+import { labelFontPx, labelPlate } from '../renderer/labels';
 import { Renderer } from '../renderer/renderer';
 import type { PowerState } from '../renderer/lighting';
 import type { Skin } from '../renderer/skins/skin';
@@ -16,6 +17,22 @@ import type { HotbarState } from './hotbar';
 import { TickLoop } from './tickLoop';
 
 const PAN_SPEED_PX_PER_S = 700;
+
+/** What the game tells its screen. */
+export interface GameEvents {
+  /** After every command that changed the world. */
+  readonly edit: () => void;
+  /** The player asked to write a new label in the cell or to edit the one starting there. */
+  readonly editLabel: (x: number, y: number, text: string) => void;
+}
+
+/** Where the label editor sits on the screen (CSS px), to cover the label it edits. */
+export interface LabelPlacement {
+  readonly left: number;
+  readonly top: number;
+  readonly height: number;
+  readonly fontPx: number;
+}
 
 /** Wires the simulation to the canvas: real-time ticks, rendering and input. */
 export class Game {
@@ -28,14 +45,15 @@ export class Game {
   /** Kept for as long as the world is open; saving does not clear it. */
   private readonly history: History;
   private inputAttached = false;
+  /** The cell of the label being edited, hidden from the canvas while its editor is open. */
+  private editingLabel: readonly [number, number] | undefined;
 
-  /** `onEdit` runs after every command that changed the world. */
   constructor(
     private readonly canvas: HTMLCanvasElement,
     hotbar: HotbarState,
     private readonly simulation: Simulation,
-    private readonly onEdit: () => void,
     skin: Skin,
+    private readonly events: GameEvents,
   ) {
     this.renderer = new Renderer(canvas, this.camera, skin);
     this.history = new History(simulation);
@@ -45,10 +63,7 @@ export class Game {
         const block = this.simulation.blocks.get(x, y);
         return block !== undefined && isInteractive(block);
       },
-      destroyAt: (sx, sy) => {
-        const [x, y] = this.camera.cellAt(sx, sy);
-        this.execute({ kind: 'remove', x, y });
-      },
+      destroyAt: (sx, sy) => this.destroyAt(sx, sy),
     });
     this.keyboard = new KeyboardInput(hotbar, {
       zoomBy: (factor) => {
@@ -58,6 +73,7 @@ export class Game {
       beginPrimary: () => this.pointer.beginPrimary(),
       endPrimary: () => this.pointer.endPrimary(),
       secondary: () => this.pointer.secondary(),
+      editLabel: () => this.requestLabelEdit(),
     });
     this.loop = new TickLoop(
       () => this.simulation.step(),
@@ -159,6 +175,40 @@ export class Game {
     return this.afterEdit(this.history.redo());
   }
 
+  /** Sets, changes or (with an empty text) removes the label starting in a cell. */
+  setLabel(x: number, y: number, text: string): boolean {
+    return this.execute({ kind: 'label', x, y, text });
+  }
+
+  /** Hides the label in the cell while its editor is shown; undefined shows it again. */
+  setEditingLabel(cell: readonly [number, number] | undefined): void {
+    this.editingLabel = cell;
+  }
+
+  labelPlacement(x: number, y: number): LabelPlacement {
+    const { left, top, height } = labelPlate(this.camera, x, y, 0);
+    return { left, top, height, fontPx: labelFontPx(this.camera.cellSize) };
+  }
+
+  /** Breaks the block under a screen point, or else the label shown there. */
+  private destroyAt(sx: number, sy: number): void {
+    const [x, y] = this.camera.cellAt(sx, sy);
+    if (this.simulation.blocks.get(x, y)) {
+      this.execute({ kind: 'remove', x, y });
+      return;
+    }
+    const label = this.renderer.labelAt(sx, sy);
+    if (label) this.setLabel(...label, '');
+  }
+
+  /** Edits the label under the cursor, or else starts a new one in the cell there. */
+  private requestLabelEdit(): void {
+    const cursor = this.pointer.cursorPosition;
+    if (!cursor) return;
+    const [x, y] = this.renderer.labelAt(...cursor) ?? this.camera.cellAt(...cursor);
+    this.events.editLabel(x, y, this.simulation.blocks.label(x, y) ?? '');
+  }
+
   private execute(command: Command): boolean {
     return this.afterEdit(this.history.execute(command));
   }
@@ -166,7 +216,7 @@ export class Game {
   private afterEdit(applied: boolean): boolean {
     if (applied) {
       this.renderer.invalidate();
-      this.onEdit();
+      this.events.edit();
     }
     return applied;
   }
@@ -178,6 +228,7 @@ export class Game {
     const dx = Math.sign(kx + ex);
     const dy = Math.sign(ky + ey);
     if (dx || dy) this.camera.panBy(dx * distance, dy * distance);
-    this.renderer.drawIfChanged(this.simulation, this.pointer.overlay(), tickProgress);
+    const overlay = { ...this.pointer.overlay(), editingLabel: this.editingLabel };
+    this.renderer.drawIfChanged(this.simulation, overlay, tickProgress);
   }
 }

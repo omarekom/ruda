@@ -69,6 +69,11 @@ export class PointerInput {
     this.panning = false;
   }
 
+  /** Where the cursor is on the canvas (CSS px), if it is over it. */
+  get cursorPosition(): readonly [number, number] | undefined {
+    return this.cursor;
+  }
+
   overlay(): Overlay {
     const ghost = this.placing && { ...this.placing, block: heldBlock(this.hotbar) };
     return { hover: this.cursor && this.camera.cellAt(...this.cursor), ghost };
