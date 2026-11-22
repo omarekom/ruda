@@ -7,7 +7,7 @@ Every release of Ruda, patch releases included. The changelog inside the game (o
 - Labels: `T` writes a one-line note in the cell under the cursor, or edits the label there. Holding the left mouse button still for 1.5 s does the same without the keyboard. Labels scale with the zoom, hide when zoomed out below 50 %, are saved with the world and can be undone.
 - Mouse buttons swapped: the left button places and uses blocks, the right button breaks them. Space and Delete click like them at the cursor.
 - Debug mode pauses with `P` instead of Space.
-- File format version 2 (adds labels). Version 1 files still open; Ruda 1.0 rejects version 2 files as too new.
+- File format version 2 (adds labels and the time a world was created). Version 1 files still open; Ruda 1.0 rejects version 2 files as too new.
 - The keys overlay scrolls with the arrow and page keys; the keys overlay, Worlds and the changelog use the game's own scrollbar.
 - Errors when opening or importing a world are shown in a dialog, before any loading screen.
 - Importing a world adds it to the list instead of opening it.

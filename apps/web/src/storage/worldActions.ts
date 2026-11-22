@@ -19,15 +19,19 @@ export function uniqueWorldName(name: string, taken: readonly string[]): string 
   }
 }
 
-/** Stores a new world under a name no other world has; the name is also written inside the data. */
+/**
+ * Stores a new world under a name no other world has; the name is also written inside the data,
+ * with the time it was created (by default now; an imported world keeps the time in its file).
+ */
 export async function createWorld(
   store: Pick<WorldStore, 'list' | 'create'>,
   name: string,
   world: World,
+  created = new Date().toISOString(),
 ): Promise<StoredWorld> {
   const taken = (await store.list()).map((summary) => summary.name);
   const unique = uniqueWorldName(name, taken);
-  return store.create(unique, serializeWorld(world, unique));
+  return store.create(unique, serializeWorld(world, unique, created));
 }
 
 /** Stores a new, empty world. */
@@ -55,6 +59,6 @@ export async function renameWorld(
     .map((summary) => summary.name);
   const unique = uniqueWorldName(name, taken);
   if (unique === stored.name) return;
-  const { world } = parseWorld(stored.data);
-  await store.rename(id, unique, serializeWorld(world, unique));
+  const { world, created } = parseWorld(stored.data);
+  await store.rename(id, unique, serializeWorld(world, unique, created));
 }

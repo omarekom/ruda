@@ -141,4 +141,22 @@ describe('.ruda files', () => {
     expect(fileVersion('{"name":"x"}')).toBeUndefined();
     expect(fileVersion('not json')).toBeUndefined();
   });
+
+  it('keeps the time the world was created', () => {
+    const created = '2026-11-22T17:03:00.000Z';
+    const text = serializeWorld(new World(), 'x', created);
+    expect(text).toBe(
+      `{"rudaversion":${CURRENT_VERSION},"name":"x","created":"${created}","blocks":{}}`,
+    );
+    expect(parseWorld(text).created).toBe(created);
+    expect(parseWorld(serializeWorld(new World(), 'x')).created).toBeUndefined();
+  });
+
+  it('rejects a creation time that is not a time, and repairs it away', () => {
+    const text = '{"rudaversion":2,"name":"x","created":"someday","blocks":{}}';
+    expect(errorCode(text)).toBe('invalid_content');
+    const repaired = repairWorld(text);
+    expect(repaired.created).toBeUndefined();
+    expect(repaired.problems).toHaveLength(1);
+  });
 });

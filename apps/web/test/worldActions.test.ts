@@ -25,6 +25,16 @@ function memoryStore(initial: StoredWorld[] = []) {
 }
 
 describe('world actions', () => {
+  it('stamps a new world with the time it was created, and keeps it through a rename', async () => {
+    const store = memoryStore();
+    const before = Date.now();
+    const created = await createEmptyWorld(store, 'Fresh');
+    const stamp = parseWorld(created.data).created;
+    expect(Date.parse(stamp ?? '')).toBeGreaterThanOrEqual(before);
+    await renameWorld(store, created.id, 'Renamed');
+    expect(parseWorld(store.worlds.get(created.id)?.data ?? '').created).toBe(stamp);
+  });
+
   it('creates an empty world with the name inside its data', async () => {
     const store = memoryStore();
     const created = await createEmptyWorld(store, 'Fresh');

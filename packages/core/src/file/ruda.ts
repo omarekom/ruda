@@ -13,6 +13,8 @@ import { CURRENT_VERSION, migrate, type JsonObject } from './migrations';
 export interface RudaFile {
   readonly rudaversion: number;
   readonly name: string;
+  /** When the world was created, as an ISO 8601 time; missing in worlds made before it was kept. */
+  readonly created?: string;
   readonly blocks: Readonly<Record<string, readonly number[]>>;
   readonly labels?: readonly RudaLabel[];
 }
@@ -22,6 +24,8 @@ export type RudaLabel = readonly [x: number, y: number, text: string];
 export interface LoadedWorld {
   readonly name: string;
   readonly world: World;
+  /** When the world was created (ISO 8601), if the file says. */
+  readonly created: string | undefined;
 }
 
 /** A world read from a damaged file: what could be understood, and what went wrong. */
@@ -35,7 +39,7 @@ type Report = (message: string) => void;
 const STATE_SEPARATOR = ':';
 
 /** Serializes a world as minified JSON. Output is canonical: keys and cells are sorted. */
-export function serializeWorld(world: ReadonlyWorld, name: string): string {
+export function serializeWorld(world: ReadonlyWorld, name: string, created?: string): string {
   const groups = new Map<string, [number, number][]>();
   world.forEach((x, y, block) => {
     const key = blockKey(block);
@@ -55,6 +59,7 @@ export function serializeWorld(world: ReadonlyWorld, name: string): string {
   const file: RudaFile = {
     rudaversion: CURRENT_VERSION,
     name,
+    ...(created !== undefined && { created }),
     blocks,
     ...(labels.length > 0 && { labels }),
   };
@@ -104,8 +109,10 @@ function parseJson(text: string): unknown {
 function buildWorld(json: unknown, report: Report): LoadedWorld {
   if (!isObject(json)) throw new RudaFileError('not_ruda', 'The file is not a JSON object');
   const file = migrate(json);
-  const { name, blocks } = file;
+  const { name, blocks, created } = file;
   if (typeof name !== 'string') report('Missing world name');
+  const createdOk = created === undefined || isTime(created);
+  if (!createdOk) report('"created" must be an ISO 8601 time');
   if (!isObject(blocks)) report('Missing "blocks" object');
 
   const world = new World();
@@ -144,7 +151,11 @@ function buildWorld(json: unknown, report: Report): LoadedWorld {
     world.set(x, y, undefined);
   }
   if (file.labels !== undefined) addLabels(world, file.labels, report);
-  return { name: typeof name === 'string' ? name : '', world };
+  return {
+    name: typeof name === 'string' ? name : '',
+    world,
+    created: createdOk && typeof created === 'string' ? created : undefined,
+  };
 }
 
 function addLabels(world: World, labels: unknown, report: Report): void {
@@ -177,6 +188,10 @@ function blockKey(block: Block): string {
 function blockFromKey(key: string): Block | undefined {
   const [type, ...state] = key.split(STATE_SEPARATOR);
   return type !== undefined && isBlockType(type) ? blockFromState(type, state) : undefined;
+}
+
+function isTime(value: unknown): value is string {
+  return typeof value === 'string' && !Number.isNaN(Date.parse(value));
 }
 
 function isObject(value: unknown): value is JsonObject {

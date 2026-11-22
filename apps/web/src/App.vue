@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import { CURRENT_VERSION, fileVersion, parseWorld, serializeWorld, type World } from '@ruda/core';
+import {
+  CURRENT_VERSION,
+  fileVersion,
+  parseWorld,
+  serializeWorld,
+  type LoadedWorld,
+} from '@ruda/core';
 import { onBeforeUnmount, onMounted, ref, shallowRef } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ConfirmDialog from './components/ConfirmDialog.vue';
@@ -24,9 +30,9 @@ const storageUnavailable = ref(false);
 const opened = shallowRef<OpenWorld>();
 const restoring = shallowRef<{ stored: StoredWorld; recovery: Recovery }>();
 /** A world saved by an older version of Ruda, waiting for the player to agree to update it. */
-const upgrading = shallowRef<{ stored: StoredWorld; world: World }>();
-/** Why a world could not be opened, as an i18n key, while the player is being told. */
-const openError = ref<string>();
+const upgrading = shallowRef<{ stored: StoredWorld; loaded: LoadedWorld }>();
+/** Why a world could not be opened (an i18n key) and which one, while the player is told. */
+const openError = ref<{ readonly key: string; readonly world: string }>();
 /** What shows while no world is open; the library only through its link (#library, #admin). */
 const screen = ref<'start' | 'worlds' | 'library'>('start');
 /**
@@ -102,6 +108,7 @@ const libraryHost: LibraryHost = {
   },
   async addWorld(name, data) {
     if (!store.value) throw new Error('Storage is not ready');
+    // A copy from the library is a new world, created now.
     const { world } = parseWorld(data);
     return (await createWorld(store.value, name, world)).id;
   },
@@ -144,19 +151,19 @@ async function onRestoreChoice(choice: 'restore' | 'discard' | 'cancel'): Promis
 
 /** Opens the world in `data`, after asking to update it if an older version of Ruda saved it. */
 async function start(stored: StoredWorld, data: string, restored: boolean): Promise<void> {
-  let world: World;
+  let loaded: LoadedWorld;
   try {
-    world = parseWorld(data).world;
+    loaded = parseWorld(data);
   } catch (error) {
-    openError.value = fileErrorKey(error);
+    openError.value = { key: fileErrorKey(error), world: stored.name };
     return;
   }
   const version = fileVersion(data);
   if (!restored && version !== undefined && version < CURRENT_VERSION) {
-    upgrading.value = { stored, world };
+    upgrading.value = { stored, loaded };
     return;
   }
-  await withLoadingScreen(() => show(stored, world, restored));
+  await withLoadingScreen(() => show(stored, loaded, restored));
 }
 
 /** Updating rewrites the stored world in the current format, so it is asked only once. */
@@ -164,13 +171,14 @@ async function onUpgradeChoice(choice: 'open' | 'cancel'): Promise<void> {
   const target = upgrading.value;
   upgrading.value = undefined;
   if (!target || !store.value || choice === 'cancel') return;
-  const { stored, world } = target;
-  await store.value.rename(stored.id, stored.name, serializeWorld(world, stored.name));
-  await withLoadingScreen(() => show(stored, world, false));
+  const { stored, loaded } = target;
+  const data = serializeWorld(loaded.world, stored.name, loaded.created);
+  await store.value.rename(stored.id, stored.name, data);
+  await withLoadingScreen(() => show(stored, loaded, false));
 }
 
-function show(stored: StoredWorld, world: World, restored: boolean): void {
-  opened.value = { id: stored.id, name: stored.name, world, restored };
+function show(stored: StoredWorld, { world, created }: LoadedWorld, restored: boolean): void {
+  opened.value = { id: stored.id, name: stored.name, world, created, restored };
   writePreference('lastWorld', stored.id);
   // Only for sorting and showing when it was played, so a failure is not worth reporting.
   store.value?.markPlayed(stored.id).catch(() => undefined);
@@ -212,7 +220,8 @@ function show(stored: StoredWorld, world: World, restored: boolean): void {
   <ConfirmDialog
     v-if="openError"
     blocky
-    :message="t(openError)"
+    :subject="openError.world"
+    :message="t(openError.key)"
     :actions="[{ value: 'ok', label: t('dialog.ok'), primary: true }]"
     cancel="ok"
     @choose="openError = undefined"

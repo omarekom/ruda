@@ -44,6 +44,7 @@ Minified JSON. Blocks are grouped by type and state, with coordinates as a flat 
 {
   "rudaversion": 2,
   "name": "My world",
+  "created": "2026-11-22T17:03:00.000Z",
   "blocks": {
     "power_block": [0, 0, 5, 3],
     "lever:off": [2, 2],
@@ -61,9 +62,10 @@ Minified JSON. Blocks are grouped by type and state, with coordinates as a flat 
 - The key is the block type followed by every state segment, in a fixed order (`type:state…`). States are always written explicitly: `lever:on` / `lever:off`, `torch:<north|east|south|west>:<lit|unlit>`, `delayer:<facing>:<delay>:<line>` (the line is one `0`/`1` per tick of delay, current output first), `button:<ticks remaining>`. Stateless blocks have no suffix.
 - Pistons: `piston:<facing>:<extended|retracted>`, `piston_head:<facing>`.
 - The value is a flat list of `x, y` pairs.
+- `created` is when the world was first made, as an ISO 8601 time, kept through every save, rename and export. An imported file keeps its own; a file without one gets the time it is imported. Worlds saved before version 2 may lack it.
 - `labels` lists `[x, y, text]`: the cell the label starts in and its text (one line of 1–80 characters, no spaces at either end). It is left out when the world has no labels. Labels are not blocks: they live in their own layer of the world, a cell can hold both a block and the start of a label, and pistons never move labels.
 - Output is canonical: keys and cells are sorted, so the same world always gives the same file.
-- `rudaversion` is the file version, which also marks the file as a Ruda world. Version 2 (Ruda 1.1) added `labels`; its migration from 1 changes nothing, but a 1.0 app rejects a version 2 file as too new instead of silently dropping its labels. Loading runs a chain of migrations `vN → vN+1`. A file newer than the app is rejected with a clear message. Old migrations are never edited, only appended.
+- `rudaversion` is the file version, which also marks the file as a Ruda world. Version 2 (Ruda 1.1) added `labels` and `created`; its migration from 1 changes nothing, but a 1.0 app rejects a version 2 file as too new instead of silently dropping its labels. Loading runs a chain of migrations `vN → vN+1`. A file newer than the app is rejected with a clear message. Old migrations are never edited, only appended.
 - Loading is strict: unknown blocks, bad coordinates or a cell listed twice reject the file (`parseWorld`, used for saved worlds).
 - Importing uses `repairWorld`, which loads what it can and counts the problems: unknown blocks, bad or repeated cells and pistons without their other half are left out. Text that is not valid JSON (a missing comma, a cut-off file) is not repaired, and a file that is not a Ruda world or is newer than the app is rejected.
 - Names have no namespace prefix.

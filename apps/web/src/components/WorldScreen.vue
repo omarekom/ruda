@@ -120,7 +120,7 @@ function toggleDebug(): void {
 }
 
 function serialize(): string {
-  return serializeWorld(simulation.blocks, props.world.name);
+  return serializeWorld(simulation.blocks, props.world.name, props.world.created);
 }
 
 function showNotice(key: string, options: Pick<Notice, 'values' | 'warning'> = {}): void {
