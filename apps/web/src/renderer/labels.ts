@@ -1,18 +1,18 @@
 import type { ReadonlyWorld } from '@ruda/core';
-import type { Camera } from './camera';
+import { MAX_CELL_SIZE, type Camera } from './camera';
 
-/** Zoomed out further than this (pixels per cell), labels are hidden so they do not bury the circuit. */
-export const MIN_LABEL_CELL_SIZE = 10;
-/** The smallest text that still reads well in the pixel font, in CSS px. */
-const MIN_FONT_PX = 20;
-/** Zoomed in, the text grows with the cells. */
+/** Zoomed out further than this (pixels per cell), labels are hidden: the text would be too small to read. */
+export const MIN_LABEL_CELL_SIZE = 16;
+/** The text and its plate always fit in the label's row of cells. */
 const FONT_PER_CELL = 0.7;
+const PLATE_PER_CELL = 0.86;
 export const LABEL_FONT_FAMILY = 'VT323, monospace';
-/** Room around the text inside its plate, as a share of the font size. */
-const PADDING_X = 0.3;
-const PLATE_HEIGHT = 1.1;
+/** Room left and right of the text inside its plate, as a share of the font size. */
+export const LABEL_PADDING = 0.3;
 const PLATE_COLOR = 'rgba(0, 0, 0, 0.62)';
 const TEXT_COLOR = '#fff';
+/** Texts drawn once and kept for later frames; beyond this many the cache starts over. */
+const MAX_CACHED_TEXTS = 500;
 
 /** Where a label is drawn: the cell it starts in and its plate in screen pixels (CSS). */
 export interface LabelBox {
@@ -26,16 +26,12 @@ export interface LabelBox {
 }
 
 export function labelFontPx(cellSize: number): number {
-  return Math.round(Math.max(MIN_FONT_PX, cellSize * FONT_PER_CELL));
-}
-
-export function labelFont(cellSize: number): string {
-  return `${labelFontPx(cellSize)}px ${LABEL_FONT_FAMILY}`;
+  return cellSize * FONT_PER_CELL;
 }
 
 /**
  * The plate of a label starting in cell (x, y) with the given text width: from the cell's left
- * edge, centred on its row.
+ * edge, centred on its row. Not rounded to whole pixels, so it scales smoothly while zooming.
  */
 export function labelPlate(
   camera: Camera,
@@ -43,15 +39,86 @@ export function labelPlate(
   y: number,
   textWidth: number,
 ): Omit<LabelBox, 'x' | 'y' | 'text'> {
-  const fontPx = labelFontPx(camera.cellSize);
+  const { cellSize } = camera;
   const [left, top] = camera.worldToScreen(x, y);
-  const height = Math.round(fontPx * PLATE_HEIGHT);
+  const height = cellSize * PLATE_PER_CELL;
   return {
-    left: Math.round(left),
-    top: Math.round(top + camera.cellSize / 2 - height / 2),
-    width: Math.ceil(textWidth + 2 * fontPx * PADDING_X),
+    left,
+    top: top + (cellSize - height) / 2,
+    width: textWidth + 2 * labelFontPx(cellSize) * LABEL_PADDING,
     height,
   };
+}
+
+interface Sprite {
+  readonly image: HTMLCanvasElement;
+  /** Width of the text at the reference font size, in sprite pixels. */
+  readonly textWidth: number;
+}
+
+/**
+ * Each text drawn once, large, and then scaled to every zoom. Drawing the text at each zoom's
+ * font size instead makes it jitter while zooming, as glyphs snap to whole pixels differently at
+ * every size.
+ */
+export class LabelSprites {
+  private readonly cache = new Map<string, Sprite>();
+  /** The font size the sprites are drawn at, in device pixels. */
+  private referencePx = 0;
+
+  /** Large enough that the sprites are only ever scaled down. */
+  setPixelRatio(ratio: number): void {
+    const referencePx = Math.ceil(labelFontPx(MAX_CELL_SIZE) * ratio);
+    if (referencePx === this.referencePx) return;
+    this.referencePx = referencePx;
+    this.cache.clear();
+  }
+
+  /** Width of the text at the given font size (CSS px). */
+  textWidth(text: string, fontPx: number): number {
+    return (this.sprite(text).textWidth * fontPx) / this.referencePx;
+  }
+
+  /** Draws the text with its left edge at `left`, centred on `middle` (CSS px). */
+  draw(
+    g: CanvasRenderingContext2D,
+    text: string,
+    fontPx: number,
+    left: number,
+    middle: number,
+  ): void {
+    const { image } = this.sprite(text);
+    const scale = fontPx / this.referencePx;
+    const height = image.height * scale;
+    g.drawImage(image, left, middle - height / 2, image.width * scale, height);
+  }
+
+  /** Forgets the drawn texts, e.g. once the font has loaded. */
+  clear(): void {
+    this.cache.clear();
+  }
+
+  private sprite(text: string): Sprite {
+    const cached = this.cache.get(text);
+    if (cached) return cached;
+    if (this.cache.size >= MAX_CACHED_TEXTS) this.cache.clear();
+    const image = document.createElement('canvas');
+    const font = `${this.referencePx}px ${LABEL_FONT_FAMILY}`;
+    const g = image.getContext('2d');
+    if (!g) throw new Error('Canvas 2D is not supported');
+    g.font = font;
+    const textWidth = g.measureText(text).width;
+    image.width = Math.max(1, Math.ceil(textWidth));
+    image.height = Math.ceil(this.referencePx * 1.2);
+    // Resizing the canvas reset its state.
+    g.font = font;
+    g.textBaseline = 'middle';
+    g.fillStyle = TEXT_COLOR;
+    g.fillText(text, 0, image.height / 2);
+    const sprite = { image, textWidth };
+    this.cache.set(text, sprite);
+    return sprite;
+  }
 }
 
 /**
@@ -60,18 +127,18 @@ export function labelPlate(
  * edited. Empty when zoomed out too far.
  */
 export function layoutLabels(
-  g: CanvasRenderingContext2D,
+  sprites: LabelSprites,
   world: ReadonlyWorld,
   camera: Camera,
   skip: readonly [number, number] | undefined,
 ): LabelBox[] {
   if (camera.cellSize < MIN_LABEL_CELL_SIZE || world.labelCount === 0) return [];
   const [viewWidth, viewHeight] = camera.viewSize;
-  g.font = labelFont(camera.cellSize);
+  const fontPx = labelFontPx(camera.cellSize);
   const boxes: LabelBox[] = [];
   world.forEachLabel((x, y, text) => {
     if (skip && skip[0] === x && skip[1] === y) return;
-    const plate = labelPlate(camera, x, y, g.measureText(text).width);
+    const plate = labelPlate(camera, x, y, sprites.textWidth(text, fontPx));
     const outside =
       plate.left > viewWidth ||
       plate.left + plate.width < 0 ||
@@ -85,19 +152,18 @@ export function layoutLabels(
 
 export function drawLabels(
   g: CanvasRenderingContext2D,
+  sprites: LabelSprites,
   boxes: readonly LabelBox[],
   cellSize: number,
 ): void {
   if (boxes.length === 0) return;
   const fontPx = labelFontPx(cellSize);
-  g.font = labelFont(cellSize);
-  g.textBaseline = 'middle';
-  g.textAlign = 'left';
+  g.imageSmoothingEnabled = true;
+  g.imageSmoothingQuality = 'high';
   for (const box of boxes) {
     g.fillStyle = PLATE_COLOR;
     g.fillRect(box.left, box.top, box.width, box.height);
-    g.fillStyle = TEXT_COLOR;
-    g.fillText(box.text, box.left + fontPx * PADDING_X, box.top + box.height / 2);
+    sprites.draw(g, box.text, fontPx, box.left + fontPx * LABEL_PADDING, box.top + box.height / 2);
   }
 }
 

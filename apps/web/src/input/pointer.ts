@@ -29,6 +29,8 @@ export class PointerInput {
   private cursor: [number, number] | undefined;
   private placing: { readonly x: number; readonly y: number } | undefined;
   private panning = false;
+  /** Detached, e.g. while a menu is open, the view must not scroll from the edges. */
+  private attached = false;
   /**
    * The span (left, right in canvas pixels) of the bottom edge that does not scroll, because
    * the hotbar is there and the cursor often slips past it.
@@ -43,6 +45,7 @@ export class PointerInput {
   ) {}
 
   attach(): void {
+    this.attached = true;
     const { canvas } = this;
     canvas.addEventListener('pointerdown', this.onPointerDown);
     canvas.addEventListener('pointermove', this.onPointerMove);
@@ -62,10 +65,10 @@ export class PointerInput {
     canvas.removeEventListener('wheel', this.onWheel);
     canvas.removeEventListener('contextmenu', preventDefault);
     canvas.removeEventListener('auxclick', preventDefault);
-    // Nothing is known about the cursor until it moves over the canvas again.
-    this.cursor = undefined;
+    // The cursor is kept, so its keys work again at once, but a press in progress is dropped.
     this.placing = undefined;
     this.panning = false;
+    this.attached = false;
   }
 
   /** Where the cursor is on the canvas (CSS px), if it is over it. */
@@ -80,10 +83,11 @@ export class PointerInput {
 
   /**
    * Pan direction from the cursor touching a screen edge. The cursor is unknown while it
-   * is outside the canvas (over the hotbar or outside the window), so nothing scrolls then.
+   * is outside the canvas (over the hotbar or outside the window), so nothing scrolls then,
+   * nor while the pointer is detached.
    */
   edgeScrollDirection(): [number, number] {
-    if (!this.cursor || this.panning) return [0, 0];
+    if (!this.cursor || this.panning || !this.attached) return [0, 0];
     const { clientWidth, clientHeight } = this.canvas;
     return edgeScroll(this.cursor, clientWidth, clientHeight, this.bottomEdgeGap);
   }

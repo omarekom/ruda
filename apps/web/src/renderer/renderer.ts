@@ -19,7 +19,14 @@ import {
   paintLights,
   type Light,
 } from './lighting';
-import { drawLabels, LABEL_FONT_FAMILY, labelAt, layoutLabels, type LabelBox } from './labels';
+import {
+  drawLabels,
+  LABEL_FONT_FAMILY,
+  labelAt,
+  LabelSprites,
+  layoutLabels,
+  type LabelBox,
+} from './labels';
 import { paintFloor, type CellAppearance, type Skin } from './skins/skin';
 
 const MIN_GRID_CELL_SIZE = 12;
@@ -51,6 +58,7 @@ export class Renderer {
   private readonly lightBuffer = document.createElement('canvas');
   /** The labels in the last frame, for finding the one under the cursor. */
   private labelBoxes: LabelBox[] = [];
+  private readonly labelSprites = new LabelSprites();
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -62,7 +70,10 @@ export class Renderer {
     if (!g) throw new Error('Canvas 2D is not supported');
     this.g = g;
     // The canvas does not wait for a web font, so labels are drawn again once it is there.
-    void document.fonts.load(`16px ${LABEL_FONT_FAMILY}`).then(() => this.invalidate());
+    void document.fonts.load(`16px ${LABEL_FONT_FAMILY}`).then(() => {
+      this.labelSprites.clear();
+      this.invalidate();
+    });
   }
 
   get skin(): Skin {
@@ -150,8 +161,14 @@ export class Renderer {
       this.drawCell(x, y, block, ghostAppearance(simulation.blocks, x, y));
       g.globalAlpha = 1;
     }
-    this.labelBoxes = layoutLabels(g, simulation.blocks, camera, overlay.editingLabel);
-    drawLabels(g, this.labelBoxes, camera.cellSize);
+    this.labelSprites.setPixelRatio(ratio);
+    this.labelBoxes = layoutLabels(
+      this.labelSprites,
+      simulation.blocks,
+      camera,
+      overlay.editingLabel,
+    );
+    drawLabels(g, this.labelSprites, this.labelBoxes, camera.cellSize);
     if (overlay.hover) this.drawHover(...overlay.hover);
   }
 

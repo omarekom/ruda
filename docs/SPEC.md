@@ -28,7 +28,8 @@ Labels
 - Short one-line notes on the canvas (up to 80 characters). A label starts in a cell and runs on to the east, over whatever lies there; it is a layer of its own, not a block, so blocks under it keep working and pistons do not move it.
 - `T` writes a new label in the cell under the cursor, or edits the label under the cursor. The text is typed in place; Enter keeps it, Esc cancels, clicking elsewhere keeps it, and an empty text removes the label.
 - Right-clicking (or Delete) a label where no block lies removes it; over a block, the block is broken instead.
-- Light text on a dark plate, the same in day and night. The text grows with the zoom but never gets smaller than a readable size; zoomed far out (below about 30%) labels are hidden.
+- Light text on a dark plate, the same in day and night. The plate always fits in the label's row of cells, so it grows and shrinks with the zoom, smoothly and without jitter. Zoomed out below 50%, where the text would be too small to read, labels are hidden, and `T` says to zoom in instead.
+- While a label is being typed, the field starts wide enough for a short label and grows with the text.
 - Labels are saved with the world and undone like any other edit.
 
 Blocks

@@ -9,7 +9,7 @@ import { KeyboardInput } from '../input/keyboard';
 import { PointerInput } from '../input/pointer';
 import { Camera } from '../renderer/camera';
 import { crossfade } from '../renderer/crossfade';
-import { labelFontPx, labelPlate } from '../renderer/labels';
+import { labelFontPx, labelPlate, MIN_LABEL_CELL_SIZE } from '../renderer/labels';
 import { Renderer } from '../renderer/renderer';
 import type { PowerState } from '../renderer/lighting';
 import type { Skin } from '../renderer/skins/skin';
@@ -182,6 +182,11 @@ export class Game {
   /** Hides the label in the cell while its editor is shown; undefined shows it again. */
   setEditingLabel(cell: readonly [number, number] | undefined): void {
     this.editingLabel = cell;
+  }
+
+  /** Whether labels are drawn at the current zoom; zoomed far out they are hidden. */
+  get labelsShown(): boolean {
+    return this.camera.cellSize >= MIN_LABEL_CELL_SIZE;
   }
 
   labelPlacement(x: number, y: number): LabelPlacement {

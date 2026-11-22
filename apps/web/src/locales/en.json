@@ -51,7 +51,8 @@
     "saveFailed": "Couldn't save. Please try again",
     "label": {
       "field": "Label",
-      "placeholder": "Write a label…"
+      "placeholder": "Label…",
+      "zoomIn": "Zoom in to see and write labels"
     },
     "history": {
       "undone": "Undo",

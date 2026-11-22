@@ -4,12 +4,15 @@ import { computed, onMounted, ref, useTemplateRef } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { LabelPlacement } from '../game/game';
 import { useKeyHelpBlocker } from '../input/keyHelp';
-import { LABEL_FONT_FAMILY } from '../renderer/labels';
+import { LABEL_FONT_FAMILY, LABEL_PADDING } from '../renderer/labels';
 
 const props = defineProps<{ text: string; placement: LabelPlacement }>();
 /** `done` carries the new text (empty removes the label), or undefined when cancelled. */
 const emit = defineEmits<{ done: [text: string | undefined] }>();
 const { t } = useI18n();
+
+/** Room for a short label (and the placeholder) before the field starts to grow. */
+const MIN_WIDTH_CHARS = 10;
 
 const draft = ref(props.text);
 const input = useTemplateRef<HTMLInputElement>('input');
@@ -24,9 +27,10 @@ const style = computed(() => {
     top: `${top}px`,
     height: `${height}px`,
     font: `${fontPx}px ${LABEL_FONT_FAMILY}`,
-    padding: `0 ${Math.round(fontPx * 0.3)}px`,
-    // Grows with the text; the font is monospaced.
-    width: `${Math.max(draft.value.length, 8) + 1}ch`,
+    padding: `0 ${fontPx * LABEL_PADDING}px`,
+    // As wide as the label it becomes, and growing with the text: the font is monospaced.
+    // The extra pixels keep the caret after the last letter in view.
+    width: `calc(${Math.max([...draft.value].length, MIN_WIDTH_CHARS)}ch + 2px)`,
   };
 });
 

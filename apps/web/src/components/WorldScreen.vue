@@ -148,6 +148,10 @@ function undoOrRedo(action: 'undo' | 'redo'): void {
 function startLabelEdit(x: number, y: number, text: string): void {
   const current = game.value;
   if (!current) return;
+  if (!current.labelsShown) {
+    showNotice('game.label.zoomIn', { warning: true });
+    return;
+  }
   current.setEditingLabel([x, y]);
   editingLabel.value = { x, y, text, placement: current.labelPlacement(x, y) };
 }
