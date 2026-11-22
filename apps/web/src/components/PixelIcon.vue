@@ -113,6 +113,17 @@ const ICONS = {
     '#...#...#',
     '.........',
   ],
+  label: [
+    '.........',
+    '.#######.',
+    '.#######.',
+    '....#....',
+    '....#....',
+    '....#....',
+    '....#....',
+    '....#....',
+    '.........',
+  ],
 } as const satisfies Record<string, readonly string[]>;
 
 export type IconName = keyof typeof ICONS;

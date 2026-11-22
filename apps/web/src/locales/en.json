@@ -22,6 +22,10 @@
     "version": "Version {version}",
     "done": "Done",
     "versions": {
+      "v1_1": [
+        "Labels: press T to write a short note anywhere in the world.",
+        "Left click now places and uses blocks, right click breaks them, like in most games. Space and Delete do the same at the cursor."
+      ],
       "v1_0": [
         "Endless 2D world with wires, crossings, levers, buttons, torches, delayers, lamps, power blocks and stone.",
         "Pistons that push chains of blocks, with animation.",

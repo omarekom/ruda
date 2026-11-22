@@ -1,7 +1,20 @@
 <script setup lang="ts">
+import { createBlock, type Block } from '@ruda/core';
 import { onMounted, useTemplateRef } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useKeyHelpBlocker } from '../input/keyHelp';
+import { workshopSkin } from '../renderer/skins/workshop';
+import BlockIcon from './BlockIcon.vue';
+import PixelIcon, { type IconName } from './PixelIcon.vue';
+
+/** What each version brought, as a picture: a block, or a pixel icon on a label's dark plate. */
+type VersionIcon = { readonly block: Block } | { readonly label: IconName };
+
+/** Versions from 1.1 on get an icon; 1.0 shows the power block it started with. */
+const VERSION_ICONS: Readonly<Record<string, VersionIcon>> = {
+  v1_0: { block: createBlock('power_block') },
+  v1_1: { label: 'label' },
+};
 
 const emit = defineEmits<{ done: [] }>();
 const { t, tm, rt } = useI18n();
@@ -12,6 +25,7 @@ const dialog = useTemplateRef<HTMLDialogElement>('dialog');
 const versions = Object.keys(tm('changelog.versions') as Record<string, unknown>).map((key) => ({
   key,
   label: key.slice(1).replaceAll('_', '.'),
+  icon: VERSION_ICONS[key],
 }));
 
 function changes(key: string): string[] {
@@ -38,7 +52,19 @@ function onCancel(event: Event): void {
   >
     <h1>{{ t('changelog.title') }}</h1>
     <section v-for="version in versions" :key="version.key">
-      <h2>{{ t('changelog.version', { version: version.label }) }}</h2>
+      <h2>
+        <template v-if="version.icon">
+          <BlockIcon
+            v-if="'block' in version.icon"
+            class="version-icon"
+            :block="version.icon.block"
+            :skin="workshopSkin"
+            :size="32"
+          />
+          <span v-else class="version-icon plate"><PixelIcon :name="version.icon.label" /></span>
+        </template>
+        {{ t('changelog.version', { version: version.label }) }}
+      </h2>
       <ul>
         <li v-for="change in changes(version.key)" :key="change">{{ change }}</li>
       </ul>
@@ -75,10 +101,29 @@ h1 {
 }
 
 h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   margin: 0 0 6px;
   color: #ffe14d;
   font-size: 26px;
   font-weight: normal;
+}
+
+.version-icon {
+  flex: none;
+}
+
+/* Like a label on the canvas: light on a dark plate. */
+.plate {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  background: rgba(0, 0, 0, 0.62);
+  box-shadow: inset 0 0 0 2px #555;
+  color: #fff;
+  font-size: 24px;
 }
 
 ul {
