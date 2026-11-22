@@ -90,7 +90,7 @@ Start screen
 - Shown on every visit. The whole screen is a live preview of the game: a slow ring of delayers runs at reduced speed behind it, so one lamp at a time lights up and hands over to the next.
 - In the middle the blocky **RUDA** logo and three buttons: **Play** (continues the last world, or creates a new one if there is none), **Worlds…** and **Controls…**. Nothing is focused when the screen opens; Tab (or an arrow) focuses Play first, then Tab goes on through Worlds… and Controls… to the light/dark switch, and the arrows reach the switch too.
 - Bottom left, a faint **About** button opens a dialog: what Ruda is (a 2D simulator inspired by Minecraft's redstone, not a copy), that it is independent of Mojang and Microsoft, the contact e-mail, the GitHub repository and a download of this version's source as a `.zip`, laid out in a small table, and a note that the game was programmed with the help of Claude (`ruda_vN.N.zip`, made from the last commit by `pnpm build`).
-- Next to the About button a faint version label (e.g. `1.0`) opens a changelog dialog: a short list of changes for every minor version, newest first, each headed by an icon for its main feature (1.0 the power block, 1.1 a `T` like the labels). Patch releases are listed only in `CHANGELOG.md`. Versioning and the release checklist are in [UPDATE_GUIDE.md](UPDATE_GUIDE.md).
+- Next to the About button a faint version label (e.g. `1.0`) opens a changelog dialog: a short list of changes for every minor version, newest first, each headed by an icon for its main feature and its number with its informal name (`1.1 – Text update`; 1.0 shows the power block and just its number). Patch releases are listed only in `CHANGELOG.md`. Versioning and the release checklist are in [UPDATE_GUIDE.md](UPDATE_GUIDE.md).
 - A link to the library (`#library`, `#admin`) opens it instead; nothing in the game links there for now.
 
 The game
@@ -165,6 +165,7 @@ Ideas, not committed:
 - Keyboard shortcuts across the game, to tune: consistent keys on every screen (Import and Back in Worlds have keys but no labels on their buttons); the `?` overlay is a first step.
 - Guidance when starting: a short tour (coach marks pointing at parts of the screen) so new players get to know each mode's interface.
 - Czech localization (strings kept in locale files from the start). [Mby waste of time and confusing only]
+  - Check that the fonts (Silkscreen, VT323) have Czech and other national characters (ř, ů, ß, …) and pick or add fallbacks where they don't; labels can already hold any text.
 - images in changelog for each version, optional actually
 - propper in game docs with visuals
 - Selection, copy and paste.

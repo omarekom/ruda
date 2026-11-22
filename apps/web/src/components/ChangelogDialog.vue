@@ -17,16 +17,23 @@ const VERSION_ICONS: Readonly<Record<string, VersionIcon>> = {
 };
 
 const emit = defineEmits<{ done: [] }>();
-const { t, tm, rt } = useI18n();
+const { t, te, tm, rt } = useI18n();
 useKeyHelpBlocker();
 const dialog = useTemplateRef<HTMLDialogElement>('dialog');
 
 /** Newest first, as ordered in the locale file; the key "v1_0" stands for version 1.0. */
 const versions = Object.keys(tm('changelog.versions') as Record<string, unknown>).map((key) => ({
   key,
-  label: key.slice(1).replaceAll('_', '.'),
+  heading: heading(key),
   icon: VERSION_ICONS[key],
 }));
+
+/** The version number, followed by its informal name when it has one: "1.1 – Text update". */
+function heading(key: string): string {
+  const version = key.slice(1).replaceAll('_', '.');
+  const name = `changelog.names.${key}`;
+  return te(name) ? t('changelog.named', { version, name: t(name) }) : version;
+}
 
 function changes(key: string): string[] {
   return (tm(`changelog.versions.${key}`) as Parameters<typeof rt>[0][]).map((change) =>
@@ -63,7 +70,7 @@ function onCancel(event: Event): void {
           />
           <span v-else class="version-icon plate"><PixelIcon :name="version.icon.label" /></span>
         </template>
-        {{ t('changelog.version', { version: version.label }) }}
+        {{ version.heading }}
       </h2>
       <ul>
         <li v-for="change in changes(version.key)" :key="change">{{ change }}</li>

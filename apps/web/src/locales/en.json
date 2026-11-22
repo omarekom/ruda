@@ -19,12 +19,15 @@
   "changelog": {
     "open": "Changelog",
     "title": "Changelog",
-    "version": "Version {version}",
+    "named": "{version} – {name}",
+    "names": {
+      "v1_1": "Text update"
+    },
     "done": "Done",
     "versions": {
       "v1_1": [
-        "Labels: press T to write a short note anywhere in the world.",
-        "Left click now places and uses blocks, right click breaks them, like in most games. Space and Delete do the same at the cursor."
+        "Labels: short notes anywhere in the world. Press T to type one.",
+        "Left mouse button now builds, right mouse button breaks (swapped)."
       ],
       "v1_0": [
         "Endless 2D world with wires, crossings, levers, buttons, torches, delayers, lamps, power blocks and stone.",

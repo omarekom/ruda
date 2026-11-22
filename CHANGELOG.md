@@ -2,7 +2,7 @@
 
 Every release of Ruda, patch releases included. The changelog inside the game (opened by the version label on the start screen) lists only the minor versions, the ones players notice; see [docs/UPDATE_GUIDE.md](docs/UPDATE_GUIDE.md).
 
-## 1.1 (unreleased)
+## 1.1 – Text update (unreleased)
 
 - Labels: `T` writes a one-line note in the cell under the cursor, or edits the label there. Labels scale with the zoom, hide when zoomed out below 50 %, are saved with the world and can be undone.
 - Mouse buttons swapped: the left button places and uses blocks, the right button breaks them. Space and Delete click like them at the cursor.
