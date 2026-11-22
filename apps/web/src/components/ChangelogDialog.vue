@@ -31,7 +31,7 @@ function onCancel(event: Event): void {
 <template>
   <dialog
     ref="dialog"
-    class="changelog"
+    class="changelog blocky-scroll"
     :aria-label="t('changelog.title')"
     @cancel="onCancel"
     @keydown.stop

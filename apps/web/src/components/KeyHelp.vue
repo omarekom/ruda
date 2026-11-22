@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { keyHelpRows, keyLabel } from '../input/keyHelp';
+import { scrollByKey } from '../input/scrollKeys';
 
 const { t } = useI18n();
 const open = ref(false);
+const list = useTemplateRef<HTMLElement>('list');
 
 function isTyping(target: EventTarget | null): boolean {
   return target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
@@ -12,7 +14,8 @@ function isTyping(target: EventTarget | null): boolean {
 
 /**
  * Listens before every other key handler. While open, the overlay keeps key presses from the
- * screen behind it; key releases still pass, so keys held down when it opened are let go.
+ * screen behind it, except that the arrows and page keys scroll its list; key releases still
+ * pass, so keys held down when it opened are let go.
  */
 function onKeyDown(event: KeyboardEvent): void {
   if (open.value) {
@@ -20,6 +23,8 @@ function onKeyDown(event: KeyboardEvent): void {
     if (event.key === '?' || event.key === 'Escape' || event.key === 'Tab') {
       event.preventDefault();
       if (event.key !== 'Tab') open.value = false;
+    } else if (list.value && scrollByKey(list.value, event.key)) {
+      event.preventDefault();
     }
     return;
   }
@@ -46,7 +51,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown, { capture
     @click="open = false"
   >
     <h1>{{ t('keyHelp.title') }}</h1>
-    <div class="rows blocky-panel">
+    <div ref="list" class="rows blocky-panel blocky-scroll">
       <div v-for="[action, ...keys] in keyHelpRows" :key="action" class="row">
         <span class="action">{{ t(`keyHelp.actions.${action}`) }}</span>
         <span class="keys">
@@ -85,7 +90,6 @@ h1 {
   width: min(620px, 100%);
   max-height: 70vh;
   padding: 10px 18px;
-  overflow-y: auto;
 }
 
 .row {

@@ -2,13 +2,12 @@
 import { onBeforeUnmount, onMounted, useTemplateRef } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { keyLabel, useKeyHelpBlocker } from '../input/keyHelp';
+import { scrollByKey } from '../input/scrollKeys';
 
 const emit = defineEmits<{ done: [] }>();
 const { t } = useI18n();
 const list = useTemplateRef<HTMLElement>('list');
 const done = useTemplateRef<HTMLElement>('done');
-
-const ARROW_STEP = 56;
 
 useKeyHelpBlocker();
 
@@ -25,21 +24,7 @@ function onKeyDown(event: KeyboardEvent): void {
     done.value?.focus();
     return;
   }
-  const el = list.value;
-  if (!el) return;
-  const page = el.clientHeight - ARROW_STEP;
-  const target: Partial<Record<string, number>> = {
-    ArrowUp: el.scrollTop - ARROW_STEP,
-    ArrowDown: el.scrollTop + ARROW_STEP,
-    PageUp: el.scrollTop - page,
-    PageDown: el.scrollTop + page,
-    Home: 0,
-    End: el.scrollHeight,
-  };
-  const top = target[event.key];
-  if (top === undefined) return;
-  event.preventDefault();
-  el.scrollTo({ top });
+  if (list.value && scrollByKey(list.value, event.key)) event.preventDefault();
 }
 
 onMounted(() => window.addEventListener('keydown', onKeyDown));

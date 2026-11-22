@@ -246,7 +246,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 
     <p v-if="error" class="error" role="alert">{{ t(error) }}</p>
 
-    <div ref="grid" class="grid" role="list" :aria-label="t('game.worlds.title')">
+    <div ref="grid" class="grid blocky-scroll" role="list" :aria-label="t('game.worlds.title')">
       <div
         class="card new blocky-panel"
         role="listitem"
@@ -394,7 +394,6 @@ h1 {
   flex: 1;
   width: min(1100px, 100%);
   padding: 4px;
-  overflow-y: auto;
   image-rendering: auto;
 }
 
