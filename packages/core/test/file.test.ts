@@ -3,6 +3,7 @@ import {
   Axis,
   CURRENT_VERSION,
   Direction,
+  fileVersion,
   parseWorld,
   repairWorld,
   RudaFileError,
@@ -132,5 +133,12 @@ describe('.ruda files', () => {
     ])('still rejects %s with %s', (text, code) => {
       expect(() => repairWorld(text)).toThrow(expect.objectContaining({ code }));
     });
+  });
+
+  it('tells the version a file was written in without loading it', () => {
+    expect(fileVersion(serializeWorld(new World(), 'x'))).toBe(CURRENT_VERSION);
+    expect(fileVersion('{"rudaversion":1,"name":"x","blocks":{"dirt":[0,0]}}')).toBe(1);
+    expect(fileVersion('{"name":"x"}')).toBeUndefined();
+    expect(fileVersion('not json')).toBeUndefined();
   });
 });

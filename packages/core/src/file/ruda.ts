@@ -79,6 +79,20 @@ export function repairWorld(text: string): RepairedWorld {
   return { ...loaded, problems };
 }
 
+/**
+ * The format version a `.ruda` text was written in, without loading it; undefined if the text
+ * does not say. Lets the app tell worlds from older versions of Ruda apart cheaply.
+ */
+export function fileVersion(text: string): number | undefined {
+  try {
+    const json: unknown = JSON.parse(text);
+    const version = isObject(json) ? json['rudaversion'] : undefined;
+    return typeof version === 'number' && Number.isInteger(version) ? version : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function parseJson(text: string): unknown {
   try {
     return JSON.parse(text);

@@ -9,7 +9,10 @@ Every release of Ruda, patch releases included. The changelog inside the game (o
 - Debug mode pauses with `P` instead of Space.
 - File format version 2 (adds labels). Version 1 files still open; Ruda 1.0 rejects version 2 files as too new.
 - The keys overlay scrolls with the arrow and page keys; the keys overlay, Worlds and the changelog use the game's own scrollbar.
-- A world that failed to open is no longer reported on other screens.
+- Errors when opening or importing a world are shown in a dialog, before any loading screen.
+- Importing a world adds it to the list instead of opening it.
+- Worlds from an older version are tagged in Worlds, and opening one asks before updating it.
+- Firefox shows the game's scrollbar colours.
 - In-game changelog entries get an icon.
 
 ## 1.0.3 (2026-11-20)

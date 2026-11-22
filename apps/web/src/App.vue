@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { parseWorld } from '@ruda/core';
-import { onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue';
+import { CURRENT_VERSION, fileVersion, parseWorld, serializeWorld, type World } from '@ruda/core';
+import { onBeforeUnmount, onMounted, ref, shallowRef } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ConfirmDialog from './components/ConfirmDialog.vue';
 import GameLoading from './components/GameLoading.vue';
@@ -23,11 +23,12 @@ const store = shallowRef<WorldStore>();
 const storageUnavailable = ref(false);
 const opened = shallowRef<OpenWorld>();
 const restoring = shallowRef<{ stored: StoredWorld; recovery: Recovery }>();
+/** A world saved by an older version of Ruda, waiting for the player to agree to update it. */
+const upgrading = shallowRef<{ stored: StoredWorld; world: World }>();
+/** Why a world could not be opened, as an i18n key, while the player is being told. */
 const openError = ref<string>();
 /** What shows while no world is open; the library only through its link (#library, #admin). */
 const screen = ref<'start' | 'worlds' | 'library'>('start');
-// A world that failed to open is reported only on the screen it was opened from.
-watch(screen, () => (openError.value = undefined));
 /**
  * Opening a world shows a loading screen, kept up a little longer than needed because it is
  * part of the fun.
@@ -76,25 +77,18 @@ onMounted(async () => {
 async function play(): Promise<void> {
   const worlds = store.value;
   if (!worlds) return;
-  await withLoadingScreen(async () => {
-    const { lastWorld } = readPreferences();
-    if (lastWorld && (await loadWorld(lastWorld))) return true;
-    const created = await createEmptyWorld(worlds, t('worlds.defaultName'));
-    return loadWorld(created.id);
-  });
+  const { lastWorld } = readPreferences();
+  if (lastWorld && (await openWorld(lastWorld))) return;
+  const created = await createEmptyWorld(worlds, t('worlds.defaultName'));
+  await openWorld(created.id);
 }
 
-async function withLoadingScreen(load: () => Promise<boolean>): Promise<boolean> {
+/** Shows the loading screen for at least LOADING_SCREEN_MS while the world opens behind it. */
+async function withLoadingScreen(open: () => void): Promise<void> {
   loadingScreen.value = true;
-  try {
-    const [found] = await Promise.all([
-      load(),
-      new Promise((resolve) => setTimeout(resolve, LOADING_SCREEN_MS)),
-    ]);
-    return found;
-  } finally {
-    loadingScreen.value = false;
-  }
+  open();
+  await new Promise((resolve) => setTimeout(resolve, LOADING_SCREEN_MS));
+  loadingScreen.value = false;
 }
 
 onBeforeUnmount(() => window.removeEventListener('hashchange', readHash));
@@ -117,12 +111,12 @@ const libraryHost: LibraryHost = {
   },
 };
 
-/** Opens a stored world (asking first if it has newer unsaved changes); false if it is gone. */
-function openWorld(id: string): Promise<boolean> {
-  return withLoadingScreen(() => loadWorld(id));
-}
-
-async function loadWorld(id: string): Promise<boolean> {
+/**
+ * Opens a stored world; false if it is gone. Every question (newer unsaved changes, an update
+ * from an older version) and every error comes first; the loading screen only once the world
+ * is sure to open.
+ */
+async function openWorld(id: string): Promise<boolean> {
   if (!store.value) return false;
   const stored = await store.value.load(id);
   if (!stored) return false;
@@ -132,7 +126,7 @@ async function loadWorld(id: string): Promise<boolean> {
     return true;
   }
   if (recovery) await store.value.discardRecovery(id);
-  show(stored, stored.data, false);
+  await start(stored, stored.data, false);
   return true;
 }
 
@@ -141,24 +135,45 @@ async function onRestoreChoice(choice: 'restore' | 'discard' | 'cancel'): Promis
   restoring.value = undefined;
   if (!target || !store.value || choice === 'cancel') return;
   if (choice === 'restore') {
-    show(target.stored, target.recovery.data, true);
+    await start(target.stored, target.recovery.data, true);
   } else {
     await store.value.discardRecovery(target.stored.id);
-    show(target.stored, target.stored.data, false);
+    await start(target.stored, target.stored.data, false);
   }
 }
 
-function show(stored: StoredWorld, data: string, restored: boolean): void {
+/** Opens the world in `data`, after asking to update it if an older version of Ruda saved it. */
+async function start(stored: StoredWorld, data: string, restored: boolean): Promise<void> {
+  let world: World;
   try {
-    const { world } = parseWorld(data);
-    opened.value = { id: stored.id, name: stored.name, world, restored };
-    writePreference('lastWorld', stored.id);
-    // Only for sorting and showing when it was played, so a failure is not worth reporting.
-    store.value?.markPlayed(stored.id).catch(() => undefined);
-    openError.value = undefined;
+    world = parseWorld(data).world;
   } catch (error) {
     openError.value = fileErrorKey(error);
+    return;
   }
+  const version = fileVersion(data);
+  if (!restored && version !== undefined && version < CURRENT_VERSION) {
+    upgrading.value = { stored, world };
+    return;
+  }
+  await withLoadingScreen(() => show(stored, world, restored));
+}
+
+/** Updating rewrites the stored world in the current format, so it is asked only once. */
+async function onUpgradeChoice(choice: 'open' | 'cancel'): Promise<void> {
+  const target = upgrading.value;
+  upgrading.value = undefined;
+  if (!target || !store.value || choice === 'cancel') return;
+  const { stored, world } = target;
+  await store.value.rename(stored.id, stored.name, serializeWorld(world, stored.name));
+  await withLoadingScreen(() => show(stored, world, false));
+}
+
+function show(stored: StoredWorld, world: World, restored: boolean): void {
+  opened.value = { id: stored.id, name: stored.name, world, restored };
+  writePreference('lastWorld', stored.id);
+  // Only for sorting and showing when it was played, so a failure is not worth reporting.
+  store.value?.markPlayed(stored.id).catch(() => undefined);
 }
 </script>
 
@@ -193,11 +208,26 @@ function show(stored: StoredWorld, data: string, restored: boolean): void {
     />
     <StartScreen v-else @play="play" @worlds="screen = 'worlds'" />
   </template>
-  <p v-if="openError" class="open-error" role="alert" @click="openError = undefined">
-    {{ t(openError) }}
-  </p>
-  <!-- The loading screen stays behind the question about unsaved changes, if one comes up. -->
-  <GameLoading v-if="loadingScreen || restoring" :duration-ms="LOADING_SCREEN_MS" />
+  <GameLoading v-if="loadingScreen" :duration-ms="LOADING_SCREEN_MS" />
+  <ConfirmDialog
+    v-if="openError"
+    blocky
+    :message="t(openError)"
+    :actions="[{ value: 'ok', label: t('dialog.ok'), primary: true }]"
+    cancel="ok"
+    @choose="openError = undefined"
+  />
+  <ConfirmDialog
+    v-if="upgrading"
+    blocky
+    :message="t('worlds.upgradePrompt', { name: upgrading.stored.name })"
+    :actions="[
+      { value: 'cancel', label: t('dialog.cancel') },
+      { value: 'open', label: t('worlds.upgradeOpen'), primary: true },
+    ]"
+    cancel="cancel"
+    @choose="onUpgradeChoice"
+  />
   <ConfirmDialog
     v-if="restoring"
     blocky
@@ -247,20 +277,6 @@ h1 {
   margin: 0;
   color: #ff3b2f;
   letter-spacing: 0.05em;
-}
-
-.open-error {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  margin: 0;
-  padding: 6px 16px;
-  border: 3px solid #000;
-  background: rgba(20, 20, 24, 0.95);
-  color: #ff8a80;
-  font: 26px var(--font-retro);
-  transform: translateX(-50%);
-  cursor: pointer;
 }
 
 .fatal {

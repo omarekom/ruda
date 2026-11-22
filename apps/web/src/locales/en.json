@@ -47,7 +47,11 @@
     "defaultName": "New world",
     "restorePrompt": "“{name}” has unsaved changes from {date}. Restore them?",
     "restore": "Restore",
-    "discardChanges": "Discard"
+    "discardChanges": "Discard",
+    "upgradePrompt": "“{name}” was made in an older version of Ruda. No worries, it works just fine: Ruda updates it to the new format when it opens. After that, older versions of Ruda can't open it any more.",
+    "upgradeOpen": "Update and open",
+    "olderVersion": "Older version",
+    "olderVersionHint": "Made in an older version of Ruda. It opens fine and is updated on the way."
   },
   "editor": {
     "leavePrompt": "Save changes to “{name}” before leaving?",
@@ -141,7 +145,6 @@
       "nameLabel": "World name",
       "confirmDelete": "Delete “{name}”? It will be lost forever!",
       "repaired": "The file was damaged. Ruda loaded what it could read and left out the rest, so some blocks may be missing. (1 problem found) | The file was damaged. Ruda loaded what it could read and left out the rest, so some blocks may be missing. ({n} problems found)",
-      "openRepaired": "Open the world",
       "keys": "Arrows select world · Enter plays · F2 renames · Del deletes · E exports · I imports · Esc back"
     },
     "loading": {
@@ -220,6 +223,7 @@
   },
   "dialog": {
     "cancel": "Cancel",
+    "ok": "OK",
     "save": "Save",
     "delete": "Delete"
   },

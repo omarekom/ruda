@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { repairWorld } from '@ruda/core';
+import { CURRENT_VERSION, fileVersion, repairWorld } from '@ruda/core';
 import {
   computed,
   nextTick,
@@ -46,8 +46,9 @@ const worlds = shallowRef<StoredWorld[]>([]);
 const search = ref('');
 const renaming = ref<{ id: string; name: string }>();
 const deleting = shallowRef<StoredWorld>();
-/** An imported world that had to be repaired, shown to the user before it opens. */
-const repaired = ref<{ id: string; problems: number }>();
+/** How many problems an imported world had, while the player is told it was repaired. */
+const repaired = ref<number>();
+/** Why an import or rename failed, as an i18n key, while the player is told. */
 const error = ref<string>();
 const grid = useTemplateRef<HTMLElement>('grid');
 const searchInput = useTemplateRef<HTMLInputElement>('searchInput');
@@ -91,11 +92,20 @@ async function importFile(): Promise<void> {
     const loaded = repairWorld(await file.text());
     const name = loaded.name.trim() || t('worlds.defaultName');
     const created = await createWorld(props.store, name, loaded.world);
-    if (loaded.problems.length === 0) emit('open', created.id);
-    else repaired.value = { id: created.id, problems: loaded.problems.length };
+    // The new world shows up in the list, marked, instead of opening right away.
+    search.value = '';
+    await refresh();
+    await focusCard(created.id);
+    if (loaded.problems.length > 0) repaired.value = loaded.problems.length;
   } catch (failure) {
     error.value = fileErrorKey(failure);
   }
+}
+
+/** Saved by an older version of Ruda, so opening it will update it. */
+function isOlder(world: StoredWorld): boolean {
+  const version = fileVersion(world.data);
+  return version !== undefined && version < CURRENT_VERSION;
 }
 
 async function startRename(world: StoredWorld): Promise<void> {
@@ -112,7 +122,6 @@ async function commitRename(): Promise<void> {
   if (name) {
     try {
       await renameWorld(props.store, target.id, name);
-      error.value = undefined;
     } catch (failure) {
       error.value = fileErrorKey(failure);
     }
@@ -124,19 +133,15 @@ async function commitRename(): Promise<void> {
 /** Gives the keyboard back to a world's card, e.g. after renaming it. */
 async function focusCard(id: string): Promise<void> {
   await nextTick();
-  grid.value?.querySelector<HTMLElement>(`.card[data-id="${CSS.escape(id)}"]`)?.focus();
+  grid.value
+    ?.querySelector<HTMLElement>(`.card[data-id="${CSS.escape(id)}"]`)
+    ?.focus({ focusVisible: true });
 }
 
 function cancelRename(): void {
   const target = renaming.value;
   renaming.value = undefined;
   if (target) void focusCard(target.id);
-}
-
-function onRepairedChoice(): void {
-  const target = repaired.value;
-  repaired.value = undefined;
-  if (target) emit('open', target.id);
 }
 
 async function onDeleteChoice(choice: 'delete' | 'cancel'): Promise<void> {
@@ -171,7 +176,7 @@ function onCardKey(event: KeyboardEvent, world: StoredWorld | undefined): void {
 }
 
 function onKeyDown(event: KeyboardEvent): void {
-  if (renaming.value || deleting.value || repaired.value) return;
+  if (renaming.value || deleting.value || repaired.value !== undefined || error.value) return;
   const typing = event.target instanceof HTMLInputElement;
   if (event.key === 'Escape') {
     if (typing) {
@@ -244,8 +249,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
       <input ref="fileInput" type="file" :accept="RUDA_FILE_ACCEPT" hidden @change="importFile" />
     </div>
 
-    <p v-if="error" class="error" role="alert">{{ t(error) }}</p>
-
     <div ref="grid" class="grid blocky-scroll" role="list" :aria-label="t('game.worlds.title')">
       <div
         class="card new blocky-panel"
@@ -269,6 +272,9 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
         @keydown.self="onCardKey($event, world)"
       >
         <WorldThumbnail class="thumbnail" :data="world.data" :skin="worldSkin" />
+        <span v-if="isOlder(world)" class="older" :data-tip="t('worlds.olderVersionHint')">
+          {{ t('worlds.olderVersion') }}
+        </span>
         <form
           v-if="renaming?.id === world.id"
           class="rename"
@@ -335,12 +341,20 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
       @choose="onDeleteChoice"
     />
     <ConfirmDialog
-      v-if="repaired"
+      v-if="repaired !== undefined"
       blocky
-      :message="t('game.worlds.repaired', repaired.problems)"
-      :actions="[{ value: 'open', label: t('game.worlds.openRepaired'), primary: true }]"
-      cancel="open"
-      @choose="onRepairedChoice"
+      :message="t('game.worlds.repaired', repaired)"
+      :actions="[{ value: 'ok', label: t('dialog.ok'), primary: true }]"
+      cancel="ok"
+      @choose="repaired = undefined"
+    />
+    <ConfirmDialog
+      v-if="error"
+      blocky
+      :message="t(error)"
+      :actions="[{ value: 'ok', label: t('dialog.ok'), primary: true }]"
+      cancel="ok"
+      @choose="error = undefined"
     />
   </main>
 </template>
@@ -509,8 +523,23 @@ h1 {
   text-align: center;
 }
 
-.error {
-  margin: 0;
-  color: #ff8a80;
+/* Over the thumbnail's corner; its tooltip opens to the right, inside the card. */
+.older {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  padding: 0 8px;
+  border: 2px solid #000;
+  background: rgba(20, 20, 24, 0.9);
+  color: #ffcf73;
+  font-size: 20px;
+  cursor: help;
+}
+
+.older[data-tip]:hover::after {
+  right: auto;
+  left: 0;
+  width: 220px;
+  white-space: normal;
 }
 </style>
