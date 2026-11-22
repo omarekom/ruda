@@ -168,12 +168,12 @@ Ideas, not committed:
 - propper in game docs with visuals
 - Selection, copy and paste.
 - Modules: reusable building blocks (the exact concept is open). The hard part will be their UX, which needs a lot of exploration to get right.
-	- library of modules
-	- module abstraction has to be included on the field somewhere, then you clone it
-	- NOT seprate modal for module creation, that is confusing
-	- being able to specify modules interface: pins and lights outside
-	- module names, naming pins (see 'hole'/portal feature)
-	- optimization of module behaviour simulation?
+  - library of modules
+  - module abstraction has to be included on the field somewhere, then you clone it
+  - NOT seprate modal for module creation, that is confusing
+  - being able to specify modules interface: pins and lights outside
+  - module names, naming pins (see 'hole'/portal feature)
+  - optimization of module behaviour simulation?
 - Sticky pistons.
 - Delayer locking: a delayer powered from its side by another delayer holds its output.
 - Observer, comparator and other components. (mby not needed)

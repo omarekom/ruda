@@ -51,7 +51,10 @@ Minified JSON. Blocks are grouped by type and state, with coordinates as a flat 
     "delayer:north:3:010": [6, 1],
     "button:0": [7, 7]
   },
-  "labels": [[0, -2, "Clock"], [6, 1, "Delay 3"]]
+  "labels": [
+    [0, -2, "Clock"],
+    [6, 1, "Delay 3"]
+  ]
 }
 ```
 
