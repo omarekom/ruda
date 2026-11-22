@@ -5,15 +5,40 @@ import { useI18n } from 'vue-i18n';
 import { useKeyHelpBlocker } from '../input/keyHelp';
 import { workshopSkin } from '../renderer/skins/workshop';
 import BlockIcon from './BlockIcon.vue';
-import PixelIcon, { type IconName } from './PixelIcon.vue';
+import PixelArt, { type PixelArtImage } from './PixelArt.vue';
 
-/** What each version brought, as a picture: a block, or a pixel icon on a label's dark plate. */
-type VersionIcon = { readonly block: Block } | { readonly label: IconName };
+/** What each version brought, as a picture: a block, or 16×16 pixel art in the blocks' style. */
+type VersionIcon = { readonly block: Block } | { readonly art: PixelArtImage };
 
-/** Versions from 1.1 on get an icon; 1.0 shows the power block it started with. */
+/** A speech bubble with writing in it, for the labels of 1.1. */
+const SPEECH_BUBBLE: PixelArtImage = {
+  palette: { '#': '#1a1a1a', w: '#f4f4f4', g: '#c8c8c8', k: '#3a3a3a' },
+  rows: [
+    '................',
+    '..###########...',
+    '.#wwwwwwwwwww#..',
+    '#wwwwwwwwwwwww#.',
+    '#wkkkkkkkkkkww#.',
+    '#wwwwwwwwwwwww#.',
+    '#wkkkkkkkwkkkw#.',
+    '#wwwwwwwwwwwww#.',
+    '#wkkkkkwwwwwwg#.',
+    '#gwwwwwwwwwwgg#.',
+    '.#gggwwwggggg#..',
+    '..###ggg######..',
+    '....#gg#........',
+    '....#g#.........',
+    '....##..........',
+    '................',
+  ],
+};
+
+const ICON_SIZE = 64;
+
+/** Every minor version gets an icon for its main feature; 1.0 shows the power block. */
 const VERSION_ICONS: Readonly<Record<string, VersionIcon>> = {
   v1_0: { block: createBlock('power_block') },
-  v1_1: { label: 'label' },
+  v1_1: { art: SPEECH_BUBBLE },
 };
 
 const emit = defineEmits<{ done: [] }>();
@@ -59,19 +84,17 @@ function onCancel(event: Event): void {
   >
     <h1>{{ t('changelog.title') }}</h1>
     <section v-for="version in versions" :key="version.key">
-      <h2>
-        <template v-if="version.icon">
-          <BlockIcon
-            v-if="'block' in version.icon"
-            class="version-icon"
-            :block="version.icon.block"
-            :skin="workshopSkin"
-            :size="32"
-          />
-          <span v-else class="version-icon plate"><PixelIcon :name="version.icon.label" /></span>
-        </template>
-        {{ version.heading }}
-      </h2>
+      <template v-if="version.icon">
+        <BlockIcon
+          v-if="'block' in version.icon"
+          class="version-icon"
+          :block="version.icon.block"
+          :skin="workshopSkin"
+          :size="ICON_SIZE"
+        />
+        <PixelArt v-else class="version-icon" :image="version.icon.art" :size="ICON_SIZE" />
+      </template>
+      <h2>{{ version.heading }}</h2>
       <ul>
         <li v-for="change in changes(version.key)" :key="change">{{ change }}</li>
       </ul>
@@ -108,29 +131,20 @@ h1 {
 }
 
 h2 {
-  display: flex;
-  align-items: center;
-  gap: 12px;
   margin: 0 0 6px;
   color: #ffe14d;
   font-size: 26px;
   font-weight: normal;
 }
 
+/* On the right, with the heading and the changes flowing around it. */
 .version-icon {
-  flex: none;
+  float: right;
+  margin: 4px 0 8px 16px;
 }
 
-/* Like a label on the canvas: light on a dark plate. */
-.plate {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  background: rgba(0, 0, 0, 0.62);
-  box-shadow: inset 0 0 0 2px #555;
-  color: #fff;
-  font-size: 24px;
+section {
+  display: flow-root;
 }
 
 ul {
