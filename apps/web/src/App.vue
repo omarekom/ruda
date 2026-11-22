@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { parseWorld } from '@ruda/core';
-import { onBeforeUnmount, onMounted, ref, shallowRef } from 'vue';
+import { onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ConfirmDialog from './components/ConfirmDialog.vue';
 import GameLoading from './components/GameLoading.vue';
@@ -26,6 +26,8 @@ const restoring = shallowRef<{ stored: StoredWorld; recovery: Recovery }>();
 const openError = ref<string>();
 /** What shows while no world is open; the library only through its link (#library, #admin). */
 const screen = ref<'start' | 'worlds' | 'library'>('start');
+// A world that failed to open is reported only on the screen it was opened from.
+watch(screen, () => (openError.value = undefined));
 /**
  * Opening a world shows a loading screen, kept up a little longer than needed because it is
  * part of the fun.
