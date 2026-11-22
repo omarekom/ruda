@@ -2,7 +2,7 @@
 
 Every release of Ruda, patch releases included. The changelog inside the game (opened by the version label on the start screen) lists only the minor versions, the ones players notice; see [docs/UPDATE_GUIDE.md](docs/UPDATE_GUIDE.md).
 
-## 1.1 – Text update (unreleased)
+## 1.1 – Text update (2026-11-22)
 
 - Labels: `T` writes a one-line note in the cell under the cursor, or edits the label there. Holding the left mouse button still for 1.5 s does the same without the keyboard. Labels scale with the zoom, hide when zoomed out below 50 %, are saved with the world and can be undone.
 - Mouse buttons swapped: the left button places and uses blocks, the right button breaks them. Space and Delete click like them at the cursor.
@@ -28,8 +28,7 @@ Every release of Ruda, patch releases included. The changelog inside the game (o
 
 ## 1.0.1 (2026-11-19)
 
-- Works over plain HTTP too: world ids no longer need `crypto.randomUUID`.
-- The site enforces HTTPS and its main host name.
+- The site enforces HTTPS (the game needs a secure context) and its main host name.
 
 ## 1.0 (2026-11-18)
 

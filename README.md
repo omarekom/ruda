@@ -8,7 +8,7 @@ Not a 1:1 Minecraft clone: signals are on/off, the world is flat, and crossings 
 
 ## Status
 
-Version 1.0 is released. Implemented: the playable core, saving, timing and inputs, pistons, the graphical interface (start screen, the game, world selection, a `?` keys overlay), debug mode (with undo and redo) and the library. Sounds are not done yet. The library (a shared collection of creations with a PHP backend) is built and tested but switched off in the web app for now (`LIBRARY_ENABLED` in [App.vue](apps/web/src/App.vue)). See [docs/SPEC.md](docs/SPEC.md) for the feature list and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the design.
+Version 1.1 (Text update) is released. Implemented: the playable core, saving, timing and inputs, pistons, labels, the graphical interface (start screen, the game, world selection, a `?` keys overlay), debug mode (with undo and redo) and the library. Sounds are not done yet. The library (a shared collection of creations with a PHP backend) is built and tested but switched off in the web app for now (`LIBRARY_ENABLED` in [App.vue](apps/web/src/App.vue)). See [docs/SPEC.md](docs/SPEC.md) for the feature list and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the design.
 
 ## Development
 
@@ -38,7 +38,7 @@ The game is a static site, so any web hosting works (production: <https://ruda.o
    - the HSTS header is sticky: browsers remember it for a year, so do not enable HTTPS only halfway.
      Otherwise no server-side code is needed: the app never changes the URL path.
 5. Check the deployed site: the start screen loads, a world can be created and saved, and the zip downloads from About. Link previews can be tested with the sharing debuggers of Facebook or LinkedIn (they cache the image, so check it before announcing the release).
-6. Tag the release (`git tag v1.0`).
+6. Tag the release (`git tag v1.1`).
 
 The full release checklist (changelog, version bump) is in [docs/UPDATE_GUIDE.md](docs/UPDATE_GUIDE.md). To deploy the library later, see [apps/library-api/README.md](apps/library-api/README.md) and set `LIBRARY_ENABLED` to `true`.
 
