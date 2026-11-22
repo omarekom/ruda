@@ -100,7 +100,7 @@ pnpm workspaces, TypeScript 6 (strict), Vite, Vue 3, vue-i18n, idb, Fontsource (
 
 ## Mouse placement
 
-One click places one block (no painting). Pressing the right button shows a ghost block, dragging sets its rotation, releasing places it.
+One click places one block (no painting). Pressing the left button (or Space) shows a ghost block, dragging sets its rotation, releasing places it. The right button (or Delete) breaks. `PointerInput` owns these primary and secondary actions; the keyboard aliases call them at the cursor.
 
 ## Library
 

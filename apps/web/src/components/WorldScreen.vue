@@ -26,6 +26,8 @@ import GameHud from './GameHud.vue';
 const AUTOSAVE_INTERVAL_MS = 30_000;
 const GAME_KEYS: readonly KeyRow[] = [
   ['move', 'WASD', 'arrows'],
+  ['use', 'space'],
+  ['break', 'delete'],
   ['zoom', '+', '−'],
   ['turn', 'R'],
   ['slot', '1–9', '0'],
@@ -35,7 +37,7 @@ const GAME_KEYS: readonly KeyRow[] = [
   ['help', '?'],
 ];
 const DEBUG_KEYS: readonly KeyRow[] = [
-  ['pause', 'space'],
+  ['pause', 'P'],
   ['step', '.'],
   ['panels', 'I', 'C', 'M'],
   ['undo', 'Z'],

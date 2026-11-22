@@ -39,20 +39,26 @@ export class Game {
   ) {
     this.renderer = new Renderer(canvas, this.camera, skin);
     this.history = new History(simulation);
-    this.keyboard = new KeyboardInput(hotbar, (factor) => {
-      const [width, height] = this.camera.viewSize;
-      this.camera.zoomAt(width / 2, height / 2, factor);
-    });
-    this.pointer = new PointerInput(
-      canvas,
-      this.camera,
-      hotbar,
-      (command) => this.execute(command),
-      (x, y) => {
+    this.pointer = new PointerInput(canvas, this.camera, hotbar, {
+      execute: (command) => this.execute(command),
+      isInteractiveAt: (x, y) => {
         const block = this.simulation.blocks.get(x, y);
         return block !== undefined && isInteractive(block);
       },
-    );
+      destroyAt: (sx, sy) => {
+        const [x, y] = this.camera.cellAt(sx, sy);
+        this.execute({ kind: 'remove', x, y });
+      },
+    });
+    this.keyboard = new KeyboardInput(hotbar, {
+      zoomBy: (factor) => {
+        const [width, height] = this.camera.viewSize;
+        this.camera.zoomAt(width / 2, height / 2, factor);
+      },
+      beginPrimary: () => this.pointer.beginPrimary(),
+      endPrimary: () => this.pointer.endPrimary(),
+      secondary: () => this.pointer.secondary(),
+    });
     this.loop = new TickLoop(
       () => this.simulation.step(),
       (dt, tickProgress) => this.frame(dt, tickProgress),

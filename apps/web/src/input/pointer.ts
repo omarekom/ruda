@@ -11,10 +11,20 @@ const WHEEL_ZOOM_SPEED = 0.0015;
 /** How far (in cells) the pointer must leave the cell centre before a drag sets the facing. */
 const ROTATE_DRAG_CELLS = 0.5;
 
+/** What the primary and secondary actions do to the world. */
+export interface PointerActions {
+  /** Applies a command; false if it changed nothing. */
+  readonly execute: (command: Command) => boolean;
+  readonly isInteractiveAt: (x: number, y: number) => boolean;
+  /** Breaks whatever is under the screen point (CSS px on the canvas). */
+  readonly destroyAt: (sx: number, sy: number) => void;
+}
+
 /**
- * Mouse controls on the world canvas: right button places (dragging sets the facing) or
- * interacts with a block (lever, button, delayer), left button removes, middle button pans,
- * wheel zooms.
+ * Mouse controls on the world canvas: the left button places (dragging sets the facing) or
+ * interacts with a block (lever, button, delayer), the right button breaks, the middle button
+ * pans, the wheel zooms. The keyboard aliases (Space, Delete) drive the same primary and
+ * secondary actions at the cursor.
  */
 export class PointerInput {
   private cursor: [number, number] | undefined;
@@ -30,8 +40,7 @@ export class PointerInput {
     private readonly canvas: HTMLCanvasElement,
     private readonly camera: Camera,
     private readonly hotbar: HotbarState,
-    private readonly execute: (command: Command) => boolean,
-    private readonly isInteractiveAt: (x: number, y: number) => boolean,
+    private readonly actions: PointerActions,
   ) {}
 
   attach(): void {
@@ -54,6 +63,10 @@ export class PointerInput {
     canvas.removeEventListener('wheel', this.onWheel);
     canvas.removeEventListener('contextmenu', preventDefault);
     canvas.removeEventListener('auxclick', preventDefault);
+    // Nothing is known about the cursor until it moves over the canvas again.
+    this.cursor = undefined;
+    this.placing = undefined;
+    this.panning = false;
   }
 
   overlay(): Overlay {
@@ -71,14 +84,35 @@ export class PointerInput {
     return edgeScroll(this.cursor, clientWidth, clientHeight, this.bottomEdgeGap);
   }
 
+  /**
+   * Starts the primary action at the cursor: interacts with a block that can be used, or
+   * shows the ghost of the held block, which is placed on `endPrimary`.
+   */
+  beginPrimary(): void {
+    if (!this.cursor) return;
+    const [x, y] = this.camera.cellAt(...this.cursor);
+    if (this.actions.isInteractiveAt(x, y)) this.actions.execute({ kind: 'interact', x, y });
+    else this.placing = { x, y };
+  }
+
+  /** Places the block whose ghost `beginPrimary` showed. */
+  endPrimary(): void {
+    if (!this.placing) return;
+    this.actions.execute({ kind: 'place', ...this.placing, block: heldBlock(this.hotbar) });
+    this.placing = undefined;
+  }
+
+  /** The secondary action at the cursor: breaks what is there. */
+  secondary(): void {
+    if (this.cursor) this.actions.destroyAt(...this.cursor);
+  }
+
   private readonly onPointerDown = (event: PointerEvent): void => {
     this.cursor = [event.offsetX, event.offsetY];
-    const [x, y] = this.camera.cellAt(event.offsetX, event.offsetY);
     if (event.button === LEFT) {
-      this.execute({ kind: 'remove', x, y });
+      this.beginPrimary();
     } else if (event.button === RIGHT) {
-      if (this.isInteractiveAt(x, y)) this.execute({ kind: 'interact', x, y });
-      else this.placing = { x, y };
+      this.secondary();
     } else if (event.button === MIDDLE) {
       event.preventDefault();
       this.panning = true;
@@ -98,9 +132,8 @@ export class PointerInput {
   };
 
   private readonly onPointerUp = (event: PointerEvent): void => {
-    if (event.button === RIGHT && this.placing) {
-      this.execute({ kind: 'place', ...this.placing, block: heldBlock(this.hotbar) });
-      this.placing = undefined;
+    if (event.button === LEFT) {
+      this.endPrimary();
     } else if (event.button === MIDDLE) {
       this.panning = false;
     }

@@ -23,7 +23,7 @@
   {
     "slug": "light-chaser",
     "title": "Light chaser",
-    "description": "Rings of delayers pass signals around in a loop, lighting one lamp after another. The left ring carries one light, the right ring three. Right-click a delayer to change its delay and the lights bunch up or spread out.",
+    "description": "Rings of delayers pass signals around in a loop, lighting one lamp after another. The left ring carries one light, the right ring three. Click a delayer to change its delay and the lights bunch up or spread out.",
     "author": "Ruda",
     "data": "{\"rudaversion\":1,\"name\":\"Light chaser\",\"blocks\":{\"delayer:east:2:00\":[1,0,3,0,5,0,15,0,17,0],\"delayer:east:2:11\":[13,0],\"delayer:north:2:00\":[0,1,0,3,0,5,12,1,12,3,12,5],\"delayer:south:2:00\":[6,1,6,5,18,1,18,5],\"delayer:south:2:11\":[6,3,18,3],\"delayer:west:2:00\":[1,6,3,6,5,6,15,6,17,6],\"delayer:west:2:11\":[13,6],\"lamp\":[-1,2,-1,4,-1,6,0,-1,2,-1,2,7,4,-1,4,7,6,7,7,0,7,2,7,4,11,2,11,4,11,6,12,-1,14,-1,14,7,16,-1,16,7,18,7,19,0,19,2,19,4],\"wire\":[0,0,0,2,0,4,0,6,2,0,2,6,4,0,4,6,6,0,6,2,6,4,6,6,12,0,12,2,12,4,12,6,14,0,14,6,16,0,16,6,18,0,18,2,18,4,18,6]}}"
   },

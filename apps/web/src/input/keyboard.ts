@@ -22,13 +22,26 @@ function zoomDirection(event: KeyboardEvent): number {
   return event.key === '+' ? 1 : event.key === '-' ? -1 : 0;
 }
 
-/** Tracks held pan keys and handles hotbar shortcuts (0–9, R) and the zoom keys (+, −). */
+/** What the game does for keys that stand in for the mouse or act on the view. */
+export interface KeyboardActions {
+  readonly zoomBy: (factor: number) => void;
+  /** Space, like the left mouse button: pressed, then released. */
+  readonly beginPrimary: () => void;
+  readonly endPrimary: () => void;
+  /** Delete, like the right mouse button. */
+  readonly secondary: () => void;
+}
+
+/**
+ * Tracks held pan keys and handles hotbar shortcuts (0–9, R), the zoom keys (+, −) and the
+ * mouse button aliases (Space, Delete).
+ */
 export class KeyboardInput {
   private readonly pressed = new Set<string>();
 
   constructor(
     private readonly hotbar: HotbarState,
-    private readonly zoomBy: (factor: number) => void,
+    private readonly actions: KeyboardActions,
   ) {}
 
   attach(): void {
@@ -58,6 +71,16 @@ export class KeyboardInput {
 
   private readonly onKeyDown = (event: KeyboardEvent): void => {
     if (event.ctrlKey || event.metaKey || event.altKey) return;
+    if (event.code === 'Space') {
+      // Also keeps Space from pressing a focused button, such as the last hotbar slot clicked.
+      event.preventDefault();
+      if (!event.repeat) this.actions.beginPrimary();
+      return;
+    }
+    if (event.code === 'Delete') {
+      if (!event.repeat) this.actions.secondary();
+      return;
+    }
     if (event.code in PAN_KEYS) {
       this.pressed.add(event.code);
       event.preventDefault();
@@ -65,7 +88,7 @@ export class KeyboardInput {
     }
     const zoom = zoomDirection(event);
     if (zoom !== 0) {
-      this.zoomBy(ZOOM_STEP ** zoom);
+      this.actions.zoomBy(ZOOM_STEP ** zoom);
       event.preventDefault();
       return;
     }
@@ -76,6 +99,11 @@ export class KeyboardInput {
 
   private readonly onKeyUp = (event: KeyboardEvent): void => {
     this.pressed.delete(event.code);
+    if (event.code === 'Space') {
+      // A focused button would be pressed by Space on its release.
+      event.preventDefault();
+      this.actions.endPrimary();
+    }
   };
 
   private readonly onBlur = (): void => {

@@ -65,18 +65,18 @@ const SECTIONS: readonly (readonly [
   [
     'building',
     [
-      ['place', 'rightClick'],
-      ['break', 'leftClick'],
+      ['place', 'leftClick', 'space'],
+      ['break', 'rightClick', 'delete'],
       ['turn', 'R'],
-      ['aim', 'rightDrag'],
+      ['aim', 'leftDrag'],
     ],
   ],
   [
     'using',
     [
-      ['lever', 'rightClick'],
-      ['button', 'rightClick'],
-      ['delay', 'rightClick'],
+      ['lever', 'leftClick', 'space'],
+      ['button', 'leftClick', 'space'],
+      ['delay', 'leftClick', 'space'],
     ],
   ],
   [
@@ -85,7 +85,7 @@ const SECTIONS: readonly (readonly [
       ['menu', 'Esc'],
       ['save', 'Ctrl+S'],
       ['debug', '/'],
-      ['pause', 'space'],
+      ['pause', 'P'],
       ['step', '.'],
       ['undo', 'Z'],
       ['redo', 'Shift+Z'],

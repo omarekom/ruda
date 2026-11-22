@@ -18,9 +18,10 @@ World and camera
 Editing
 
 - Hotbar ("inventory") at the bottom, every block shown switched on (lever flipped, torch lit, button pressed, wire and delayer powered, lamp lit) so the red stands out; slots selected with number keys (1–9, and 0 for the tenth slot) or clicking. The order follows a circuit's signal: inputs, wiring, logic, outputs, then building: 1 lever, 2 button, 3 power block, 4 wire, 5 crossing, 6 torch, 7 delayer, 8 lamp, 9 piston, 0 stone.
-- Right mouse button places the selected block, left mouse button removes the block under the cursor (Minecraft-style). Blocks are placed only into empty cells; nothing is replaced.
-- `R` rotates the held block. Holding the right mouse button and dragging also rotates it toward the drag direction.
-- Right-clicking a lever toggles it (and presses a button or cycles a delayer's delay).
+- Left mouse button places the selected block, right mouse button breaks the block under the cursor. Blocks are placed only into empty cells; nothing is replaced.
+- `R` rotates the held block. Holding the left mouse button and dragging also rotates it toward the drag direction.
+- Left-clicking a lever toggles it (and presses a button or cycles a delayer's delay).
+- Keyboard aliases at the cursor: Space works like the left button (held and released, so dragging the mouse while holding it aims too), Delete like the right button.
 
 Blocks
 
@@ -57,8 +58,8 @@ Other
 
 ## Timing and inputs
 
-- Delayer – a pure delay line, rotatable. Its output equals its input from `delay` ticks earlier, so every pulse comes out unchanged, just later. Delay is 1–4 ticks (new delayers start at 1); right-clicking a placed delayer cycles 1 → 2 → 3 → 4 → 1, and the change keeps the current output. Like a torch, it reads only its back and powers only its front. It shows the signals travelling through it.
-- Button – momentary power source. Right-clicking powers its 4 neighbours for 10 ticks (1 s); presses while it is on are ignored.
+- Delayer – a pure delay line, rotatable. Its output equals its input from `delay` ticks earlier, so every pulse comes out unchanged, just later. Delay is 1–4 ticks (new delayers start at 1); left-clicking a placed delayer cycles 1 → 2 → 3 → 4 → 1, and the change keeps the current output. Like a torch, it reads only its back and powers only its front. It shows the signals travelling through it.
+- Button – momentary power source. Left-clicking powers its 4 neighbours for 10 ticks (1 s); presses while it is on are ignored.
 
 ## Pistons
 
@@ -120,7 +121,7 @@ Extra information and control over time, for understanding and testing circuits.
 - Turned on and off with `/` or from the menu; bottom right, an **Exit debug** button with its `/` key cap turns it off too. The game stays fully playable while it is on.
 - **Undo and redo** of the player's edits (placing, breaking, flipping levers, changing a delayer's delay; button presses are not undone): undo with Z or Ctrl+Z, redo with Shift+Z or Ctrl+Shift+Z. Each press briefly flashes a short message at the top of the screen, where "World saved" appears, so a key pressed by mistake does not go unnoticed: "Undo" or "Redo". When there is nothing left, an orange warning says so: "Nothing left to undo", "Nothing left to redo", or "Can't go further back: only 100 steps are kept" once older ones were dropped. The same message pressed again pops once more instead of just staying. Warnings (also a failed save) are orange, confirmations green. The keys work only in debug mode, but every edit since the world was opened is remembered, the last 100; saving keeps the history and leaving the world forgets it. Undo removes a placed block, puts a broken block back with its state (an extended piston comes back retracted), and flips a lever or a delayer back. The world keeps running meanwhile, so an edit that can no longer be reversed (its block was pushed away by a piston) is skipped and the one before it is undone instead.
 - Top left, a block of text like a game's debug screen, headed with the game version (e.g. "Ruda 1.0.2 debug"): tick, speed, measured ticks per second, the cell under the cursor (x, y) and the block there with its state (facing, on/off, lit, delay…; a crossing shows its horizontal and vertical channel separately, horizontal first, e.g. "on / off"; a delayer its delay and the signals travelling through it, output first, e.g. "4 ticks · 0110"), and the camera's position and zoom. The box keeps its width as the values change, so it does not jump.
-- At the top in the middle, time control as a row of pixel-icon buttons in the game's blocky style: **step** (one tick), **pause**, **normal speed** (10 ticks/s), **fast** (3×, 30 ticks/s) and **max** (as many ticks as the browser manages). The chosen one looks pressed in and lit. Step works only while paused; otherwise it is greyed out and its tooltip says it is available only while paused. Keys: Space pauses and resumes at the chosen speed, `.` steps one tick while paused (otherwise it does nothing); both are in the tooltips, Controls and the `?` overlay. Turning debug mode off returns to normal speed.
+- At the top in the middle, time control as a row of pixel-icon buttons in the game's blocky style: **step** (one tick), **pause**, **normal speed** (10 ticks/s), **fast** (3×, 30 ticks/s) and **max** (as many ticks as the browser manages). The chosen one looks pressed in and lit. Step works only while paused; otherwise it is greyed out and its tooltip says it is available only while paused. Keys: P pauses and resumes at the chosen speed, `.` steps one tick while paused (otherwise it does nothing); both are in the tooltips, Controls and the `?` overlay. Turning debug mode off returns to normal speed.
 - Bottom left, switches for panels that are hidden by default, each with its key: **I** the information text, **C** the world's contents (block counts per type), **M** a minimap (clicking it moves the view there). They work with the mouse as well.
 
 Still to decide: tuning debug mode and its map; overlays such as chunk borders and highlighted wire networks; better keys if the letters clash with the game later.
@@ -177,5 +178,4 @@ Ideas, not committed:
 - Cross-browser rendering checks: test the display in both Chrome and Firefox.
 - Advanced wire placement, e.g. laying parallel wires at once in debug mode?
 - 'holes'/portals in debug mode lets player connect a wire to the grid anywehre on the field, by specifying id [a-zA-Z0-9 and -_]
-- test inverting mouse button functinos
 - campaign mode; learning basics of CPU architecture

@@ -129,13 +129,11 @@ const blockText = computed(() => {
   return parts.join(' · ');
 });
 
-/** Space pauses and resumes at the chosen speed; `.` steps one tick, only while paused. */
+/** P pauses and resumes at the chosen speed; `.` steps one tick, only while paused. */
 function onKeyDown(event: KeyboardEvent): void {
   if (!props.active || event.ctrlKey || event.metaKey || event.altKey) return;
   if (event.target instanceof HTMLInputElement) return;
-  if (event.code === 'Space') {
-    // Also keeps Space from pressing a focused button, such as the last time button clicked.
-    event.preventDefault();
+  if (event.code === 'KeyP') {
     if (!event.repeat) emit('pause', !props.paused);
     return;
   }
@@ -145,13 +143,6 @@ function onKeyDown(event: KeyboardEvent): void {
   }
   const entry = PANELS.find(({ code }) => code === event.code);
   if (entry) toggle(entry.panel);
-}
-
-/** A focused button would be pressed by Space on its release. */
-function onKeyUp(event: KeyboardEvent): void {
-  if (props.active && event.code === 'Space' && !(event.target instanceof HTMLInputElement)) {
-    event.preventDefault();
-  }
 }
 
 onMounted(() => {
@@ -164,13 +155,11 @@ onMounted(() => {
     setInterval(refreshContents, CONTENTS_INTERVAL_MS),
   );
   window.addEventListener('keydown', onKeyDown);
-  window.addEventListener('keyup', onKeyUp);
 });
 
 onBeforeUnmount(() => {
   timers.forEach(clearInterval);
   window.removeEventListener('keydown', onKeyDown);
-  window.removeEventListener('keyup', onKeyUp);
 });
 </script>
 

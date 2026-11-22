@@ -107,9 +107,10 @@
         "wheel": "Mouse wheel",
         "rightClick": "Right click",
         "leftClick": "Left click",
-        "rightDrag": "Right drag",
+        "leftDrag": "Left drag",
         "arrows": "Arrows",
-        "space": "Space"
+        "space": "Space",
+        "delete": "Delete"
       }
     },
     "worlds": {
@@ -161,7 +162,7 @@
       "label": "Time",
       "step": "One tick [.]",
       "stepUnavailable": "Only while paused [.]",
-      "pause": "Pause [Space]",
+      "pause": "Pause [P]",
       "normal": "Normal speed ({ticks} ticks/s)",
       "fast": "Fast ({ticks} ticks/s)",
       "max": "As fast as the browser can"
@@ -309,6 +310,8 @@
       "search": "Search",
       "back": "Back",
       "move": "Move",
+      "use": "Place or use (like left click)",
+      "break": "Break (like right click)",
       "zoom": "Zoom",
       "turn": "Turn the held block",
       "slot": "Pick a hotbar slot",

@@ -52,7 +52,7 @@ export const chaser: Creation = {
   title: 'Light chaser',
   description:
     'Rings of delayers pass signals around in a loop, lighting one lamp after another. The left ' +
-    'ring carries one light, the right ring three. Right-click a delayer to change its delay ' +
+    'ring carries one light, the right ring three. Click a delayer to change its delay ' +
     'and the lights bunch up or spread out.',
   build() {
     const sketch = new Sketch();
