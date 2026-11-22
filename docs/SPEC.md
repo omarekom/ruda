@@ -62,7 +62,7 @@ Other
 - Explicit **Save** button (and Ctrl+S) with a saved / unsaved indicator.
 - "Unsaved changes" warning when closing the window; leaving a world with unsaved changes asks to save, discard or cancel.
 - Background autosave as a safety net: every 30 s and when the tab is hidden, unsaved changes go to a separate recovery copy, never to the world's real save. Opening a world whose recovery copy is newer than its save offers to restore it.
-- Export / import of `.ruda` files (minified JSON, world name included). An imported world is added to the list and marked there; it does not open by itself. A damaged file is repaired as far as possible (unreadable blocks and cells are left out) and a dialog says so, with the number of problems found. A file that cannot be imported (not a Ruda world, from a newer version) is explained in a dialog too.
+- Export / import of `.ruda` files (minified JSON, world name and creation time included). An imported world is added to the list and marked there; it does not open by itself. A damaged file is repaired as far as possible (unreadable blocks and cells are left out) and a dialog says so, with the number of problems found. A file that cannot be imported (not a Ruda world, from a newer version) is explained in a dialog too.
 - Worlds saved by an older version of Ruda carry an "Older version" tag on their card in Worlds (its tooltip says they open fine). Opening one asks first, gently: Ruda updates it to the current format, after which older versions can no longer open it; "Update and open" rewrites the stored world and opens it.
 - Versioned file format with migrations from older versions to newer ones; files from a newer version are rejected with a clear message.
 
@@ -91,7 +91,7 @@ Start screen
 - Shown on every visit. The whole screen is a live preview of the game: a slow ring of delayers runs at reduced speed behind it, so one lamp at a time lights up and hands over to the next.
 - In the middle the blocky **RUDA** logo and three buttons: **Play** (continues the last world, or creates a new one if there is none), **Worlds…** and **Controls…**. Nothing is focused when the screen opens; Tab (or an arrow) focuses Play first, then Tab goes on through Worlds… and Controls… to the light/dark switch, and the arrows reach the switch too.
 - Bottom left, a faint **About** button opens a dialog: what Ruda is (a 2D simulator inspired by Minecraft's redstone, not a copy), that it is independent of Mojang and Microsoft, the contact e-mail, the GitHub repository and a download of this version's source as a `.zip`, laid out in a small table, and a note that the game was programmed with the help of Claude (`ruda_vN.N.zip`, made from the last commit by `pnpm build`).
-- Next to the About button a faint version label (e.g. `1.0`) opens a changelog dialog: a short list of changes for every minor version, newest first, each headed by an icon for its main feature and its number with its informal name (`1.1 – Text update`; 1.0 shows the power block and just its number). Patch releases are listed only in `CHANGELOG.md`. Versioning and the release checklist are in [UPDATE_GUIDE.md](UPDATE_GUIDE.md).
+- Next to the About button a faint version label (e.g. `1.0`) opens a changelog dialog: a short list of changes for every minor version, newest first, each headed by its number and informal name (`1.1 – Text update`; 1.0 has just its number), with a large icon for its main feature on the right that the text flows around (1.0 the power block, 1.1 a speech bubble). Patch releases are listed only in `CHANGELOG.md`. Versioning and the release checklist are in [UPDATE_GUIDE.md](UPDATE_GUIDE.md).
 - A link to the library (`#library`, `#admin`) opens it instead; nothing in the game links there for now.
 
 The game
@@ -106,7 +106,7 @@ The game
 - **Light and dark**: in light, a bright, warm floor of smooth stone slabs; in dark, the same slabs at night, where the light pools stand out. One button shows the other variant and switches to it; the world fades smoothly from one to the other. The variant follows the system; a choice that differs from the system is remembered, and choosing the system's variant again forgets it. Menus, dialogs and the loading screen are dark in both.
 - On touch-only devices (phones, most tablets) the game shows a notice instead: it needs a mouse and a keyboard, and touch support comes later. A small "Continue anyway" dismisses it until the page is reloaded. The library opens on any device.
 - When the browser asks for reduced motion (`prefers-reduced-motion`), a notice warns up front that Ruda contains flashing; "I understand" dismisses it until the page is reloaded.
-- Dialogs (unsaved changes, delete) use the blocky look. Text in menus is large, for easy reading.
+- Dialogs (unsaved changes, delete) use the blocky look. A dialog about a file or world names it in quotes above its message, so it is clear what it is about. Text fields being typed in (world names, labels, search) are framed in the buttons' blue, with a matching text selection. Text in menus is large, for easy reading.
 
 Worlds
 

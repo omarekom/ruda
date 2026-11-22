@@ -24,6 +24,22 @@
   outline: none;
 }
 
+/* A text field being typed in: the buttons' blue instead of the browser's focus ring. */
+.blocky-field {
+  color: #fff;
+  caret-color: #ffe14d;
+}
+
+.blocky-field:focus {
+  outline: 2px solid #7b85c6;
+  outline-offset: 0;
+}
+
+.blocky-field::selection {
+  background: #7b85c6;
+  color: #fff;
+}
+
 .blocky-panel {
   border: 3px solid #000;
   background: rgba(20, 20, 24, 0.85);

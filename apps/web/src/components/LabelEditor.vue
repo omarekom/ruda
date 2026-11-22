@@ -67,7 +67,7 @@ onMounted(() => {
   <input
     ref="input"
     v-model="draft"
-    class="label-editor"
+    class="label-editor blocky-field"
     :style="style"
     :maxlength="MAX_LABEL_LENGTH"
     :aria-label="t('game.label.field')"
@@ -86,9 +86,7 @@ onMounted(() => {
   max-width: 80vw;
   margin: 0;
   border: none;
-  outline: 2px solid #fff;
   background: rgba(0, 0, 0, 0.75);
-  color: #fff;
 }
 
 .label-editor::placeholder {

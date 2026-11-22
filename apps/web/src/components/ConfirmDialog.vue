@@ -16,6 +16,8 @@ const props = defineProps<{
   cancel: T;
   /** Game mode's blocky look instead of the plain one. */
   blocky?: boolean;
+  /** What the dialog is about, such as a file's name, shown in quotes above the message. */
+  subject?: string;
 }>();
 const emit = defineEmits<{ choose: [value: T] }>();
 const dialog = useTemplateRef<HTMLDialogElement>('dialog');
@@ -59,6 +61,7 @@ function onCancel(event: Event): void {
     @keydown="onKeyDown"
     @pointerover="focusHoveredButton"
   >
+    <p v-if="subject" class="subject">“{{ subject }}”</p>
     <p>{{ message }}</p>
     <div class="actions">
       <button
@@ -110,6 +113,15 @@ function onCancel(event: Event): void {
 
 .dialog.blocky {
   max-width: 520px;
+}
+
+.dialog p.subject {
+  margin-bottom: 8px;
+  overflow-wrap: anywhere;
+}
+
+.dialog.blocky p.subject {
+  color: #ffe14d;
 }
 
 .dialog.blocky .actions {

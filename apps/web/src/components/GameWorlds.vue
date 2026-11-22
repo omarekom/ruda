@@ -46,10 +46,10 @@ const worlds = shallowRef<StoredWorld[]>([]);
 const search = ref('');
 const renaming = ref<{ id: string; name: string }>();
 const deleting = shallowRef<StoredWorld>();
-/** How many problems an imported world had, while the player is told it was repaired. */
-const repaired = ref<number>();
-/** Why an import or rename failed, as an i18n key, while the player is told. */
-const error = ref<string>();
+/** An imported world that had to be repaired, while the player is told; it is marked after. */
+const repaired = ref<{ readonly id: string; readonly file: string; readonly problems: number }>();
+/** Why an import or rename failed (an i18n key) and of which file or world, while the player is told. */
+const error = ref<{ readonly key: string; readonly subject: string }>();
 const grid = useTemplateRef<HTMLElement>('grid');
 const searchInput = useTemplateRef<HTMLInputElement>('searchInput');
 const fileInput = useTemplateRef<HTMLInputElement>('fileInput');
@@ -91,14 +91,17 @@ async function importFile(): Promise<void> {
   try {
     const loaded = repairWorld(await file.text());
     const name = loaded.name.trim() || t('worlds.defaultName');
-    const created = await createWorld(props.store, name, loaded.world);
+    const created = await createWorld(props.store, name, loaded.world, loaded.created);
     // The new world shows up in the list, marked, instead of opening right away.
     search.value = '';
     await refresh();
-    await focusCard(created.id);
-    if (loaded.problems.length > 0) repaired.value = loaded.problems.length;
+    if (loaded.problems.length > 0) {
+      repaired.value = { id: created.id, file: file.name, problems: loaded.problems.length };
+    } else {
+      await focusCard(created.id);
+    }
   } catch (failure) {
-    error.value = fileErrorKey(failure);
+    error.value = { key: fileErrorKey(failure), subject: file.name };
   }
 }
 
@@ -123,7 +126,8 @@ async function commitRename(): Promise<void> {
     try {
       await renameWorld(props.store, target.id, name);
     } catch (failure) {
-      error.value = fileErrorKey(failure);
+      const world = worlds.value.find((candidate) => candidate.id === target.id);
+      error.value = { key: fileErrorKey(failure), subject: world?.name ?? name };
     }
     await refresh();
   }
@@ -136,6 +140,13 @@ async function focusCard(id: string): Promise<void> {
   grid.value
     ?.querySelector<HTMLElement>(`.card[data-id="${CSS.escape(id)}"]`)
     ?.focus({ focusVisible: true });
+}
+
+/** The repaired world is marked in the list once the player has read about it. */
+function onRepairedClosed(): void {
+  const target = repaired.value;
+  repaired.value = undefined;
+  if (target) void focusCard(target.id);
 }
 
 function cancelRename(): void {
@@ -176,7 +187,7 @@ function onCardKey(event: KeyboardEvent, world: StoredWorld | undefined): void {
 }
 
 function onKeyDown(event: KeyboardEvent): void {
-  if (renaming.value || deleting.value || repaired.value !== undefined || error.value) return;
+  if (renaming.value || deleting.value || repaired.value || error.value) return;
   const typing = event.target instanceof HTMLInputElement;
   if (event.key === 'Escape') {
     if (typing) {
@@ -238,7 +249,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
       <input
         ref="searchInput"
         v-model="search"
-        class="search"
+        class="search blocky-field"
         type="search"
         :placeholder="t('game.worlds.search')"
         :aria-label="t('game.worlds.search')"
@@ -283,6 +294,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
         >
           <input
             ref="nameInput"
+            class="blocky-field"
             v-model="renaming.name"
             :aria-label="t('game.worlds.nameLabel')"
             maxlength="100"
@@ -341,17 +353,19 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
       @choose="onDeleteChoice"
     />
     <ConfirmDialog
-      v-if="repaired !== undefined"
+      v-if="repaired"
       blocky
-      :message="t('game.worlds.repaired', repaired)"
+      :subject="repaired.file"
+      :message="t('game.worlds.repaired', repaired.problems)"
       :actions="[{ value: 'ok', label: t('dialog.ok'), primary: true }]"
       cancel="ok"
-      @choose="repaired = undefined"
+      @choose="onRepairedClosed"
     />
     <ConfirmDialog
       v-if="error"
       blocky
-      :message="t(error)"
+      :subject="error.subject"
+      :message="t(error.key)"
       :actions="[{ value: 'ok', label: t('dialog.ok'), primary: true }]"
       cancel="ok"
       @choose="error = undefined"
@@ -470,7 +484,7 @@ h1 {
   width: 100%;
   margin-top: 6px;
   padding: 0 6px;
-  border: 2px solid #a0a0a0;
+  border: 2px solid #000;
   border-radius: 0;
   background: #000;
   font: 28px var(--font-retro);
