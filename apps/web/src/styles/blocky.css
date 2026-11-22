@@ -115,8 +115,12 @@
     inset 3px 3px 0 #a9b1ee;
 }
 
-/* Browsers without ::-webkit-scrollbar (Firefox) can only be recoloured. */
-@supports not selector(::-webkit-scrollbar) {
+/*
+ * Firefox has no ::-webkit-scrollbar and can only recolour its own. It cannot be detected with
+ * `selector(::-webkit-scrollbar)`, because Firefox accepts -webkit- pseudo-elements as valid
+ * (they just never match), so it is recognised by a property only it has.
+ */
+@supports (-moz-appearance: none) {
   .blocky-scroll {
     scrollbar-color: #6f6f6f #1c1c1c;
     scrollbar-width: auto;
