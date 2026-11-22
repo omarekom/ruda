@@ -19,10 +19,12 @@ export class TestServer {
   static async start(): Promise<TestServer> {
     const dir = mkdtempSync(join(tmpdir(), 'ruda-library-'));
     const configPath = join(dir, 'config.php');
+    // Hashed once here: hashing inside the config would cost every request a full password
+    // hash, slow enough that a busy machine pushed tests past their timeout.
     writeFileSync(
       configPath,
       `<?php return ['database_path' => ${JSON.stringify(join(dir, 'library.sqlite'))}, ` +
-        `'admin_password_hash' => password_hash(${JSON.stringify(ADMIN_PASSWORD)}, PASSWORD_DEFAULT), ` +
+        `'admin_password_hash' => ${JSON.stringify(hashPassword(ADMIN_PASSWORD))}, ` +
         `'secret' => 'test-secret'];`,
     );
     const env = { ...process.env, RUDA_LIBRARY_CONFIG: configPath };
@@ -59,6 +61,16 @@ export class TestServer {
     }
     throw new Error('PHP server did not start');
   }
+}
+
+function hashPassword(password: string): string {
+  const result = spawnSync(
+    'php',
+    ['-r', 'echo password_hash($argv[1], PASSWORD_DEFAULT);', '--', password],
+    { encoding: 'utf8' },
+  );
+  if (result.status !== 0) throw new Error(result.stderr);
+  return result.stdout;
 }
 
 function freePort(): Promise<number> {
