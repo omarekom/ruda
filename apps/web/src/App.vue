@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {
   CURRENT_VERSION,
-  fileVersion,
+  fileHeader,
   parseWorld,
   serializeWorld,
   type LoadedWorld,
@@ -158,7 +158,7 @@ async function start(stored: StoredWorld, data: string, restored: boolean): Prom
     openError.value = { key: fileErrorKey(error), world: stored.name };
     return;
   }
-  const version = fileVersion(data);
+  const { version } = fileHeader(data);
   if (!restored && version !== undefined && version < CURRENT_VERSION) {
     upgrading.value = { stored, loaded };
     return;

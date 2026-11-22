@@ -135,6 +135,7 @@
       "title": "Worlds",
       "empty": "No worlds yet. Create one to start building!",
       "lastPlayed": "Last played {when}",
+      "created": "Created",
       "justNow": "just now",
       "create": "New world",
       "search": "Search worlds…  [/]",

@@ -84,18 +84,31 @@ export function repairWorld(text: string): RepairedWorld {
   return { ...loaded, problems };
 }
 
+/** What a `.ruda` text says about itself, read without loading the world. */
+export interface FileHeader {
+  /** The format version it was written in. */
+  readonly version: number | undefined;
+  /** When the world was created (ISO 8601). */
+  readonly created: string | undefined;
+}
+
 /**
- * The format version a `.ruda` text was written in, without loading it; undefined if the text
- * does not say. Lets the app tell worlds from older versions of Ruda apart cheaply.
+ * The version and creation time of a `.ruda` text, without loading it; each undefined if the
+ * text does not say. Lets the app list worlds and tell older ones apart cheaply.
  */
-export function fileVersion(text: string): number | undefined {
+export function fileHeader(text: string): FileHeader {
+  let json: unknown;
   try {
-    const json: unknown = JSON.parse(text);
-    const version = isObject(json) ? json['rudaversion'] : undefined;
-    return typeof version === 'number' && Number.isInteger(version) ? version : undefined;
+    json = JSON.parse(text);
   } catch {
-    return undefined;
+    return { version: undefined, created: undefined };
   }
+  const version = isObject(json) ? json['rudaversion'] : undefined;
+  const created = isObject(json) ? json['created'] : undefined;
+  return {
+    version: typeof version === 'number' && Number.isInteger(version) ? version : undefined,
+    created: isTime(created) ? created : undefined,
+  };
 }
 
 function parseJson(text: string): unknown {

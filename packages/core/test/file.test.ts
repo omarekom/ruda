@@ -3,7 +3,7 @@ import {
   Axis,
   CURRENT_VERSION,
   Direction,
-  fileVersion,
+  fileHeader,
   parseWorld,
   repairWorld,
   RudaFileError,
@@ -135,11 +135,18 @@ describe('.ruda files', () => {
     });
   });
 
-  it('tells the version a file was written in without loading it', () => {
-    expect(fileVersion(serializeWorld(new World(), 'x'))).toBe(CURRENT_VERSION);
-    expect(fileVersion('{"rudaversion":1,"name":"x","blocks":{"dirt":[0,0]}}')).toBe(1);
-    expect(fileVersion('{"name":"x"}')).toBeUndefined();
-    expect(fileVersion('not json')).toBeUndefined();
+  it('tells the version and creation time of a file without loading it', () => {
+    const created = '2026-11-22T17:03:00.000Z';
+    expect(fileHeader(serializeWorld(new World(), 'x', created))).toEqual({
+      version: CURRENT_VERSION,
+      created,
+    });
+    expect(fileHeader('{"rudaversion":1,"name":"x","blocks":{"dirt":[0,0]}}')).toEqual({
+      version: 1,
+      created: undefined,
+    });
+    expect(fileHeader('{"rudaversion":2,"created":"someday"}').created).toBeUndefined();
+    expect(fileHeader('not json')).toEqual({ version: undefined, created: undefined });
   });
 
   it('keeps the time the world was created', () => {

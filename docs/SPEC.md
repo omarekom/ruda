@@ -111,6 +111,7 @@ The game
 Worlds
 
 - **Worlds…** (from the start screen or the menu) shows the worlds as a grid of cards on a calm dark backdrop: a thumbnail, the name and when it was last played, said the friendly way ("just now", "yesterday", "last week"). The most recently played come first.
+- Resting the cursor on a card (or focusing it) for a moment slides a caption over the bottom of its thumbnail: when the world was created ("Created Nov 22, 2026"). Worlds from before creation times were kept have none.
 - Clicking a card plays the world. Clicking the name renames it in place (Enter keeps, Esc cancels). A small delete button on the card asks before deleting. Each card can also export its world as a `.ruda` file.
 - The first card creates a new world; **Import** next to the search field adds a `.ruda` file as a new world to the list. A search field filters the worlds by name.
 - No two worlds share a name: a world created, imported or renamed to a name already in use is numbered like in Minecraft, `New world (1)`, `New world (2)`; a name that is already numbered gets a fresh number (`Showcase (1)` → `Showcase (2)`), not a second one.

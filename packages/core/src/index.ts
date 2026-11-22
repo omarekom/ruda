@@ -40,7 +40,8 @@ export {
 export { RudaFileError, type RudaFileErrorCode } from './file/errors';
 export { CURRENT_VERSION } from './file/migrations';
 export {
-  fileVersion,
+  fileHeader,
+  type FileHeader,
   parseWorld,
   repairWorld,
   serializeWorld,

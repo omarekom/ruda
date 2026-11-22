@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CURRENT_VERSION, fileVersion, repairWorld } from '@ruda/core';
+import { CURRENT_VERSION, fileHeader, repairWorld, type FileHeader } from '@ruda/core';
 import {
   computed,
   nextTick,
@@ -26,7 +26,7 @@ import WorldThumbnail from './WorldThumbnail.vue';
 /** The worlds as a grid of cards: click to play, click the name to rename. */
 const props = defineProps<{ store: WorldStore }>();
 const emit = defineEmits<{ open: [id: string]; back: [] }>();
-const { t, locale } = useI18n();
+const { t, d, locale } = useI18n();
 
 const KEYS: readonly KeyRow[] = [
   ['cards', 'arrows', 'Tab'],
@@ -43,6 +43,8 @@ const KEYS: readonly KeyRow[] = [
 useKeyHelp(() => KEYS);
 
 const worlds = shallowRef<StoredWorld[]>([]);
+/** What each world's file says about itself, read once per refresh rather than on every render. */
+const headers = shallowRef(new Map<string, FileHeader>());
 const search = ref('');
 const renaming = ref<{ id: string; name: string }>();
 const deleting = shallowRef<StoredWorld>();
@@ -77,6 +79,7 @@ async function refresh(): Promise<void> {
   const summaries = await props.store.list();
   const loaded = await Promise.all(summaries.map((summary) => props.store.load(summary.id)));
   worlds.value = loaded.filter((world): world is StoredWorld => world !== undefined);
+  headers.value = new Map(worlds.value.map((world) => [world.id, fileHeader(world.data)]));
 }
 
 async function create(): Promise<void> {
@@ -107,8 +110,14 @@ async function importFile(): Promise<void> {
 
 /** Saved by an older version of Ruda, so opening it will update it. */
 function isOlder(world: StoredWorld): boolean {
-  const version = fileVersion(world.data);
+  const version = headers.value.get(world.id)?.version;
   return version !== undefined && version < CURRENT_VERSION;
+}
+
+/** When the world was created, for the caption that slides over its thumbnail on hover. */
+function createdText(world: StoredWorld): string | undefined {
+  const created = headers.value.get(world.id)?.created;
+  return created && d(created, 'date');
 }
 
 async function startRename(world: StoredWorld): Promise<void> {
@@ -282,7 +291,13 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
         @click="emit('open', world.id)"
         @keydown.self="onCardKey($event, world)"
       >
-        <WorldThumbnail class="thumbnail" :data="world.data" :skin="worldSkin" />
+        <div class="preview">
+          <WorldThumbnail class="thumbnail" :data="world.data" :skin="worldSkin" />
+          <span v-if="createdText(world)" class="created" role="tooltip">
+            <span class="created-label">{{ t('game.worlds.created') }}</span>
+            {{ createdText(world) }}
+          </span>
+        </div>
         <span v-if="isOlder(world)" class="older" :data-tip="t('worlds.olderVersionHint')">
           {{ t('worlds.olderVersion') }}
         </span>
@@ -535,6 +550,55 @@ h1 {
   color: #9aa;
   font-size: 22px;
   text-align: center;
+}
+
+/*
+ * When the world was created: a caption that slides up over the bottom of the thumbnail once
+ * the card has been hovered (or focused) for a while, so passing over the cards stays calm.
+ * Inside the card, so the scrolling grid never cuts it off.
+ */
+.preview {
+  position: relative;
+  overflow: hidden;
+}
+
+.created {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  left: 3px;
+  padding: 2px 10px;
+  border-top: 3px solid #000;
+  background: rgba(20, 20, 24, 0.92);
+  box-shadow: inset 0 2px 0 #555;
+  color: #fff;
+  font-size: 22px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.15s,
+    transform 0.15s;
+  pointer-events: none;
+}
+
+.created-label {
+  color: #ffe14d;
+}
+
+.card:hover .created,
+.card:focus-visible .created {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0.8s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .created {
+    transform: none;
+  }
 }
 
 /* Over the thumbnail's corner; its tooltip opens to the right, inside the card. */
