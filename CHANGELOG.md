@@ -4,7 +4,7 @@ Every release of Ruda, patch releases included. The changelog inside the game (o
 
 ## 1.1 – Text update (unreleased)
 
-- Labels: `T` writes a one-line note in the cell under the cursor, or edits the label there. Labels scale with the zoom, hide when zoomed out below 50 %, are saved with the world and can be undone.
+- Labels: `T` writes a one-line note in the cell under the cursor, or edits the label there. Holding the left mouse button still for 1.5 s does the same without the keyboard. Labels scale with the zoom, hide when zoomed out below 50 %, are saved with the world and can be undone.
 - Mouse buttons swapped: the left button places and uses blocks, the right button breaks them. Space and Delete click like them at the cursor.
 - Debug mode pauses with `P` instead of Space.
 - File format version 2 (adds labels). Version 1 files still open; Ruda 1.0 rejects version 2 files as too new.

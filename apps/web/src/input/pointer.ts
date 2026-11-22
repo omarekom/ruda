@@ -10,6 +10,12 @@ const EDGE_MARGIN_PX = 16;
 const WHEEL_ZOOM_SPEED = 0.0015;
 /** How far (in cells) the pointer must leave the cell centre before a drag sets the facing. */
 const ROTATE_DRAG_CELLS = 0.5;
+/** Holding the left button still this long writes a label instead of placing the block. */
+export const LABEL_HOLD_MS = 1500;
+/** The hold indicator appears only after this, so an ordinary click never flashes it. */
+const HOLD_SHOWN_AFTER_MS = 300;
+/** Moving the cursor further than this (CSS px) while holding makes it a drag, not a hold. */
+const HOLD_SLOP_PX = 6;
 
 /** What the primary and secondary actions do to the world. */
 export interface PointerActions {
@@ -18,17 +24,29 @@ export interface PointerActions {
   readonly isInteractiveAt: (x: number, y: number) => boolean;
   /** Breaks whatever is under the screen point (CSS px on the canvas). */
   readonly destroyAt: (sx: number, sy: number) => void;
+  /** Writes or edits the label at the screen point. */
+  readonly editLabelAt: (sx: number, sy: number) => void;
+}
+
+/** A left button held down without moving, which becomes a label once it lasts long enough. */
+interface Hold {
+  readonly sx: number;
+  readonly sy: number;
+  readonly since: number;
+  readonly timer: ReturnType<typeof setTimeout>;
 }
 
 /**
  * Mouse controls on the world canvas: the left button places (dragging sets the facing) or
  * interacts with a block (lever, button, delayer), the right button breaks, the middle button
- * pans, the wheel zooms. The keyboard aliases (Space, Delete) click at the cursor.
+ * pans, the wheel zooms. Holding the left button still writes a label; dragging is left free
+ * for other gestures. The keyboard aliases (Space, Delete) click at the cursor.
  */
 export class PointerInput {
   private cursor: [number, number] | undefined;
   private placing: { readonly x: number; readonly y: number } | undefined;
   private panning = false;
+  private hold: Hold | undefined;
   /** Detached, e.g. while a menu is open, the view must not scroll from the edges. */
   private attached = false;
   /**
@@ -67,6 +85,7 @@ export class PointerInput {
     canvas.removeEventListener('auxclick', preventDefault);
     // The cursor is kept, so its keys work again at once, but a press in progress is dropped.
     this.placing = undefined;
+    this.cancelHold();
     this.panning = false;
     this.attached = false;
   }
@@ -78,7 +97,36 @@ export class PointerInput {
 
   overlay(): Overlay {
     const ghost = this.placing && { ...this.placing, block: heldBlock(this.hotbar) };
-    return { hover: this.cursor && this.camera.cellAt(...this.cursor), ghost };
+    return {
+      hover: this.cursor && this.camera.cellAt(...this.cursor),
+      ghost,
+      hold: this.holdShown(),
+    };
+  }
+
+  /** How far the hold has come (0–1) and where, once it has lasted long enough to show. */
+  private holdShown(): Overlay['hold'] {
+    if (!this.hold) return undefined;
+    const elapsed = performance.now() - this.hold.since - HOLD_SHOWN_AFTER_MS;
+    if (elapsed < 0) return undefined;
+    const progress = Math.min(1, elapsed / (LABEL_HOLD_MS - HOLD_SHOWN_AFTER_MS));
+    return { sx: this.hold.sx, sy: this.hold.sy, progress };
+  }
+
+  private startHold(sx: number, sy: number): void {
+    this.cancelHold();
+    const timer = setTimeout(() => {
+      this.hold = undefined;
+      // The press became a label, so the block is not placed when the button comes up.
+      this.placing = undefined;
+      this.actions.editLabelAt(sx, sy);
+    }, LABEL_HOLD_MS);
+    this.hold = { sx, sy, since: performance.now(), timer };
+  }
+
+  private cancelHold(): void {
+    if (this.hold) clearTimeout(this.hold.timer);
+    this.hold = undefined;
   }
 
   /**
@@ -126,6 +174,7 @@ export class PointerInput {
     this.cursor = [event.offsetX, event.offsetY];
     if (event.button === LEFT) {
       this.beginPrimary();
+      if (this.placing) this.startHold(event.offsetX, event.offsetY);
     } else if (event.button === RIGHT) {
       this.secondary();
     } else if (event.button === MIDDLE) {
@@ -143,11 +192,16 @@ export class PointerInput {
     if (this.panning && previous) {
       this.camera.panBy(previous[0] - event.offsetX, previous[1] - event.offsetY);
     }
+    if (this.hold) {
+      const moved = Math.hypot(event.offsetX - this.hold.sx, event.offsetY - this.hold.sy);
+      if (moved > HOLD_SLOP_PX) this.cancelHold();
+    }
     if (this.placing) this.rotateTowardCursor(this.placing.x, this.placing.y);
   };
 
   private readonly onPointerUp = (event: PointerEvent): void => {
     if (event.button === LEFT) {
+      this.cancelHold();
       this.endPrimary();
     } else if (event.button === MIDDLE) {
       this.panning = false;

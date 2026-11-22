@@ -125,6 +125,7 @@
         "rightClick": "Right click",
         "leftClick": "Left click",
         "leftDrag": "Left drag",
+        "leftHold": "Hold left",
         "arrows": "Arrows",
         "space": "Space",
         "delete": "Delete"

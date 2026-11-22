@@ -33,6 +33,8 @@ const MIN_GRID_CELL_SIZE = 12;
 /** Screen pixels (CSS) per pixel of the light buffer. */
 const LIGHT_BUFFER_PX = 4;
 const GHOST_ALPHA = 0.5;
+const HOLD_RING_RADIUS = 14;
+const HOLD_RING_WIDTH = 4;
 
 interface ShownBlock {
   readonly x: number;
@@ -45,6 +47,9 @@ interface ShownBlock {
 export interface Overlay {
   readonly hover: readonly [number, number] | undefined;
   readonly ghost: { readonly x: number; readonly y: number; readonly block: Block } | undefined;
+  /** A left button held still at a screen point, filling up (0–1) until it writes a label. */
+  readonly hold?:
+    { readonly sx: number; readonly sy: number; readonly progress: number } | undefined;
   /** The cell of the label being edited, which the editor shows instead. */
   readonly editingLabel?: readonly [number, number] | undefined;
 }
@@ -114,7 +119,10 @@ export class Renderer {
       ? `${overlay.ghost.x},${overlay.ghost.y},${JSON.stringify(overlay.ghost.block)}`
       : '';
     const editing = overlay.editingLabel?.join(',') ?? '';
-    return `${cx},${cy},${camera.cellSize},${width},${height}|${simulation.tickCount}|${progress}|${hover}|${ghost}|${editing}`;
+    const hold = overlay.hold
+      ? `${overlay.hold.sx},${overlay.hold.sy},${overlay.hold.progress}`
+      : '';
+    return `${cx},${cy},${camera.cellSize},${width},${height}|${simulation.tickCount}|${progress}|${hover}|${ghost}|${editing}|${hold}`;
   }
 
   /** Matches the backing store to the element size and device pixel ratio. */
@@ -170,6 +178,7 @@ export class Renderer {
     );
     drawLabels(g, this.labelSprites, this.labelBoxes, camera.cellSize);
     if (overlay.hover) this.drawHover(...overlay.hover);
+    if (overlay.hold) this.drawHold(overlay.hold.sx, overlay.hold.sy, overlay.hold.progress);
   }
 
   /** The cell of the label shown at a screen point (CSS px), if any. */
@@ -335,6 +344,22 @@ export class Renderer {
       g.moveTo(0, Math.round(sy) + 0.5);
       g.lineTo(this.canvas.clientWidth, Math.round(sy) + 0.5);
     }
+    g.stroke();
+  }
+
+  /** A ring around the cursor that fills up while the button is held for a label. */
+  private drawHold(sx: number, sy: number, progress: number): void {
+    const { g } = this;
+    const start = -Math.PI / 2;
+    g.lineWidth = HOLD_RING_WIDTH + 2;
+    g.strokeStyle = 'rgba(0, 0, 0, 0.6)';
+    g.beginPath();
+    g.arc(sx, sy, HOLD_RING_RADIUS, 0, 2 * Math.PI);
+    g.stroke();
+    g.lineWidth = HOLD_RING_WIDTH;
+    g.strokeStyle = '#fff';
+    g.beginPath();
+    g.arc(sx, sy, HOLD_RING_RADIUS, start, start + progress * 2 * Math.PI);
     g.stroke();
   }
 

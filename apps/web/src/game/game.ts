@@ -64,6 +64,7 @@ export class Game {
         return block !== undefined && isInteractive(block);
       },
       destroyAt: (sx, sy) => this.destroyAt(sx, sy),
+      editLabelAt: (sx, sy) => this.requestLabelEdit(sx, sy),
     });
     this.keyboard = new KeyboardInput(hotbar, {
       zoomBy: (factor) => {
@@ -72,7 +73,10 @@ export class Game {
       },
       primary: () => this.pointer.primaryClick(),
       secondary: () => this.pointer.secondary(),
-      editLabel: () => this.requestLabelEdit(),
+      editLabel: () => {
+        const cursor = this.pointer.cursorPosition;
+        if (cursor) this.requestLabelEdit(...cursor);
+      },
     });
     this.loop = new TickLoop(
       () => this.simulation.step(),
@@ -205,11 +209,9 @@ export class Game {
     if (label) this.setLabel(...label, '');
   }
 
-  /** Edits the label under the cursor, or else starts a new one in the cell there. */
-  private requestLabelEdit(): void {
-    const cursor = this.pointer.cursorPosition;
-    if (!cursor) return;
-    const [x, y] = this.renderer.labelAt(...cursor) ?? this.camera.cellAt(...cursor);
+  /** Edits the label at a screen point, or else starts a new one in the cell there. */
+  private requestLabelEdit(sx: number, sy: number): void {
+    const [x, y] = this.renderer.labelAt(sx, sy) ?? this.camera.cellAt(sx, sy);
     this.events.editLabel(x, y, this.simulation.blocks.label(x, y) ?? '');
   }
 

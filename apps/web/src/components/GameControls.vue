@@ -54,7 +54,7 @@ const SECTIONS: readonly (readonly [
       ['break', 'rightClick', 'delete'],
       ['turn', 'R'],
       ['aim', 'leftDrag'],
-      ['label', 'T'],
+      ['label', 'T', 'leftHold'],
     ],
   ],
   [

@@ -106,7 +106,7 @@ pnpm workspaces, TypeScript 6 (strict), Vite, Vue 3, vue-i18n, idb, Fontsource (
 
 ## Mouse placement
 
-One click places one block (no painting). Pressing the left button shows a ghost block, dragging sets its rotation, releasing places it. The right button breaks. `PointerInput` owns these primary and secondary actions; the keyboard aliases (Space, Delete) run them at the cursor as single clicks, so they never hold the mouse.
+One click places one block (no painting). Pressing the left button shows a ghost block, dragging sets its rotation, releasing places it. The right button breaks. `PointerInput` owns these primary and secondary actions; the keyboard aliases (Space, Delete) run them at the cursor as single clicks, so they never hold the mouse. Holding the left button still for `LABEL_HOLD_MS` writes a label instead (a timer started on press, cancelled by release or by moving a few pixels); the renderer draws the filling ring from the overlay.
 
 ## Library
 
