@@ -294,8 +294,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
         >
           <input
             ref="nameInput"
-            class="blocky-field"
             v-model="renaming.name"
+            class="blocky-field"
             :aria-label="t('game.worlds.nameLabel')"
             maxlength="100"
             @keydown.esc.stop="cancelRename"
