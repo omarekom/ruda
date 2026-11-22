@@ -21,7 +21,7 @@ Editing
 - Left mouse button places the selected block, right mouse button breaks the block under the cursor. Blocks are placed only into empty cells; nothing is replaced.
 - `R` rotates the held block. Holding the left mouse button and dragging also rotates it toward the drag direction.
 - Left-clicking a lever toggles it (and presses a button or cycles a delayer's delay).
-- Keyboard aliases at the cursor: Space works like the left button (held and released, so dragging the mouse while holding it aims too), Delete like the right button.
+- Keyboard aliases at the cursor: Space clicks like the left button, Delete like the right one. Each press is one click, the moment the key goes down; holding the key does nothing more, so the mouse stays free to move and click.
 
 Labels
 

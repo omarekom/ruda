@@ -25,10 +25,9 @@ function zoomDirection(event: KeyboardEvent): number {
 /** What the game does for keys that stand in for the mouse or act on the view. */
 export interface KeyboardActions {
   readonly zoomBy: (factor: number) => void;
-  /** Space, like the left mouse button: pressed, then released. */
-  readonly beginPrimary: () => void;
-  readonly endPrimary: () => void;
-  /** Delete, like the right mouse button. */
+  /** Space, like a click of the left mouse button. */
+  readonly primary: () => void;
+  /** Delete, like a click of the right mouse button. */
   readonly secondary: () => void;
   /** T: writes or edits the label at the cursor. */
   readonly editLabel: () => void;
@@ -76,7 +75,7 @@ export class KeyboardInput {
     if (event.code === 'Space') {
       // Also keeps Space from pressing a focused button, such as the last hotbar slot clicked.
       event.preventDefault();
-      if (!event.repeat) this.actions.beginPrimary();
+      if (!event.repeat) this.actions.primary();
       return;
     }
     if (event.code === 'Delete') {
@@ -110,7 +109,6 @@ export class KeyboardInput {
     if (event.code === 'Space') {
       // A focused button would be pressed by Space on its release.
       event.preventDefault();
-      this.actions.endPrimary();
     }
   };
 

@@ -70,8 +70,7 @@ export class Game {
         const [width, height] = this.camera.viewSize;
         this.camera.zoomAt(width / 2, height / 2, factor);
       },
-      beginPrimary: () => this.pointer.beginPrimary(),
-      endPrimary: () => this.pointer.endPrimary(),
+      primary: () => this.pointer.primaryClick(),
       secondary: () => this.pointer.secondary(),
       editLabel: () => this.requestLabelEdit(),
     });

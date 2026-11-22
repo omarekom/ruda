@@ -23,8 +23,7 @@ export interface PointerActions {
 /**
  * Mouse controls on the world canvas: the left button places (dragging sets the facing) or
  * interacts with a block (lever, button, delayer), the right button breaks, the middle button
- * pans, the wheel zooms. The keyboard aliases (Space, Delete) drive the same primary and
- * secondary actions at the cursor.
+ * pans, the wheel zooms. The keyboard aliases (Space, Delete) click at the cursor.
  */
 export class PointerInput {
   private cursor: [number, number] | undefined;
@@ -93,7 +92,7 @@ export class PointerInput {
    * Starts the primary action at the cursor: interacts with a block that can be used, or
    * shows the ghost of the held block, which is placed on `endPrimary`.
    */
-  beginPrimary(): void {
+  private beginPrimary(): void {
     if (!this.cursor) return;
     const [x, y] = this.camera.cellAt(...this.cursor);
     if (this.actions.isInteractiveAt(x, y)) this.actions.execute({ kind: 'interact', x, y });
@@ -101,10 +100,17 @@ export class PointerInput {
   }
 
   /** Places the block whose ghost `beginPrimary` showed. */
-  endPrimary(): void {
+  private endPrimary(): void {
     if (!this.placing) return;
     this.actions.execute({ kind: 'place', ...this.placing, block: heldBlock(this.hotbar) });
     this.placing = undefined;
+  }
+
+  /** The primary action at the cursor as one click: uses the block there or places the held one. */
+  primaryClick(): void {
+    if (this.placing) return;
+    this.beginPrimary();
+    this.endPrimary();
   }
 
   /** The secondary action at the cursor: breaks what is there. */
