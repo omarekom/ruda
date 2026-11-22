@@ -24,7 +24,7 @@ export class TestServer {
     writeFileSync(
       configPath,
       `<?php return ['database_path' => ${JSON.stringify(join(dir, 'library.sqlite'))}, ` +
-        `'admin_password_hash' => ${JSON.stringify(hashPassword(ADMIN_PASSWORD))}, ` +
+        `'admin_password_hash' => '${hashPassword(ADMIN_PASSWORD)}', ` +
         `'secret' => 'test-secret'];`,
     );
     const env = { ...process.env, RUDA_LIBRARY_CONFIG: configPath };
@@ -69,7 +69,11 @@ function hashPassword(password: string): string {
     ['-r', 'echo password_hash($argv[1], PASSWORD_DEFAULT);', '--', password],
     { encoding: 'utf8' },
   );
-  if (result.status !== 0) throw new Error(result.stderr);
+  // Written into PHP in single quotes, where a `$` stays literal (in double quotes it would
+  // start a variable); a hash uses only these characters.
+  if (result.status !== 0 || !/^[$./A-Za-z0-9]+$/.test(result.stdout)) {
+    throw new Error(`Could not hash the password: ${result.stderr}`);
+  }
   return result.stdout;
 }
 
